@@ -1,0 +1,1989 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MiClaw → 笔记 全场景 Demo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F4F5F7;
+  --card:#FFFFFF;
+  --primary:#1B1B1F;
+  --secondary:#72727A;
+  --accent:#FF6A00;
+  --accent-light:#FFF3EB;
+  --green:#00B578;
+  --green-light:#E8F8F0;
+  --orange:#FF8C00;
+  --red:#FA5151;
+  --blue:#3478F6;
+  --blue-light:#EBF2FF;
+  --purple:#7C3AED;
+  --purple-light:#F0EBFF;
+  --glass:rgba(255,255,255,0.72);
+  --glass-border:rgba(255,255,255,0.35);
+  --glass-dark:rgba(0,0,0,0.03);
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+  --radius-xs:8px;
+  --radius-sm:12px;
+  --radius-md:16px;
+  --radius-lg:22px;
+  --radius-xl:28px;
+}
+body{
+  font-family:'Mi Sans','Inter',-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;
+  background:linear-gradient(145deg,#0D0D12 0%,#1A1A2E 30%,#16213E 60%,#0F3460 100%);
+  display:flex;justify-content:center;align-items:center;min-height:100vh;
+  -webkit-font-smoothing:antialiased;overflow:hidden;
+}
+/* Ambient background orbs */
+body::before,body::after{
+  content:'';position:fixed;border-radius:50%;filter:blur(80px);opacity:0.15;pointer-events:none;
+}
+body::before{width:500px;height:500px;background:var(--accent);top:-100px;right:-100px}
+body::after{width:400px;height:400px;background:var(--blue);bottom:-80px;left:-80px}
+</style>
+<style>
+/* Phone frame - HyperOS style */
+.phone-frame{
+  width:393px;height:852px;background:var(--bg);
+  border-radius:48px;overflow:hidden;position:relative;
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255,255,255,0.08),
+    0 0 0 2px #2A2A3A,
+    0 0 0 4px #1A1A2A,
+    0 25px 80px rgba(0,0,0,0.6),
+    0 5px 20px rgba(0,0,0,0.3);
+}
+/* Status bar */
+.status-bar{
+  height:54px;padding:14px 28px 0;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:14px;font-weight:600;color:var(--primary);
+  position:relative;z-index:10;
+}
+.status-bar .notch{
+  width:126px;height:34px;background:#000;
+  border-radius:0 0 22px 22px;
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+}
+.status-icons{display:flex;gap:4px;align-items:center;font-size:11px;color:var(--secondary)}
+/* Launcher screen */
+.launcher-screen{position:absolute;top:0;left:0;right:0;bottom:0;z-index:50;display:none}
+.launcher-wallpaper{
+  width:100%;height:100%;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,#E8D5A0 0%,#F2C46D 15%,#E8A84C 30%,#D4884A 45%,#C0A070 55%,#88B8A0 65%,#6CA898 75%,#E8C060 90%,#F0A830 100%);
+}
+/* Wallpaper warm floral blur blobs */
+.launcher-wallpaper::before{
+  content:'';position:absolute;width:350px;height:350px;
+  background:radial-gradient(ellipse,rgba(240,168,48,0.7) 0%,rgba(232,160,76,0.4) 40%,transparent 70%);
+  top:180px;right:-60px;pointer-events:none;filter:blur(40px);
+}
+.launcher-wallpaper::after{
+  content:'';position:absolute;width:300px;height:300px;
+  background:radial-gradient(ellipse,rgba(108,168,152,0.6) 0%,rgba(136,184,160,0.3) 40%,transparent 70%);
+  bottom:150px;left:-30px;pointer-events:none;filter:blur(40px);
+}
+.launcher-status{
+  height:54px;padding:14px 28px 0;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:14px;font-weight:600;color:rgba(0,0,0,0.7);
+  position:relative;z-index:10;
+}
+.launcher-status .notch{
+  width:126px;height:34px;background:#000;
+  border-radius:0 0 22px 22px;
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+}
+.launcher-time{text-align:center;margin-top:24px;color:rgba(0,0,0,0.75)}
+.launcher-time .time{font-size:68px;font-weight:200;letter-spacing:-3px;line-height:1}
+.launcher-time .date{font-size:14px;opacity:0.5;margin-top:8px;font-weight:400;letter-spacing:0.5px}
+</style>
+<style>
+/* HyperOS Launcher Card - frosted glass */
+.launcher-card{
+  margin:20px 16px;border-radius:var(--radius-xl);
+  background:rgba(255,255,255,0.55);
+  backdrop-filter:blur(40px) saturate(180%);
+  -webkit-backdrop-filter:blur(40px) saturate(180%);
+  border:none;
+  overflow:hidden;animation:cardSlideUp 0.6s cubic-bezier(0.16,1,0.3,1);
+  box-shadow:0 4px 24px rgba(0,0,0,0.08);
+}
+.launcher-card-header{
+  padding:14px 18px;display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid rgba(0,0,0,0.06);
+}
+.launcher-card-header .lc-icon{
+  width:32px;height:32px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent) 0%,#FF8C00 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;box-shadow:0 2px 8px rgba(255,106,0,0.3);
+}
+.launcher-card-header .lc-title{font-size:14px;font-weight:600;color:var(--primary);letter-spacing:0.2px}
+.launcher-card-header .lc-sub{font-size:11px;color:var(--secondary);margin-top:1px}
+.launcher-card-body{padding:10px 14px 14px}
+.launcher-card-item{
+  padding:12px 14px;border-radius:var(--radius-md);
+  background:rgba(255,255,255,0.5);margin-bottom:8px;
+  cursor:pointer;transition:all 0.25s cubic-bezier(0.16,1,0.3,1);
+  border:none;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+}
+.launcher-card-item:hover{background:rgba(255,255,255,0.7);transform:scale(1.01)}
+.launcher-card-item:active{transform:scale(0.98)}
+.launcher-card-item:last-child{margin-bottom:0}
+.launcher-card-item .lci-title{font-size:13px;font-weight:600;color:var(--primary)}
+.launcher-card-item .lci-desc{font-size:11px;color:var(--secondary);margin-top:3px;line-height:1.4}
+.launcher-card-item .lci-tag{
+  display:inline-block;padding:3px 10px;border-radius:20px;
+  font-size:10px;font-weight:600;margin-top:6px;letter-spacing:0.3px;
+}
+/* Dock icons */
+.launcher-dock{
+  position:absolute;bottom:28px;left:0;right:0;
+  display:flex;justify-content:center;gap:20px;
+  padding:0 32px;
+}
+.dock-icon{
+  width:52px;height:52px;border-radius:14px;
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(20px);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;transition:transform 0.2s;
+  border:1px solid rgba(255,255,255,0.5);
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
+.dock-icon:active{transform:scale(0.9)}
+</style>
+<style>
+/* Notification banner - HyperOS glass style */
+.notif-banner{
+  position:absolute;top:60px;left:10px;right:10px;z-index:60;
+  border-radius:var(--radius-lg);
+  background:rgba(30,30,46,0.88);
+  backdrop-filter:blur(30px) saturate(150%);
+  -webkit-backdrop-filter:blur(30px) saturate(150%);
+  padding:14px 16px;display:none;
+  align-items:center;gap:12px;
+  animation:notifDrop 0.5s cubic-bezier(0.16,1,0.3,1);
+  box-shadow:0 12px 40px rgba(0,0,0,0.4);
+  border:1px solid rgba(255,255,255,0.1);
+  cursor:pointer;
+}
+.notif-banner .nb-icon{
+  width:38px;height:38px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.notif-banner .nb-text{flex:1}
+.notif-banner .nb-text .nb-app{font-size:10px;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:0.5px;text-transform:uppercase}
+.notif-banner .nb-text .nb-title{font-size:14px;color:white;font-weight:600;margin-top:2px}
+.notif-banner .nb-text .nb-body{font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;line-height:1.3}
+/* MiClaw Chat UI - HyperOS style */
+.nav-bar{
+  height:52px;padding:0 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--card);border-bottom:0.5px solid rgba(0,0,0,0.06);
+}
+.nav-bar .logo{
+  font-size:18px;font-weight:700;color:var(--primary);
+  display:flex;align-items:center;gap:10px;letter-spacing:-0.3px;
+}
+.nav-bar .logo .dot{
+  width:7px;height:7px;background:var(--green);border-radius:50%;
+  box-shadow:0 0 6px rgba(0,181,120,0.4);
+}
+.chat-area{
+  height:calc(852px - 54px - 52px - 76px);
+  overflow-y:auto;padding:16px 14px;scroll-behavior:smooth;
+  background:var(--bg);
+}
+.chat-area::-webkit-scrollbar{display:none}
+</style>
+<style>
+/* Messages */
+.message{display:flex;margin-bottom:14px;animation:msgFade 0.4s cubic-bezier(0.16,1,0.3,1)}
+.message.user{justify-content:flex-end}
+.avatar{
+  width:30px;height:30px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),#FF8C00);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:white;flex-shrink:0;
+  margin-right:8px;margin-top:2px;font-weight:700;
+  box-shadow:0 2px 8px rgba(255,106,0,0.25);
+}
+.message.user .avatar{display:none}
+.bubble{
+  max-width:275px;padding:11px 15px;
+  border-radius:var(--radius-lg);font-size:14px;line-height:1.55;word-break:break-word;
+}
+.message.user .bubble{
+  background:linear-gradient(135deg,var(--accent),#FF8C00);
+  color:white;border-bottom-right-radius:6px;
+  box-shadow:0 2px 12px rgba(255,106,0,0.2);
+}
+.message.ai .bubble{
+  background:var(--card);color:var(--primary);
+  border-bottom-left-radius:6px;
+  box-shadow:var(--shadow-sm);border:0.5px solid rgba(0,0,0,0.04);
+}
+/* Thinking indicator */
+.thinking{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;font-size:13px;color:var(--secondary);
+}
+.thinking .spinner{
+  width:16px;height:16px;border:2px solid rgba(0,0,0,0.08);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin 0.7s linear infinite;
+}
+.thinking-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 12px;background:var(--accent-light);color:var(--accent);
+  border-radius:20px;font-size:11px;font-weight:600;margin-bottom:6px;
+  letter-spacing:0.2px;
+}
+/* Tool cards */
+.tool-card{
+  background:var(--card);border-radius:var(--radius-md);padding:12px 14px;
+  margin-top:6px;border:0.5px solid rgba(0,0,0,0.05);
+  box-shadow:var(--shadow-sm);
+}
+.tool-card .tool-header{
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;color:var(--secondary);margin-bottom:8px;
+  font-weight:500;letter-spacing:0.2px;
+}
+.tool-card .tool-icon{
+  width:22px;height:22px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+}
+.tool-card .tool-content{font-size:13px;color:var(--primary);line-height:1.6}
+</style>
+<style>
+/* Action buttons - HyperOS pill style */
+.action-btn{
+  padding:7px 14px;border-radius:20px;font-size:12px;
+  font-weight:600;border:none;cursor:pointer;white-space:nowrap;
+  transition:all 0.2s cubic-bezier(0.16,1,0.3,1);letter-spacing:0.2px;
+}
+.action-btn.primary{background:var(--accent);color:white;box-shadow:0 2px 8px rgba(255,106,0,0.25)}
+.action-btn.secondary{background:var(--bg);color:var(--primary);border:0.5px solid rgba(0,0,0,0.06)}
+.action-btn:active{transform:scale(0.95)}
+/* Summary / Rich cards */
+.summary-card{background:var(--card);border-radius:var(--radius-lg);overflow:hidden;margin-top:8px;box-shadow:var(--shadow-md);border:0.5px solid rgba(0,0,0,0.04)}
+.summary-card .header{padding:14px 16px;background:linear-gradient(135deg,var(--accent),#FF8C00);color:white;font-size:14px;font-weight:600}
+.summary-card .body{padding:14px 16px;font-size:13px;line-height:1.7;color:var(--primary)}
+.summary-card .body .section-title{font-weight:600;font-size:12px;margin:10px 0 4px;color:var(--accent);letter-spacing:0.3px;text-transform:uppercase}
+.summary-card .body .section-title:first-child{margin-top:0}
+.confirm-bar{display:flex;gap:8px;margin-top:12px;padding:12px 0 0;border-top:0.5px solid rgba(0,0,0,0.06);flex-wrap:nowrap}
+/* Translate card */
+.translate-card{background:var(--card);border-radius:var(--radius-lg);overflow:hidden;margin-top:8px;box-shadow:var(--shadow-md);border:0.5px solid rgba(0,0,0,0.04)}
+.translate-card .original{padding:14px 16px;background:rgba(0,0,0,0.02);font-size:13px;color:var(--secondary);line-height:1.6;border-bottom:0.5px solid rgba(0,0,0,0.05)}
+.translate-card .translated{padding:14px 16px;font-size:13px;color:var(--primary);line-height:1.6}
+.translate-card .lang-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;margin-bottom:6px;letter-spacing:0.3px}
+/* Create card */
+.create-card{background:var(--card);border-radius:var(--radius-lg);overflow:hidden;margin-top:8px;box-shadow:var(--shadow-md);border:0.5px solid rgba(0,0,0,0.04)}
+.create-card .header{padding:14px 16px;background:linear-gradient(135deg,var(--purple),#A855F7);color:white;font-size:14px;font-weight:600}
+.create-card .body{padding:14px 16px;font-size:13px;line-height:1.7;color:var(--primary)}
+/* Report card */
+.report-card{background:var(--card);border-radius:var(--radius-lg);overflow:hidden;margin-top:8px;box-shadow:var(--shadow-md);border:0.5px solid rgba(0,0,0,0.04)}
+.report-card .header{padding:14px 16px;background:linear-gradient(135deg,#00B578,#38EF7D);color:white;font-size:14px;font-weight:600}
+.report-card .body{padding:14px 16px;font-size:13px;line-height:1.7;color:var(--primary)}
+.report-card .stat-row{display:flex;gap:10px;margin:10px 0}
+.report-card .stat{flex:1;text-align:center;padding:10px 8px;background:var(--bg);border-radius:var(--radius-sm)}
+.report-card .stat .num{font-size:22px;font-weight:700;color:var(--accent)}
+.report-card .stat .label{font-size:10px;color:var(--secondary);margin-top:3px;font-weight:500}
+</style>
+<style>
+/* Clipboard toast - HyperOS notification style */
+.clipboard-toast{
+  position:absolute;top:110px;left:14px;right:14px;
+  background:var(--card);border-radius:var(--radius-lg);
+  padding:14px 16px;box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;gap:12px;
+  animation:notifDrop 0.5s cubic-bezier(0.16,1,0.3,1);
+  z-index:20;border:0.5px solid rgba(0,0,0,0.04);
+}
+.clipboard-toast .icon{
+  width:38px;height:38px;border-radius:11px;
+  background:var(--purple-light);display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.clipboard-toast .text{flex:1}
+.clipboard-toast .text .title{font-size:13px;font-weight:600;color:var(--primary)}
+.clipboard-toast .text .desc{font-size:11px;color:var(--secondary);margin-top:2px}
+.clipboard-toast .actions button{
+  padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;
+  border:none;cursor:pointer;margin-left:4px;transition:all 0.2s;
+}
+/* Share sheet - HyperOS bottom sheet */
+.share-sheet{position:absolute;bottom:0;left:0;right:0;z-index:55;display:none}
+.share-sheet-bg{position:absolute;top:-852px;left:0;right:0;bottom:0;background:rgba(0,0,0,0.35)}
+.share-sheet-panel{
+  background:var(--card);border-radius:var(--radius-xl) var(--radius-xl) 0 0;
+  padding:8px 16px 44px;position:relative;
+  box-shadow:0 -8px 40px rgba(0,0,0,0.1);
+}
+.share-sheet-panel::before{
+  content:'';display:block;width:36px;height:4px;
+  background:rgba(0,0,0,0.1);border-radius:2px;
+  margin:0 auto 16px;
+}
+.share-sheet-panel .ss-title{font-size:13px;color:var(--secondary);text-align:center;margin-bottom:20px;font-weight:500}
+.share-sheet-panel .ss-apps{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+.share-sheet-panel .ss-app{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer}
+.share-sheet-panel .ss-app .ss-icon{
+  width:56px;height:56px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  transition:transform 0.2s;
+}
+.share-sheet-panel .ss-app .ss-icon:active{transform:scale(0.9)}
+.share-sheet-panel .ss-app .ss-label{font-size:11px;color:var(--primary);font-weight:500}
+.share-sheet-panel .ss-app.highlight .ss-icon{
+  box-shadow:0 0 0 2.5px var(--accent),0 4px 12px rgba(255,106,0,0.2);
+  animation:glowPulse 2s ease-in-out infinite;
+}
+/* Input area */
+.input-area{
+  height:76px;padding:10px 16px;
+  background:var(--card);border-top:0.5px solid rgba(0,0,0,0.05);
+  display:flex;align-items:center;gap:10px;
+  position:absolute;bottom:0;left:0;right:0;
+}
+.input-field{
+  flex:1;height:38px;border-radius:20px;
+  background:var(--bg);border:none;padding:0 16px;
+  font-size:14px;outline:none;color:var(--primary);
+  font-family:inherit;
+}
+.input-field::placeholder{color:#B0B0B8}
+.send-btn{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#FF8C00);
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(255,106,0,0.3);transition:all 0.2s;
+}
+.send-btn:active{transform:scale(0.88)}
+.send-btn svg{width:16px;height:16px}
+</style>
+<style>
+/* Scene selector - HyperOS glass panel */
+.scene-selector{
+  position:fixed;top:20px;right:20px;bottom:20px;
+  display:flex;flex-direction:column;gap:6px;z-index:100;
+  background:rgba(20,20,35,0.6);
+  backdrop-filter:blur(30px) saturate(150%);
+  -webkit-backdrop-filter:blur(30px) saturate(150%);
+  border-radius:var(--radius-xl);padding:20px 16px;
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 16px 48px rgba(0,0,0,0.3);
+  min-width:240px;
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,0.15) transparent;
+}
+.scene-selector::-webkit-scrollbar{width:4px}
+.scene-selector::-webkit-scrollbar-track{background:transparent}
+.scene-selector::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px}
+.scene-selector-title{
+  color:white;font-size:15px;font-weight:700;
+  margin-bottom:2px;letter-spacing:-0.3px;
+  display:flex;align-items:center;gap:8px;
+}
+.scene-selector-sub{
+  color:rgba(255,255,255,0.35);font-size:11px;
+  margin-bottom:12px;font-weight:400;letter-spacing:0.3px;
+}
+.scene-btn{
+  padding:10px 14px;border-radius:var(--radius-sm);
+  background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.75);
+  border:1px solid rgba(255,255,255,0.06);
+  font-size:13px;cursor:pointer;text-align:left;
+  transition:all 0.25s cubic-bezier(0.16,1,0.3,1);
+  font-family:inherit;font-weight:500;
+}
+.scene-btn:hover{background:rgba(255,255,255,0.08);color:white}
+.scene-btn.active{
+  background:linear-gradient(135deg,rgba(255,106,0,0.15),rgba(255,140,0,0.1));
+  color:white;border-color:rgba(255,106,0,0.3);
+  box-shadow:0 0 16px rgba(255,106,0,0.1);
+}
+.scene-label{
+  color:rgba(255,255,255,0.3);font-size:9px;padding:8px 0 4px;
+  letter-spacing:1.5px;text-transform:uppercase;font-weight:600;
+}
+/* Animations */
+@keyframes msgFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes notifDrop{from{opacity:0;transform:translateY(-30px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes cardSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 0 2.5px var(--accent),0 4px 12px rgba(255,106,0,0.15)}50%{box-shadow:0 0 0 2.5px var(--accent),0 4px 20px rgba(255,106,0,0.35)}}
+@keyframes wave1{0%,100%{height:6px}50%{height:16px}}
+@keyframes wave2{0%,100%{height:14px}50%{height:4px}}
+@keyframes noteSlideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes noteSlideOut{from{transform:translateX(0)}to{transform:translateX(100%)}}
+</style>
+<style>
+/* Note detail page */
+.note-detail{
+  position:absolute;top:0;left:0;right:0;bottom:0;z-index:80;
+  background:var(--card);display:none;
+  flex-direction:column;animation:noteSlideIn 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.note-detail.closing{animation:noteSlideOut 0.3s cubic-bezier(0.16,1,0.3,1);animation-fill-mode:forwards}
+.note-detail .note-status{
+  height:54px;padding:14px 28px 0;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:14px;font-weight:600;color:var(--primary);
+  position:relative;
+}
+.note-detail .note-status .notch{
+  width:126px;height:34px;background:#000;
+  border-radius:0 0 22px 22px;
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+}
+.note-detail .note-nav{
+  height:48px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;
+}
+.note-detail .note-nav .note-back{
+  font-size:22px;color:var(--primary);opacity:0.5;cursor:pointer;
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;transition:background 0.2s;
+}
+.note-detail .note-nav .note-back:active{background:var(--bg)}
+.note-detail .note-nav .note-actions{display:flex;gap:16px;align-items:center}
+.note-detail .note-nav .note-actions span{font-size:18px;opacity:0.4;cursor:pointer}
+.note-detail .note-body{
+  flex:1;overflow-y:auto;padding:4px 24px 20px;
+}
+.note-detail .note-body::-webkit-scrollbar{display:none}
+.note-detail .note-title{
+  font-size:22px;font-weight:700;color:var(--primary);
+  line-height:1.35;margin-bottom:10px;letter-spacing:-0.3px;
+}
+.note-detail .note-meta{
+  font-size:12px;color:var(--secondary);margin-bottom:20px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.note-detail .note-meta .note-tag{
+  color:var(--blue);font-weight:500;
+}
+.note-detail .note-content{
+  font-size:15px;line-height:1.75;color:var(--primary);
+}
+.note-detail .note-content ul{
+  list-style:disc;padding-left:20px;margin:8px 0;
+}
+.note-detail .note-content li{margin-bottom:6px}
+.note-detail .note-content .note-section{
+  font-weight:600;font-size:15px;margin:16px 0 8px;color:var(--primary);
+}
+.note-detail .note-content .note-section:first-child{margin-top:0}
+.note-detail .note-ai-bar{
+  height:64px;padding:10px 20px;
+  display:flex;align-items:center;gap:12px;
+  border-top:0.5px solid rgba(0,0,0,0.06);
+  background:var(--card);flex-shrink:0;
+}
+.note-detail .note-ai-bar .ai-input{
+  flex:1;height:40px;border-radius:22px;
+  background:var(--bg);border:none;padding:0 18px;
+  font-size:14px;color:var(--secondary);
+  font-family:inherit;outline:none;
+}
+.note-detail .note-ai-bar .ai-mic{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;cursor:pointer;opacity:0.4;
+}
+</style>
+</head>
+<body>
+<div class="scene-selector">
+  <div class="scene-selector-title"><span style="font-size:18px">🔥</span> MiClaw → 笔记</div>
+  <div class="scene-selector-sub">全场景梳理 · 5大分类 · 31个场景</div>
+
+  <div class="scene-label">一、系统自动产出（后台触发）</div>
+  <button class="scene-btn active" onclick="loadScene('recording',this)">🎙 会议纪要 · 录音结束自动生成</button>
+  <button class="scene-btn" onclick="loadScene('call_summary',this)">📞 通话摘要 · 挂断后自动生成</button>
+  <button class="scene-btn" onclick="loadScene('trip_report',this)">✈️ 出差报告 · 行程结束自动汇总</button>
+  <button class="scene-btn" onclick="loadScene('sms_parse',this)">💬 短信结构化 · 航班/快递/消费</button>
+  <button class="scene-btn" onclick="loadScene('screenshot',this)">📸 拍照归档 · 发票/白板/截图</button>
+  <button class="scene-btn" onclick="loadScene('island',this)">🏝️ 超级岛 · Agent 实时状态</button>
+
+  <div class="scene-label">二、MiClaw 对话产出（用户触发）</div>
+  <button class="scene-btn" onclick="loadScene('meeting',this)">📋 听 · 会议纪要生成</button>
+  <button class="scene-btn" onclick="loadScene('create',this)">✍️ 写 · 帮我写邮件</button>
+  <button class="scene-btn" onclick="loadScene('weekly',this)">📊 写 · 周报自动起草</button>
+  <button class="scene-btn" onclick="loadScene('translate',this)">🌐 读+译 · 长文摘要翻译</button>
+  <button class="scene-btn" onclick="loadScene('search',this)">🔍 跨应用记录检索</button>
+  <button class="scene-btn" onclick="loadScene('ocr',this)">📸 截图/聊天 → 信息整合</button>
+
+  <div class="scene-label">三、跨Agent协作（其他Agent→笔记）</div>
+  <button class="scene-btn" onclick="loadScene('finance_brief',this)">📈 金融简报 · 股票涨跌分析</button>
+  <button class="scene-btn" onclick="loadScene('dailybrief',this)">☀️ 每日简报 · 晨间速览</button>
+  <button class="scene-btn" onclick="loadScene('expense',this)">🧾 出差报销 · 多源汇总</button>
+  <button class="scene-btn" onclick="loadScene('contact_note',this)">👤 通讯录备注 · 沟通摘要</button>
+
+  <div class="scene-label">四、穿戴设备/多端采集（APP外硬件）</div>
+  <button class="scene-btn" onclick="loadScene('watch',this)">⌚ 手表语音 → 快速记录</button>
+  <button class="scene-btn" onclick="loadScene('watch_multi',this)">⌚ 手表 · 多意图拆解</button>
+  <button class="scene-btn" onclick="loadScene('ring',this)">💍 戒指 · 轻触录入笔记</button>
+  <button class="scene-btn" onclick="loadScene('aikey_record',this)">🔑 AI键 · 会后速记</button>
+  <button class="scene-btn" onclick="loadScene('aikey_query',this)">🔑 AI键 · query日程</button>
+  <button class="scene-btn" onclick="loadScene('aikey_fuzzy',this)">🔑 AI键 · 边界模糊</button>
+  <button class="scene-btn" onclick="loadScene('earphone',this)">🎧 耳机 · 语音速记</button>
+  <button class="scene-btn" onclick="loadScene('lockscreen',this)">🔒 灵动岛/锁屏 · 3秒录入</button>
+
+  <div class="scene-label">五、笔记APP内AI操作</div>
+  <button class="scene-btn" onclick="loadScene('video',this)">🎬 听+读 · 视频内容摘要</button>
+  <button class="scene-btn" onclick="loadScene('exam',this)">🎓 读 · 考点/考题生成</button>
+  <button class="scene-btn" onclick="loadScene('merge',this)">📑 笔记聚合整理</button>
+  <button class="scene-btn" onclick="loadScene('smartclip',this)">📌 智能收藏 · 稍后读</button>
+  <button class="scene-btn" onclick="loadScene('share',this)">📤 分享面板 → 内容助手</button>
+  <button class="scene-btn" onclick="loadScene('launcher',this)">🏠 Launcher 负一屏卡片</button>
+  <button class="scene-btn" onclick="loadScene('widget',this)">📱 小部件 · 桌面智能卡片</button>
+</div>
+
+<div class="phone-frame" id="phoneFrame">
+  <!-- Launcher screen -->
+  <div class="launcher-screen" id="launcherScreen">
+    <div class="launcher-wallpaper">
+      <div style="position:absolute;width:200px;height:200px;background:radial-gradient(ellipse,rgba(220,100,40,0.5),transparent 70%);top:300px;left:40px;filter:blur(50px);pointer-events:none"></div>
+      <div style="position:absolute;width:250px;height:180px;background:radial-gradient(ellipse,rgba(240,180,60,0.6),transparent 70%);top:150px;left:100px;filter:blur(45px);pointer-events:none"></div>
+      <div style="position:absolute;width:180px;height:220px;background:radial-gradient(ellipse,rgba(200,160,80,0.4),transparent 70%);bottom:200px;right:20px;filter:blur(50px);pointer-events:none"></div>
+      <div style="position:absolute;width:160px;height:160px;background:radial-gradient(ellipse,rgba(100,170,140,0.35),transparent 70%);top:400px;left:150px;filter:blur(40px);pointer-events:none"></div>
+      <div class="launcher-status"><span>2:36</span><div class="notch"></div><div class="status-icons"><span>📶</span><span>🔋</span></div></div>
+      <div class="launcher-time"><div class="time">2:36</div><div class="date">3月9日 周一</div></div>
+      <div class="launcher-card" id="launcherCard"></div>
+      <div class="launcher-dock">
+        <div class="dock-icon" style="background:#22C55E;border:none"><span style="font-size:24px;filter:brightness(0) invert(1)">📞</span></div>
+        <div class="dock-icon" style="background:#22C55E;border:none"><span style="font-size:24px;filter:brightness(0) invert(1)">💬</span></div>
+        <div class="dock-icon" style="background:white;border:none"><span style="font-size:26px">🌐</span></div>
+        <div class="dock-icon" style="background:#F3F4F6;border:none"><span style="font-size:24px">📷</span></div>
+      </div>
+    </div>
+  </div>
+  <!-- Notification banner -->
+  <div class="notif-banner" id="notifBanner"></div>
+  <!-- Share sheet -->
+  <div class="share-sheet" id="shareSheet">
+    <div class="share-sheet-bg" onclick="closeShareSheet()"></div>
+    <div class="share-sheet-panel">
+      <div class="ss-title">分享到</div>
+      <div class="ss-apps">
+        <div class="ss-app" onclick="closeShareSheet()"><div class="ss-icon" style="background:var(--bg)">💬</div><div class="ss-label">微信</div></div>
+        <div class="ss-app" onclick="closeShareSheet()"><div class="ss-icon" style="background:var(--bg)">📝</div><div class="ss-label">笔记</div></div>
+        <div class="ss-app highlight" onclick="shareToMiclaw()"><div class="ss-icon" style="background:linear-gradient(135deg,var(--accent),#FF8C00);color:white;font-weight:700">M</div><div class="ss-label" style="color:var(--accent);font-weight:600">MiClaw</div><div style="font-size:9px;color:var(--secondary);margin-top:-2px">内容助手</div></div>
+        <div class="ss-app" onclick="closeShareSheet()"><div class="ss-icon" style="background:var(--bg)">📋</div><div class="ss-label">复制</div></div>
+        <div class="ss-app" onclick="closeShareSheet()"><div class="ss-icon" style="background:var(--bg)">📧</div><div class="ss-label">邮件</div></div>
+      </div>
+    </div>
+  </div>
+  <!-- MiClaw chat UI -->
+  <div id="miclawUI">
+    <div class="status-bar" style="background:var(--card)"><span>2:36</span><div class="notch"></div><div class="status-icons"><span>📶</span><span>🔋</span></div></div>
+    <div class="nav-bar">
+      <div class="logo">
+        <span style="font-size:20px;opacity:0.3">‹</span>
+        <span style="background:linear-gradient(135deg,var(--accent),#FF8C00);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent">MiClaw</span>
+        <div class="dot"></div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:center">
+        <span style="font-size:16px;opacity:0.3">#</span>
+        <span style="font-size:16px;opacity:0.3">⚙</span>
+      </div>
+    </div>
+    <div class="chat-area" id="chatArea"></div>
+    <div class="input-area">
+      <div style="display:flex;gap:12px;align-items:center">
+        <span style="font-size:18px;opacity:0.3;cursor:pointer">＋</span>
+        <span style="font-size:16px;opacity:0.3;cursor:pointer">@</span>
+      </div>
+      <input class="input-field" id="inputField" placeholder="写、译、读、听..." onkeydown="if(event.key==='Enter')sendMessage()">
+      <button class="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"/></svg>
+      </button>
+    </div>
+  </div>
+  <!-- Note detail page overlay -->
+  <div class="note-detail" id="noteDetail">
+    <div class="note-status"><span>2:36</span><div class="notch"></div><div class="status-icons"><span>📶</span><span>🔋</span></div></div>
+    <div class="note-nav">
+      <div class="note-back" onclick="closeNoteDetail()">←</div>
+      <div class="note-actions"><span>⬆</span><span>⋯</span></div>
+    </div>
+    <div class="note-body">
+      <div class="note-title" id="noteTitle"></div>
+      <div class="note-meta" id="noteMeta"></div>
+      <div class="note-content" id="noteContent"></div>
+    </div>
+    <div class="note-ai-bar">
+      <input class="ai-input" placeholder="询问AI" readonly>
+      <div class="ai-mic">🎙</div>
+    </div>
+  </div>
+</div>
+<script>
+var chatArea=document.getElementById('chatArea'),inputField=document.getElementById('inputField'),isPlaying=false;
+var noteDetail=document.getElementById('noteDetail');
+function showNoteDetail(title,tags,content){
+  document.getElementById('noteTitle').textContent=title;
+  document.getElementById('noteMeta').innerHTML=tags;
+  document.getElementById('noteContent').innerHTML=content;
+  noteDetail.style.display='flex';
+  noteDetail.classList.remove('closing');
+  noteDetail.querySelector('.note-body').scrollTop=0;
+}
+function closeNoteDetail(){
+  noteDetail.classList.add('closing');
+  setTimeout(function(){noteDetail.style.display='none';noteDetail.classList.remove('closing')},280);
+}
+function scrollB(){setTimeout(function(){chatArea.scrollTop=chatArea.scrollHeight},100)}
+function W(ms){return new Promise(function(r){setTimeout(r,ms)})}
+function addMsg(type,c,d){return new Promise(function(r){setTimeout(function(){var e=document.createElement('div');e.className='message '+type;e.innerHTML=type==='ai'?'<div class="avatar">M</div><div class="bubble">'+c+'</div>':'<div class="bubble">'+c+'</div>';chatArea.appendChild(e);scrollB();r()},d||0)})}
+function addThink(t,d){return new Promise(function(r){setTimeout(function(){var e=document.createElement('div');e.className='message ai';e.id='thinking';e.innerHTML='<div class="avatar">M</div><div class="thinking"><div class="spinner"></div>'+t+'</div>';chatArea.appendChild(e);scrollB();r()},d||0)})}
+function rmThink(){var e=document.getElementById('thinking');if(e)e.remove()}
+function addTool(icon,bg,name,c,d){return new Promise(function(r){setTimeout(function(){var e=document.createElement('div');e.className='message ai';e.innerHTML='<div class="avatar">M</div><div class="bubble" style="padding:8px 10px;max-width:295px"><div class="tool-card"><div class="tool-header"><div class="tool-icon" style="background:'+bg+'">'+icon+'</div><span>'+name+'</span></div><div class="tool-content">'+c+'</div></div></div>';chatArea.appendChild(e);scrollB();r()},d||0)})}
+function addRich(h,d){return new Promise(function(r){setTimeout(function(){var e=document.createElement('div');e.className='message ai';e.innerHTML='<div class="avatar">M</div><div style="max-width:295px">'+h+'</div>';chatArea.appendChild(e);scrollB();r()},d||0)})}
+function showMiclaw(){document.getElementById('launcherScreen').style.display='none';document.getElementById('miclawUI').style.display='block'}
+function showLauncher(){document.getElementById('launcherScreen').style.display='block';document.getElementById('miclawUI').style.display='none'}
+function dismissToast(){var t=document.getElementById('clipToast');if(t){t.style.opacity='0';t.style.transform='translateY(-20px)';t.style.transition='all 0.3s';setTimeout(function(){t.remove()},300)}}
+function closeShareSheet(){document.getElementById('shareSheet').style.display='none'}
+
+// Note detail page data for each scene
+var noteData={
+  create:{
+    title:'项目进展汇报邮件',
+    meta:'3/10 14:32 &nbsp;|&nbsp; <span class="note-tag">#工作</span> &nbsp;<span class="note-tag">#邮件</span>',
+    content:'<div class="note-section">收件人</div>张总<div class="note-section">主题</div>Q1 产品迭代进展汇报<div class="note-section">正文</div>张总您好，<br><br>以下是本季度产品迭代的关键进展：<ul><li>内容助手 Agent 框架已完成架构设计，核心模块开发进度 85%</li><li>多模态识别能力（OCR/语音）已通过内部测试，准确率 96.2%</li><li>系统级联动方案（通知栏、分享面板、超级岛）已完成技术验证</li><li>预计下月初可进入灰度测试阶段</li></ul>如需了解更多细节，随时沟通。<br><br>此致'
+  },
+  translate:{
+    title:'AI Agent规模定律·摘要',
+    meta:'3/10 11:05 &nbsp;|&nbsp; <span class="note-tag">#阅读</span> &nbsp;<span class="note-tag">#AI研究</span>',
+    content:'<div class="note-section">原文信息</div>来源：arxiv.org — "Scaling Laws for AI Agents"<br>作者：Smith et al. | 8,432 字<div class="note-section">核心摘要</div><ul><li>Agent 能力随模型规模呈对数增长，非线性</li><li>工具使用能力在 10B 参数后出现涌现</li><li>多步推理是当前关键瓶颈</li><li>记忆机制可弥补小模型差距</li></ul><div class="note-section">关键数据</div><ul><li>10B→100B 参数：任务完成率 +23%</li><li>工具调用准确率：72% → 94%</li><li>多步推理上限：当前约 5-7 步</li></ul>'
+  },
+  weekly:{
+    title:'本周工作周报',
+    meta:'3/10 09:15 &nbsp;|&nbsp; <span class="note-tag">#工作</span> &nbsp;<span class="note-tag">#周报</span>',
+    content:'<div class="note-section">本周完成</div><ul><li>场景1端到端联调</li><li>Prompt 模板初版完成</li><li>完成 3 次用户访谈</li></ul><div class="note-section">关键数据</div><ul><li>代码提交 47 次</li><li>Bug 修复 12 个</li><li>需求完成率 89%</li></ul><div class="note-section">下周计划</div><ul><li>场景2开发启动</li><li>性能优化专项</li><li>准备月度汇报材料</li></ul>'
+  },
+  ocr:{
+    title:'群聊记录整理',
+    meta:'3/10 15:20 &nbsp;|&nbsp; <span class="note-tag">#工作</span> &nbsp;<span class="note-tag">#会议</span>',
+    content:'<div class="note-section">来源</div>截图识别 — 产品群聊天记录<div class="note-section">关键信息</div><ul><li>下周三前完成接口文档 — @张明</li><li>设计稿周三前提交 — @李华</li><li>客户演示时间确认为周五下午</li></ul><div class="note-section">待办事项</div><ul><li>☐ @张明 确认接口文档 — 周三前</li><li>☐ @李华 提交设计稿 — 周三前</li><li>☐ 准备客户演示材料 — 周五前</li></ul>'
+  },
+  meeting:{
+    title:'产品评审会议纪要',
+    meta:'3/10 16:30 &nbsp;|&nbsp; <span class="note-tag">#会议</span> &nbsp;<span class="note-tag">#产品</span>',
+    content:'<div class="note-section">会议信息</div>时间：2026年3月10日 14:00-15:22<br>参会人：张明、李华、王芳、陈刚、刘洋<br>录音时长：45:22<div class="note-section">议题与决策</div><ul><li>内容助手 v2.0 功能范围确认 → 通过</li><li>多模态输入优先级排序 → 语音 > OCR > 视频</li><li>灰度发布计划 → 4月第二周启动</li><li>数据安全方案 → 采用端侧处理优先策略</li><li>周报自动化需求 → 纳入 v2.1 规划</li></ul><div class="note-section">待办跟进</div><ul><li>☐ @王芳 周报模板设计稿 — 下周一</li><li>☐ @陈刚 客户反馈分类标签体系 — 下周一</li><li>☐ @刘洋 灰度用户筛选方案 — 本周五</li></ul>'
+  },
+  exam:{
+    title:'计算机网络·传输层考点',
+    meta:'3/10 20:45 &nbsp;|&nbsp; <span class="note-tag">#学习</span> &nbsp;<span class="note-tag">#计算机网络</span>',
+    content:'<div class="note-section">核心考点</div><ul><li>★★★ TCP 三次握手与四次挥手 — 高频必考</li><li>★★★ 拥塞控制四算法 — 慢启动/拥塞避免/快重传/快恢复</li><li>★★☆ 流量控制与滑动窗口 — 中频</li><li>★★☆ TCP vs UDP 对比 — 中频</li><li>★☆☆ UDP 校验和计算 — 易错</li><li>★★☆ 端口号与多路复用 — 中频</li></ul><div class="note-section">模拟题预览</div><ul><li>选择题 ×2 — TCP 握手状态转换</li><li>简答题 ×2 — 拥塞控制机制描述</li><li>综合题 ×1 — 拥塞窗口变化曲线</li></ul>'
+  },
+  share:{
+    title:'AI Agent规模定律·翻译摘要',
+    meta:'3/10 10:22 &nbsp;|&nbsp; <span class="note-tag">#阅读</span> &nbsp;<span class="note-tag">#翻译</span>',
+    content:'<div class="note-section">来源</div>Safari 分享 — arxiv.org<div class="note-section">摘要</div><ul><li>Agent 能力随模型规模呈对数增长</li><li>工具使用能力在 10B 参数后涌现</li><li>多步推理是关键瓶颈</li><li>记忆机制可弥补小模型差距</li></ul>'
+  },
+  watch:{
+    title:'与张总沟通要点',
+    meta:'3/10 12:15 &nbsp;|&nbsp; <span class="note-tag">#工作</span> &nbsp;<span class="note-tag">#沟通记录</span>',
+    content:'<div class="note-section">来源</div>⌚ 手表语音输入 · 02:35 录音转写<div class="note-section">关键要点</div><ul><li>Q2 预算需要重新评估，增加 AI 基础设施投入</li><li>内容助手优先对接教育场景</li><li>本周内输出 Demo 排期计划</li><li>联系教育团队负责人约会议</li></ul><div class="note-section">关联</div>已关联日程「与张总午餐会」<br>3 条待办已添加到提醒'
+  },
+  smartclip:{
+    title:'本周待读文章整理',
+    meta:'3/10 08:30 &nbsp;|&nbsp; <span class="note-tag">#收藏</span> &nbsp;<span class="note-tag">#阅读</span>',
+    content:'<div class="note-section">待读清单</div><ul><li>📌 《大模型应用落地的 10 个误区》— 36kr · 优先阅读</li><li>📌 《2026 移动端 AI 趋势报告》— TechCrunch · 推荐</li><li>📌 《设计系统搭建实战》— Medium · 可稍后</li></ul><div class="note-section">AI 建议</div>根据你最近的工作重点，建议优先阅读前两篇，与当前项目高度相关。'
+  },
+  merge:{
+    title:'内容助手项目·完整文档',
+    meta:'3/10 17:00 &nbsp;|&nbsp; <span class="note-tag">#项目</span> &nbsp;<span class="note-tag">#汇总</span>',
+    content:'<div class="note-section">文档来源</div>聚合自 6 篇相关笔记<div class="note-section">项目概述</div>MiClaw 内容助手是基于 Agent 架构的系统级 AI 助手，核心能力覆盖写、译、读、听四大场景。<div class="note-section">进度总览</div><ul><li>架构设计 ✅ | Tool接口 ✅ | ASR选型 ✅</li><li>Agent框架 60% | Prompt调优 进行中</li><li>预计4月第二周启动灰度</li></ul>'
+  },
+  video:{
+    title:'WWDC26 AI框架·视频摘要',
+    meta:'3/10 21:30 &nbsp;|&nbsp; <span class="note-tag">#学习</span> &nbsp;<span class="note-tag">#WWDC</span>',
+    content:'<div class="note-section">视频信息</div>WWDC26 — What\'s New in AI Frameworks · 42:18<div class="note-section">核心内容</div><ul><li>Foundation Models 框架重大更新，支持端侧 Agent</li><li>新增 on-device tool calling API</li><li>Core ML 性能提升 3.2 倍</li><li>隐私计算框架升级，支持联邦学习</li></ul><div class="note-section">时间线</div><ul><li>00:00 开场介绍</li><li>08:30 Foundation Models 更新</li><li>18:45 Core ML 性能优化</li><li>28:20 隐私与安全</li><li>39:50 总结与展望</li></ul>'
+  },
+  search:{
+    title:'空调滤芯更换记录',
+    meta:'3/10 19:00 &nbsp;|&nbsp; <span class="note-tag">#家庭事务</span> &nbsp;<span class="note-tag">#设备维护</span>',
+    content:'<div class="note-section">维护统计</div>累计更换 3 次 · 总花费 889 元 · 平均周期约 8 个月<div class="note-section">最近一次</div><ul><li>维护时间：2026年2月27日</li><li>维护设备：厨房小米净水器PP棉+RO反渗透膜</li><li>采购渠道：京东</li><li>本次开销：250元</li></ul><div class="note-section">提醒</div><ul><li>短期巡检提醒：3个月后检查PP棉滤芯的消耗与脏污情况</li><li>长期复购提醒：1年后为厨房净水器购买并更换全新的3号RO反渗透膜</li></ul>'
+  },
+  dailybrief:{
+    title:'每日简报 · 3月10日',
+    meta:'3/10 07:30 &nbsp;|&nbsp; <span class="note-tag">#简报</span> &nbsp;<span class="note-tag">#每日</span>',
+    content:'<div class="note-section">今日日程</div><ul><li>09:30 产品周会</li><li>14:00 与张总午餐会</li><li>16:00 技术评审</li></ul><div class="note-section">待办提醒</div><ul><li>接口文档确认 — 今日截止</li><li>周报提交 — 明日截止</li></ul><div class="note-section">资讯摘要</div><ul><li>Google 发布 Gemini 3.0 多模态更新</li><li>苹果 WWDC26 日期确认：6月9日</li></ul>'
+  },
+  screenshot:{
+    title:'独居女生的周末早餐灵感',
+    meta:'3/10 09:45 &nbsp;|&nbsp; <span class="note-tag">#生活</span> &nbsp;<span class="note-tag">#美食收藏</span>',
+    content:'<div class="note-section">来源</div>小红书截图 · 自动识别保存<div class="note-section">内容摘要</div><ul><li>5 款快手早餐搭配方案</li><li>食材清单：鸡蛋、吐司、牛油果、酸奶、燕麦</li><li>每款准备时间均在 10 分钟内</li><li>适合工作日和周末不同场景</li></ul><div class="note-section">关键食谱</div><ul><li>🥑 牛油果吐司 + 溏心蛋（8分钟）</li><li>🫐 希腊酸奶碗 + 莓果燕麦（5分钟）</li><li>🥞 香蕉松饼 + 蜂蜜（10分钟）</li></ul><div class="note-section">标签</div>#早餐 #独居生活 #快手料理 #健康饮食'
+  },
+  ring:{
+    title:'Q3海外市场拓展 · 会议准备',
+    meta:'3/11 16:20 &nbsp;|&nbsp; <span class="note-tag">#工作</span> &nbsp;<span class="note-tag">#海外市场</span>',
+    content:'<div class="note-section">来源</div>💍 智能戒指语音录入 · 自动处理<div class="note-section">日程</div><ul><li>与李总会议 · Q3海外市场拓展方案</li><li>时间：下周三 14:00</li><li>已发送日程邀请给李明（战略副总裁）</li></ul><div class="note-section">待办事项</div><ul><li>☐ 通知市场部准备Q3海外市场数据</li><li>☐ 整理海外拓展方案初稿</li><li>☐ 确认会议室预定</li></ul><div class="note-section">关联</div>项目：海外市场拓展<br>联系人：李明（战略副总裁）'
+  }
+};
+
+// Note data for category 1 scenes (system auto-generated)
+noteData.call_summary={
+  title:'通话摘要 · 与张总',
+  meta:'3/25 14:30 &nbsp;|&nbsp; <span class="note-tag">📞 通讯Agent自动生成</span> &nbsp;<span class="note-tag">#工作</span>',
+  content:'<div class="note-section">通话信息</div>时间：2026年3月25日 14:30<br>时长：12分35秒<br>对方：张总（产品副总裁）<div class="note-section">📌 关键信息</div><ul><li><b>Q2预算已批准</b>，下周一走流程</li><li>内容助手Demo需要在<b>4月10号前</b>完成</li><li>张总建议先做<b>语音速记场景</b>，优先级最高</li></ul><div class="note-section">✅ 待办事项</div><ul><li>☐ 下周一提交预算申请表 — ⏰ 已同步日历</li><li>☐ 4月10号前完成Demo — ⏰ 已创建日程提醒</li></ul><div class="note-section">🔗 关联</div><ul><li>已同步到联系人「张总」详情页</li><li>关联项目：内容助手</li></ul>'
+};
+noteData.trip_report={
+  title:'出差报告 · 上海 3.22-3.24',
+  meta:'3/24 20:00 &nbsp;|&nbsp; <span class="note-tag">✈️ 日程出行Agent自动生成</span> &nbsp;<span class="note-tag">#出差</span>',
+  content:'<div class="note-section">出差概要</div>目的地：上海<br>时间：2026年3月22日 — 3月24日（3天）<br>总花费：¥4,280<div class="note-section">📋 行程记录</div><ul><li><b>3/22</b> 抵达上海 · 客户A拜访（产品方案沟通）· 晚餐商务宴请</li><li><b>3/23</b> 客户B方案评审 · 内部对齐会 · 产品Demo演示</li><li><b>3/24</b> 总结会 · 返程</li></ul><div class="note-section">💰 费用明细</div><ul><li>✈️ 交通：¥1,860（机票¥1,200 + 打车¥660）</li><li>🏨 住宿：¥1,580（2晚 · 全季酒店）</li><li>🍽 餐饮：¥840（含商务宴请¥580）</li></ul><div class="note-section">📸 发票附件</div><ul><li>机票电子行程单 ✅ 已匹配</li><li>酒店发票 ✅ 已OCR识别</li><li>打车发票 ×4 ✅ 已汇总</li><li>餐饮发票 ×2 ✅ 已识别</li></ul><div class="note-section">✅ 后续事项</div><ul><li>☐ 提交报销申请 — 可一键推到飞书审批</li><li>☐ 客户A方案修改版 — 本周五前</li><li>☐ 客户B合同条款确认 — 下周一前</li></ul>'
+};
+noteData.sms_parse={
+  title:'短信智能归档 · 3月25日',
+  meta:'3/25 18:30 &nbsp;|&nbsp; <span class="note-tag">💬 系统自动处理</span> &nbsp;<span class="note-tag">#日常</span>',
+  content:'<div class="note-section">⚠️ 航班变更</div><b>MU5138 延误2小时</b><br>原 18:00 → 现 20:00 · 浦东→首都<br><span style="color:var(--blue)">→ 已自动更新日历</span><div class="note-section">📦 快递到达</div><b>京东快递已送达丰巢柜</b><br>取件码 8-2-1234 · 48小时内取件<br><span style="color:var(--blue)">→ 已创建取件提醒</span><div class="note-section">💳 消费记录</div><b>招商银行消费 ¥328.00</b><br>星巴克臻选 · 尾号6688<br>本月累计消费 ¥4,230 · 余额 ¥12,450<div class="note-section">📊 本月消费统计</div><ul><li>餐饮：¥2,180</li><li>交通：¥1,200</li><li>购物：¥850</li></ul>'
+};
+noteData.photo_archive={
+  title:'截图收藏 · 独居女生的周末早餐',
+  meta:'3/25 09:45 &nbsp;|&nbsp; <span class="note-tag">📸 影像Agent自动识别</span> &nbsp;<span class="note-tag">#生活</span> &nbsp;<span class="note-tag">#美食</span>',
+  content:'<div class="note-section">来源</div>小红书截图 · AI自动识别保存<div class="note-section">📝 内容摘要</div><b>独居女生的周末早餐｜5款快手搭配</b><br>每款不超过10分钟，食材简单，摆盘好看<div class="note-section">🍳 食谱清单</div><ul><li>🥑 牛油果吐司 + 溏心蛋 — 8分钟</li><li>🫐 希腊酸奶碗 + 莓果燕麦 — 5分钟</li><li>🥞 香蕉松饼 + 蜂蜜 — 10分钟</li><li>🥪 三明治 + 美式咖啡 — 6分钟</li><li>🥣 隔夜燕麦杯 — 前晚3分钟</li></ul><div class="note-section">🛒 食材清单</div>鸡蛋、吐司、牛油果、酸奶、燕麦、香蕉、蓝莓、蜂蜜<div class="note-section">🏷 标签</div>#早餐 #独居生活 #快手料理 #健康饮食'
+};
+noteData.recording_note={
+  title:'产品评审会议纪要',
+  meta:'3/25 15:22 &nbsp;|&nbsp; <span class="note-tag">🎙 录音自动生成</span> &nbsp;<span class="note-tag">#会议</span> &nbsp;<span class="note-tag">#产品</span>',
+  content:'<div class="note-section">会议信息</div>时间：2026年3月25日 14:00-15:22<br>参会人：张明、李华、王芳、陈刚、刘洋<br>录音时长：32:15 · 4位发言人 · 2,847字<div class="note-section">📌 会议要点</div><ul><li><b>内容助手 v2.0 功能范围确认</b> → 通过</li><li>多模态输入优先级排序 → 语音 > OCR > 视频</li><li>灰度发布计划 → 4月第二周启动</li><li>数据安全方案 → 采用端侧处理优先策略</li><li>周报自动化需求 → 纳入 v2.1 规划</li></ul><div class="note-section">💡 关键决议</div><ul><li>翻译引擎切换为自研模型 — 张明负责</li><li>ASR 服务增加说话人分离 — 李华跟进</li><li>周报模板支持自定义 — 王芳设计</li></ul><div class="note-section">✅ 待办跟进</div><ul><li>☐ @王芳 周报模板设计稿 — 下周一</li><li>☐ @陈刚 客户反馈分类标签体系 — 下周一</li><li>☐ @刘洋 灰度用户筛选方案 — 本周五</li></ul>'
+};
+
+// Category 3: 跨Agent协作 noteData
+noteData.finance_brief={
+  title:'今日持仓简报 · 3月25日',
+  meta:'3/25 15:30 &nbsp;|&nbsp; <span class="note-tag">📈 金融助手Agent</span> &nbsp;<span class="note-tag">#金融</span>',
+  content:'<div class="note-section">📊 今日概览</div>今日收益：<b style="color:#00B578">+1.8%</b> · 浮盈 <b style="color:#00B578">+¥2,340</b><br>持仓股票：5只<div class="note-section">🔥 异动提醒</div><ul><li><b>小米集团(01810)</b> <span style="color:#00B578">+3.2%</span> — 受AI手机概念利好，技术面突破60日均线</li><li><b>比亚迪(002594)</b> <span style="color:#FA5151">-1.5%</span> — 行业竞争加剧，短期回调</li></ul><div class="note-section">📈 AI分析建议</div><ul><li>小米集团：近期受MiClaw发布利好，建议持有观望</li><li>比亚迪：基本面未变，短期回调可逢低关注</li><li>整体仓位建议维持当前水平，关注下周美联储议息会议</li></ul><div class="note-section">📋 本周操作记录</div><ul><li>3/23 买入小米集团 500股 @18.2</li><li>3/24 卖出腾讯 100股 @385.0</li></ul>'
+};
+noteData.expense_report={
+  title:'出差报销清单 · 上海 3.22-3.24',
+  meta:'3/25 10:00 &nbsp;|&nbsp; <span class="note-tag">🧾 日程出行Agent</span> &nbsp;<span class="note-tag">#报销</span>',
+  content:'<div class="note-section">报销概要</div>出差目的地：上海<br>时间：2026年3月22日 — 3月24日<br>总金额：<b>¥4,280</b> · 消费16笔 · 发票5张已匹配<div class="note-section">💰 费用分类</div><ul><li>✈️ 交通：¥1,860（机票¥1,200 + 打车¥660）</li><li>🏨 住宿：¥1,580（2晚 · 全季酒店）</li><li>🍽 餐饮：¥840（含商务宴请¥580）</li></ul><div class="note-section">📸 发票匹配</div><ul><li>✅ 机票电子行程单 — ¥1,200</li><li>✅ 酒店发票 — ¥1,580</li><li>✅ 打车发票×4 — ¥660</li><li>✅ 餐饮发票×2 — ¥840</li><li>⚠️ 1笔打车消费未找到发票（¥38）</li></ul><div class="note-section">✅ 后续操作</div><ul><li>☐ 一键推到飞书审批</li><li>☐ 补充缺失发票（¥38打车）</li></ul>'
+};
+noteData.contact_note_detail={
+  title:'联系人备注 · 张总',
+  meta:'3/25 14:45 &nbsp;|&nbsp; <span class="note-tag">👤 通讯Agent</span> &nbsp;<span class="note-tag">#人物</span>',
+  content:'<div class="note-section">联系人信息</div><b>张明</b> · 产品副总裁<br>zhang.ming@company.com<div class="note-section">📞 最近沟通（3/25）</div>通话时长：12分35秒<ul><li>Q2预算已批准，下周一走流程</li><li>内容助手Demo截止4月10号</li><li>建议优先做语音速记场景</li></ul><div class="note-section">📝 历史沟通摘要</div><ul><li><b>3/20</b> — 讨论内容助手架构方案，确认Agent框架选型</li><li><b>3/15</b> — 确认Q2产品优先级，语音速记排第一</li><li><b>3/8</b> — 初次沟通MiClaw内容助手方向</li></ul><div class="note-section">🔗 关联项目</div><ul><li>内容助手 · MiClaw子Agent</li><li>Q2产品规划</li></ul>'
+};
+
+// Category 4: 穿戴设备 noteData
+noteData.watch_note={
+  title:'与张总沟通要点',
+  meta:'3/25 12:15 &nbsp;|&nbsp; <span class="note-tag">⌚ 手表语音</span> &nbsp;<span class="note-tag">#工作</span>',
+  content:'<div class="note-section">来源</div>⌚ 手表语音输入 · 02:35 录音转写<div class="note-section">📌 关键要点</div><ul><li>Q2 预算需要重新评估，增加 AI 基础设施投入</li><li>内容助手优先对接教育场景</li><li>本周内输出 Demo 排期计划</li><li>联系教育团队负责人约会议</li></ul><div class="note-section">✅ 待办</div><ul><li>☐ 下午会议同步预算信息给团队</li><li>☐ 本周内输出 Demo 排期计划</li><li>☐ 联系教育团队负责人约会议</li></ul><div class="note-section">🔗 关联</div>已关联日程「与张总午餐会」<br>3 条待办已添加到提醒'
+};
+noteData.watch_multi_note={
+  title:'多意图速记 · 购物+工作',
+  meta:'3/25 18:30 &nbsp;|&nbsp; <span class="note-tag">⌚ 手表语音</span> &nbsp;<span class="note-tag">#日常</span>',
+  content:'<div class="note-section">来源</div>⌚ 手表语音 · 一句话多意图拆解<div class="note-section">📅 日程提醒</div>✅ 提醒已设：买牛奶和鸡蛋（到家后触发）<div class="note-section">📝 工作待办</div>✅ 待办已记：跟张三沟通方案修改<br>已关联：张三 + 项目笔记<div class="note-section">处理详情</div>一句话 → MiClaw拆解为2个意图 → 日程出行Agent + 内容Agent并行处理'
+};
+noteData.ring_note={
+  title:'Q3海外市场拓展 · 会议准备',
+  meta:'3/25 16:20 &nbsp;|&nbsp; <span class="note-tag">💍 智能戒指</span> &nbsp;<span class="note-tag">#海外市场</span>',
+  content:'<div class="note-section">来源</div>💍 智能戒指语音录入 · 自动处理<div class="note-section">📅 日程已创建</div>与李总会议 · Q3海外市场拓展方案<br>时间：下周三 14:00<br>已发送日程邀请给李明（战略副总裁）<div class="note-section">✅ 待办事项</div><ul><li>☐ 通知市场部准备Q3海外市场数据</li><li>☐ 整理海外拓展方案初稿</li><li>☐ 确认会议室预定</li></ul><div class="note-section">🔗 关联</div>项目：海外市场拓展<br>联系人：李明（战略副总裁）'
+};
+noteData.aikey_note={
+  title:'Q2产品评审会 · 会议速记',
+  meta:'3/25 15:30 &nbsp;|&nbsp; <span class="note-tag">🔑 AI键速记</span> &nbsp;<span class="note-tag">#产品评审</span>',
+  content:'<div class="note-section">来源</div>🔑 AI键长按唤醒 · MiClaw自动判断为记录意图<div class="note-section">📌 决策</div><ul><li>上线时间：5月15日</li><li>预算追加 200 万，需 VP 审批</li></ul><div class="note-section">✅ 待办</div><ul><li>☐ VP 审批（待指派）</li></ul><div class="note-section">⚠️ 分歧</div><ul><li>测试周期：老王 3 周 vs 张三 2 周</li><li>下周一前拉齐</li></ul>'
+};
+noteData.aikey_fuzzy_note={
+  title:'产品想法：笔记语音搜索',
+  meta:'3/25 17:00 &nbsp;|&nbsp; <span class="note-tag">🔑 AI键</span> &nbsp;<span class="note-tag">#笔记产品设计</span>',
+  content:'<div class="note-section">来源</div>🔑 AI键 · MiClaw判断为有长期价值的产品想法，自动归入笔记<div class="note-section">💡 想法</div>笔记搜索应支持语音输入，用户说一句话即可检索历史笔记，无需打字。这个体验会好很多。<div class="note-section">🔗 自动关联</div>项目：内容 Agent · 笔记产品设计<br>标签：#搜索 #语音交互 #产品优化'
+};
+noteData.aikey_query_note={
+  title:'日程查询结果',
+  meta:'3/25 08:30 &nbsp;|&nbsp; <span class="note-tag">🔑 AI键查询</span> &nbsp;<span class="note-tag">#日程</span>',
+  content:'<div class="note-section">查询</div>"明天上午有什么会？"<div class="note-section">📅 查询结果</div><ul><li><b>9:00</b> 产品周会（会议室A）</li><li><b>10:30</b> 和老王 1:1（线上）</li></ul><div class="note-section">💡 说明</div>这是一个query请求，MiClaw判断为查询意图，走日程助手而非内容Agent。查询结果不自动存入笔记。'
+};
+noteData.earphone_note={
+  title:'耳机速记 · 待办',
+  meta:'3/25 09:15 &nbsp;|&nbsp; <span class="note-tag">🎧 耳机语音</span> &nbsp;<span class="note-tag">#待办</span>',
+  content:'<div class="note-section">来源</div>🎧 小米耳机触控唤醒 · 语音速记<div class="note-section">✅ 待办</div><ul><li>☐ 下午3点前把设计稿发给老王 — ⏰ 14:30提醒</li><li>☐ 周五演示PPT加上竞品分析部分 — ⏰ 周四提醒</li></ul><div class="note-section">🔗 关联</div>已同步日历提醒<br>关联联系人：老王'
+};
+noteData.lockscreen_note={
+  title:'竞品分析 · Notion AI 笔记搜索',
+  meta:'3/25 22:10 &nbsp;|&nbsp; <span class="note-tag">🔒 锁屏速记</span> &nbsp;<span class="note-tag">#竞品分析</span>',
+  content:'<div class="note-section">来源</div>🔒 灵动岛/锁屏 · 3秒语音录入<div class="note-section">💡 观点</div>Notion AI 的笔记搜索做得不错，但不支持语音输入，这是我们的机会。<div class="note-section">🔗 自动关联</div>项目：笔记产品设计 · 竞品分析'
+};
+
+function openNote(scene){
+  var d=noteData[scene];
+  if(d)showNoteDetail(d.title,d.meta,d.content);
+}
+</script>
+<script>
+// === SCENE: Launcher 负一屏 ===
+async function sceneLauncher(){
+  showLauncher();
+  var card=document.getElementById('launcherCard');
+  card.innerHTML='';
+  card.style.cssText='';
+  await W(300);
+  card.innerHTML=
+    '<div class="launcher-card-header">'+
+      '<div class="lc-icon">M</div>'+
+      '<div style="flex:1"><div class="lc-title">MiClaw 内容助手</div><div class="lc-sub">写 · 译 · 读 · 听</div></div>'+
+      '<div style="font-size:11px;color:rgba(255,255,255,0.25)">刚刚</div>'+
+    '</div>'+
+    '<div class="launcher-card-body">'+
+      '<div class="launcher-card-item" onclick="launcherTapSchedule()">'+
+        '<div class="lci-title">📅 @日程出行助手 添加到桌面</div>'+
+        '<div class="lci-desc">为你生成日程小部件，多种尺寸可选</div>'+
+        '<div class="lci-tag" style="background:rgba(255,140,0,0.12);color:#FF8C00">查看小部件</div>'+
+      '</div>'+
+      '<div class="launcher-card-item" onclick="launcherTapArticle()">'+
+        '<div class="lci-title">🌐 剪贴板检测到英文链接</div>'+
+        '<div class="lci-desc">arxiv.org — "Scaling Laws for AI Agents"</div>'+
+        '<div class="lci-tag" style="background:rgba(52,120,246,0.1);color:var(--blue)">翻译+摘要</div>'+
+      '</div>'+
+      '<div class="launcher-card-item">'+
+        '<div class="lci-title">📝 本周笔记 7 条 · 可生成周报</div>'+
+        '<div class="lci-desc">会议纪要4 | 读书笔记2 | 灵感1</div>'+
+        '<div class="lci-tag" style="background:rgba(0,181,120,0.1);color:var(--green)">起草周报</div>'+
+      '</div>'+
+    '</div>';
+}
+async function launcherTapSchedule(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  
+  // Insert @内容助手 banner below nav bar (not a chat message)
+  var navBar=document.querySelector('.nav-bar');
+  var existBanner=document.getElementById('agentBanner');
+  if(existBanner)existBanner.remove();
+  var banner=document.createElement('div');
+  banner.id='agentBanner';
+  banner.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 16px;background:linear-gradient(135deg,#F0F7FF,#E6F0FD);border-bottom:0.5px solid rgba(52,120,246,0.1)';
+  banner.innerHTML=
+    '<div style="display:flex;align-items:center;gap:6px;flex:1">'+
+      '<span style="background:var(--accent);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600">@内容助手</span>'+
+      '<span style="font-size:13px;color:var(--primary);font-weight:500">添加到桌面</span>'+
+    '</div>'+
+    '<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;font-size:12px;color:white;font-weight:700">M</div>';
+  navBar.parentNode.insertBefore(banner,navBar.nextSibling);
+  
+  await W(200);
+  
+  // User sends a message with @内容助手 tag first
+  await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> 帮我给张总写一封项目进展汇报邮件，上周的会议纪要里有相关内容',200);
+  
+  // AI reply with thinking tag
+  await addMsg('ai','<div class="thinking-tag">⚡ 思考完成</div><br>为了更好的显示内容，我可以利用桌面小部件的能力，它有多种尺寸，我帮你生成了几个日程小部件，你看需要哪个合适？',300);
+  
+  // Widget option 1: Small - single event
+  await addRich(
+    '<div style="background:white;border-radius:16px;overflow:hidden;border:0.5px solid rgba(0,0,0,0.06);box-shadow:var(--shadow-sm);cursor:pointer" onclick="selectWidget(1)">'+
+      '<div style="padding:14px 16px;display:flex;align-items:center;gap:10px">'+
+        '<div style="width:22px;height:22px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center" id="wcheck1">'+
+          '<div style="width:12px;height:12px;border-radius:50%;background:var(--accent)"></div>'+
+        '</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:15px;font-weight:600;color:var(--primary)">项目周会</div>'+
+          '<div style="font-size:12px;color:var(--accent);margin-top:2px">17:00-18:00 | 15分钟后</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>', 200);
+  
+  // Widget option 2: Medium - calendar date + event
+  await addRich(
+    '<div style="background:white;border-radius:16px;overflow:hidden;border:0.5px solid rgba(0,0,0,0.06);box-shadow:var(--shadow-sm);padding:14px 16px;cursor:pointer" onclick="selectWidget(2)">'+
+      '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">'+
+        '<div style="width:18px;height:18px;border-radius:50%;border:2px solid #ccc"></div>'+
+        '<span style="font-size:12px;color:var(--secondary);margin-left:4px">2025/10</span>'+
+      '</div>'+
+      '<div style="font-size:48px;font-weight:200;color:var(--primary);line-height:1.1;margin:4px 0 8px">16</div>'+
+      '<div style="background:var(--accent-light);border-radius:8px;padding:6px 10px">'+
+        '<div style="font-size:12px;font-weight:600;color:var(--primary)">项目周会</div>'+
+        '<div style="font-size:11px;color:var(--accent)">17:00-18:00 | 15分…</div>'+
+      '</div>'+
+    '</div>', 200);
+  
+  // Widget option 3: Large - calendar date + multiple events
+  await addRich(
+    '<div style="background:white;border-radius:16px;overflow:hidden;border:0.5px solid rgba(0,0,0,0.06);box-shadow:var(--shadow-sm);padding:14px 16px;cursor:pointer" onclick="selectWidget(3)">'+
+      '<div style="display:flex;gap:14px">'+
+        '<div style="flex-shrink:0">'+
+          '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">'+
+            '<div style="width:18px;height:18px;border-radius:50%;border:2px solid #ccc"></div>'+
+            '<span style="font-size:12px;color:var(--secondary)">2025/10</span>'+
+          '</div>'+
+          '<div style="font-size:48px;font-weight:200;color:var(--primary);line-height:1.1">16</div>'+
+          '<div style="font-size:11px;color:var(--secondary);margin-top:4px">今日1条日程</div>'+
+        '</div>'+
+        '<div style="flex:1;display:flex;flex-direction:column;gap:6px">'+
+          '<div style="background:var(--accent-light);border-radius:8px;padding:6px 10px">'+
+            '<div style="font-size:12px;font-weight:600;color:var(--primary)">项目周会</div>'+
+            '<div style="font-size:11px;color:var(--accent)">17:00-18:00 | 15分钟后</div>'+
+          '</div>'+
+          '<div style="background:#FFF0F0;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center">'+
+            '<div><div style="font-size:12px;font-weight:600;color:var(--primary)">妈妈生日</div><div style="font-size:11px;color:var(--red)">10月19日</div></div>'+
+            '<div style="font-size:12px;font-weight:600;color:var(--red)">3天</div>'+
+          '</div>'+
+          '<div style="background:#F0F4FF;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center">'+
+            '<div><div style="font-size:12px;font-weight:600;color:var(--primary)">中秋节</div><div style="font-size:11px;color:var(--secondary)">10月26日</div></div>'+
+            '<div style="font-size:12px;font-weight:600;color:var(--secondary)">10天</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>', 200);
+  
+  // Cancel / Add buttons
+  await addRich(
+    '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px">'+
+      '<button class="action-btn secondary" style="padding:8px 24px">取消</button>'+
+      '<button class="action-btn primary" style="padding:8px 24px" onclick="addWidgetToDesktop()">添加</button>'+
+    '</div>', 100);
+  
+  isPlaying=false;
+}
+async function selectWidget(n){
+  // Visual feedback for selection
+  for(var i=1;i<=3;i++){
+    var el=document.getElementById('wcheck'+i);
+    if(el){el.innerHTML=i===n?'<div style="width:12px;height:12px;border-radius:50%;background:var(--accent)"></div>':''}
+  }
+}
+async function addWidgetToDesktop(){
+  isPlaying=true;
+  await addMsg('ai','✅ 已将日程小部件添加到桌面，你可以在主屏幕上查看日程信息了。',200);
+  isPlaying=false;
+}
+async function launcherTapArticle(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  await addMsg('ai','<div class="thinking-tag">⚡ 读+译</div><br>检测到剪贴板英文链接，正在提取和翻译...',200);
+  await addThink('正在提取网页内容...',300);await W(500);rmThink();
+  await addTool('🌐','var(--blue-light)','web_extract','已提取正文 <b>8,432</b> 字<br><span style="color:var(--secondary)">English | Smith et al.</span>',150);
+  await addThink('正在翻译和生成摘要...',200);await W(600);rmThink();
+  await addRich(
+    '<div class="translate-card"><div class="original"><div class="lang-tag" style="background:var(--blue-light);color:var(--blue)">EN → 中文</div>'+
+    '<div style="font-style:italic">"We investigate the scaling properties of language model-based agents..."</div></div>'+
+    '<div class="translated"><div class="lang-tag" style="background:var(--green-light);color:var(--green)">📝 中文摘要</div>'+
+    '<div style="margin-top:6px"><b>AI Agent 的规模定律</b><br><br>'+
+    '1. Agent 能力随模型规模呈对数线性增长<br>'+
+    '2. 工具调用准确率在 10B 参数后显著提升<br>'+
+    '3. 多步推理是关键瓶颈<br>'+
+    '4. 记忆机制可弥补小模型差距</div>'+
+    '<div class="confirm-bar"><button class="action-btn primary" onclick="openNote(&apos;share&apos;)">💾 存入笔记</button><button class="action-btn secondary">📋 复制</button></div>'+
+    '</div></div>',200);
+  isPlaying=false;
+}
+async function saveMeeting(){await addThink('写入笔记...',0);await W(300);rmThink();await addMsg('ai','✅ 纪要已写入笔记，已为参会人创建待办提醒。',100)}
+</script>
+<script>
+// === SCENE: 录音结束通知触发 ===
+async function sceneRecording(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(500);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,var(--accent),#FF8C00);color:white;border-radius:11px">M</div>'+
+    '<div class="nb-text"><div class="nb-app">MiClaw · 内容助手</div><div class="nb-title">🎙 会议纪要已生成</div><div class="nb-body">产品评审会 32:15 · 5个要点 · 3个待办 · 点击查看</div></div>';
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('recording_note');
+  };
+}
+// === SCENE: 分享面板触发 ===
+async function sceneShare(){
+  showMiclaw();chatArea.innerHTML='';
+  await addMsg('ai','<span style="font-size:12px;color:var(--secondary)">模拟：你正在浏览器里看一篇英文长文...</span>',200);
+  await W(500);
+  document.getElementById('shareSheet').style.display='block';
+}
+async function shareToMiclaw(){
+  closeShareSheet();isPlaying=true;
+  await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> <span style="font-size:11px;opacity:0.8">📤 来自 Safari 分享</span><br>帮我翻译+摘要这篇文章<br><span style="font-size:11px;opacity:0.7">arxiv.org — "Scaling Laws for AI Agents"</span>');
+  await addThink('正在提取网页...',300);await W(500);rmThink();
+  await addTool('🌐','var(--blue-light)','web_extract','已提取 <b>8,432</b> 字<br><span style="color:var(--secondary)">English | Smith et al.</span>',150);
+  await addThink('翻译+摘要...',200);await W(600);rmThink();
+  await addRich(
+    '<div class="translate-card"><div class="original"><div class="lang-tag" style="background:var(--blue-light);color:var(--blue)">EN → 中文</div>'+
+    '<div style="font-style:italic">"We investigate the scaling properties..."</div></div>'+
+    '<div class="translated"><div class="lang-tag" style="background:var(--green-light);color:var(--green)">📝 中文摘要</div>'+
+    '<div style="margin-top:6px"><b>AI Agent 的规模定律</b><br><br>'+
+    '1. Agent 能力随规模对数线性增长<br>'+
+    '2. 工具调用准确率 10B 后显著提升<br>'+
+    '3. 多步推理是关键瓶颈<br>'+
+    '4. 记忆机制弥补小模型差距</div>'+
+    '<div class="confirm-bar"><button class="action-btn primary" onclick="openNote(&apos;translate&apos;)">💾 存入笔记</button><button class="action-btn secondary">📋 复制</button></div>'+
+    '</div></div>',200);
+  isPlaying=false;
+}
+</script>
+<script>
+// === SCENE: 写邮件 ===
+async function sceneCreate(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  var toast=document.createElement('div');toast.className='clipboard-toast';toast.id='clipToast';
+  toast.innerHTML='<div class="icon">📋</div><div class="text"><div class="title">检测到剪贴板内容</div><div class="desc">来自"通讯录" — 张总的名片信息</div></div><div class="actions"><button style="background:var(--bg);color:var(--primary)" onclick="dismissToast()">忽略</button><button style="background:var(--accent);color:white" onclick="dismissToast()">使用</button></div>';
+  document.querySelector('#miclawUI').appendChild(toast);
+  await W(800);dismissToast();
+  await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> 帮我给张总写一封项目进展汇报邮件，上周的会议纪要里有相关内容');
+  await addThink('分析需求...',300);rmThink();
+  await addMsg('ai','<div class="thinking-tag">⚡ 内容创建</div><br>好的，先查一下相关资料。',200);
+  await addTool('📝','var(--green-light)','note_read','找到 <b>2</b> 条相关笔记<br><span style="color:var(--secondary)">• 产品评审纪要 3/5<br>• 内容助手进展 3/3</span>',200);
+  await addTool('👤','var(--purple-light)','contacts_lookup','<b>张明</b> — 产品副总裁<br><span style="color:var(--secondary)">zhang.ming@company.com</span>',200);
+  await addThink('创建邮件...',200);await W(500);rmThink();
+  await addRich(
+    '<div class="create-card"><div class="header">✉️ 新建邮件草稿</div><div class="body">'+
+    '<div style="color:var(--secondary);font-size:12px">收件人：张明 · 主题：MiClaw 内容助手进展汇报</div>'+
+    '<div style="border-top:0.5px solid rgba(0,0,0,0.06);margin:10px 0;padding-top:10px">'+
+    '<div>张总好，</div><br>'+
+    '<div style="font-weight:600;color:var(--purple)">📌 本周完成</div>'+
+    '<div>1. Agent 架构设计文档定稿</div>'+
+    '<div>2. 核心 Tool Schema 9个接口完成</div>'+
+    '<div>3. 录音转写 ASR 选型确定</div><br>'+
+    '<div style="font-weight:600;color:var(--orange)">🔄 下周计划</div>'+
+    '<div>1. 场景1端到端联调</div>'+
+    '<div>2. Prompt 模板初版</div></div>'+
+    '<div class="confirm-bar"><button class="action-btn primary" onclick="openNote(&apos;create&apos;)">✓ 写入笔记</button><button class="action-btn secondary">✎ 编辑</button><button class="action-btn secondary">📤 发送</button></div>'+
+    '</div></div>',200);
+  isPlaying=false;
+}
+// === SCENE: 长文摘要翻译 ===
+async function sceneTranslate(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> 帮我翻译这篇文章，做个摘要<br><span style="font-size:12px;opacity:0.7">arxiv.org — "Scaling Laws for AI Agents"</span>');
+  await addThink('分析内容...',300);rmThink();
+  await addMsg('ai','<div class="thinking-tag">⚡ 读+译</div><br>检测到英文长文，提取、翻译并生成摘要。',200);
+  await addTool('🌐','var(--blue-light)','web_extract','已提取 <b>8,432</b> 字<br><span style="color:var(--secondary)">English | Smith et al.</span>',200);
+  await addThink('翻译+摘要...',200);await W(600);rmThink();
+  await addRich(
+    '<div class="translate-card"><div class="original"><div class="lang-tag" style="background:var(--blue-light);color:var(--blue)">EN → 中文</div>'+
+    '<div style="font-style:italic">"We investigate the scaling properties of language model-based agents across diverse task environments..."</div></div>'+
+    '<div class="translated"><div class="lang-tag" style="background:var(--green-light);color:var(--green)">📝 中文摘要</div>'+
+    '<div style="margin-top:6px"><b>AI Agent 的规模定律</b><br><br>'+
+    '1. Agent 能力随模型规模呈对数线性增长<br>'+
+    '2. 工具调用准确率在 10B 参数后显著提升<br>'+
+    '3. 多步推理能力是关键瓶颈<br>'+
+    '4. 记忆机制可弥补小模型差距</div>'+
+    '<div class="confirm-bar"><button class="action-btn primary" onclick="openNote(&apos;translate&apos;)">💾 存入笔记</button><button class="action-btn secondary">📋 复制</button></div>'+
+    '</div></div>',200);
+  isPlaying=false;
+}
+</script>
+<script>
+// === SCENE: 周报 ===
+async function sceneWeekly(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> 帮我起草这周的周报');
+  await addThink('分析数据...',300);rmThink();
+  await addMsg('ai','<div class="thinking-tag">⚡ 内容生产</div><br>汇总本周日历、笔记和通讯记录。',200);
+  await addTool('📅','#FFF8F0','calendar_query','本周 <b>12</b> 个日程<br><span style="color:var(--secondary)">会议8 | 外出2 | 提醒2</span>',200);
+  await addTool('📝','var(--green-light)','note_read','本周 <b>7</b> 条笔记<br><span style="color:var(--secondary)">纪要4 | 读书2 | 灵感1</span>',200);
+  await addTool('💬','var(--purple-light)','comm_history','重要沟通 <b>5</b> 条<br><span style="color:var(--secondary)">3 个项目关键讨论</span>',200);
+  await addThink('生成周报...',200);await W(500);rmThink();
+  await addRich(
+    '<div class="report-card"><div class="header">📊 本周工作周报（3/3 - 3/7）</div><div class="body">'+
+    '<div class="stat-row">'+
+      '<div class="stat"><div class="num">12</div><div class="label">日程</div></div>'+
+      '<div class="stat"><div class="num">7</div><div class="label">笔记</div></div>'+
+      '<div class="stat"><div class="num">5</div><div class="label">沟通</div></div>'+
+    '</div>'+
+    '<div style="font-weight:600;color:var(--green);margin-top:12px">✅ 本周完成</div>'+
+    '<div>1. 内容助手 Agent 架构设计文档</div>'+
+    '<div>2. Tool Schema 9个接口定义</div>'+
+    '<div>3. ASR 选型评估</div>'+
+    '<div style="font-weight:600;color:var(--orange);margin-top:10px">🔄 进行中</div>'+
+    '<div>1. Agent 框架搭建（60%）</div>'+
+    '<div>2. 会议纪要 Prompt 调优</div>'+
+    '<div style="font-weight:600;color:var(--blue);margin-top:10px">📋 下周计划</div>'+
+    '<div>1. 场景1端到端联调</div>'+
+    '<div>2. 场景2开发启动</div>'+
+    '<div class="confirm-bar"><button class="action-btn primary" onclick="openNote(&apos;weekly&apos;)">✓ 写入笔记</button><button class="action-btn secondary">✎ 编辑</button><button class="action-btn secondary">📤 分享</button></div>'+
+    '</div></div>',200);
+  isPlaying=false;
+}
+</script>
+<script>
+// === SCENE: 截图/聊天 → 信息整合 ===
+async function sceneOcr(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  // Simulate a screenshot toast notification
+  var toast=document.createElement('div');toast.className='clipboard-toast';toast.id='clipToast';
+  toast.innerHTML='<div class="icon">📸</div><div class="text"><div class="title">检测到新截图</div><div class="desc">来自"微信" — 群聊讨论记录 · 含文字内容</div></div><div class="actions"><button style="background:var(--bg);color:var(--primary)" onclick="dismissToast()">忽略</button><button style="background:var(--accent);color:white" onclick="ocrFromToast()">整理</button></div>';
+  document.querySelector('#miclawUI').appendChild(toast);
+  await W(1500);
+  // If user didn't click, auto-proceed
+  if(document.getElementById('clipToast')){dismissToast();await W(300)}
+  await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> 帮我整理刚才截图里的聊天记录，提取关键信息和待办');
+  await addThink('识别截图内容...',300);await W(500);rmThink();
+  await addMsg('ai','<div class="thinking-tag">⚡ 截图 OCR</div><br>检测到截图包含群聊对话，正在识别和提取...',200);
+  await addTool('📸','var(--purple-light)','ocr_image','<span style="color:var(--secondary)">已识别截图文字</span><br>微信群聊 · <b>23</b> 条消息 · 5 位发言人',200);
+  await addThink('提取关键信息...',200);await W(500);rmThink();
+  await addTool('🧠','var(--accent-light)','extract_key_points','提取到 <b>4</b> 个关键要点<br><span style="color:var(--secondary)">含 2 个待办事项</span>',200);
+  await addTool('✅','var(--green-light)','extract_action_items','识别到 <b>2</b> 个待办<br><span style="color:var(--secondary)">• @张明 确认接口文档<br>• @李华 周三前提交设计稿</span>',200);
+  await addThink('生成整理笔记...',200);await W(500);rmThink();
+  await addRich(
+    '<div class="summary-card"><div class="header" style="background:linear-gradient(135deg,var(--purple),#A855F7)">📸 截图信息整理</div><div class="body">'+
+    '<div style="font-size:11px;color:var(--secondary);margin-bottom:8px">来源：微信群聊截图 · 2026.3.9</div>'+
+    '<div class="section-title">📌 关键要点</div>'+
+    '<div>1. Agent 详情页瑞军周三前开放，含运行逻辑展示</div>'+
+    '<div>2. 上层 App 调用接口同步开放</div>'+
+    '<div>3. 下周 MiClaw 更新将支持系统 Agent 能力</div>'+
+    '<div>4. 能力集文档需要每日例会同步进展</div>'+
+    '<div class="section-title">✅ 待办清单</div>'+
+    '<div style="display:flex;align-items:center;gap:6px;padding:4px 0"><span style="display:inline-block;width:16px;height:16px;border:1.5px solid var(--accent);border-radius:4px;flex-shrink:0"></span> @张明 确认接口文档 — 周三前</div>'+
+    '<div style="display:flex;align-items:center;gap:6px;padding:4px 0"><span style="display:inline-block;width:16px;height:16px;border:1.5px solid var(--accent);border-radius:4px;flex-shrink:0"></span> @李华 提交设计稿 — 周三前</div>'+
+    '<div class="confirm-bar"><button class="action-btn primary" onclick="openNote(&apos;ocr&apos;)">✓ 写入笔记</button><button class="action-btn secondary">✎ 编辑</button><button class="action-btn secondary">📋 复制</button></div>'+
+    '</div></div>',200);
+  isPlaying=false;
+}
+async function ocrFromToast(){dismissToast();if(!isPlaying){isPlaying=true;chatArea.innerHTML='';await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> 帮我整理刚才截图里的聊天记录');}}
+async function saveOcr(){await addThink('写入笔记...',0);await W(300);rmThink();await addMsg('ai','✅ 已写入笔记，待办已同步到提醒事项。',100)}
+</script>
+<script>
+// === SCENE: 会议纪要生成 ===
+async function sceneMeeting(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> 刚才的产品评审会录音帮我生成会议纪要');
+  await addThink('分析录音文件...',300);await W(400);rmThink();
+  await addMsg('ai','<div class="thinking-tag">⚡ 听+写</div><br>检测到录音文件，开始处理...',200);
+  await addTool('🎙','var(--accent-light)','audio_transcribe','录音时长 <b>45:22</b><br>已识别 <b>5</b> 位发言人 · 4,126 字',200);
+  await addTool('📅','#FFF8F0','calendar_query','<b>产品评审会</b> 14:00-15:00<br>参会人：张明、李华、王芳、陈刚、赵磊',200);
+  await addThink('提取要点，生成纪要...',200);await W(600);rmThink();
+  await addTool('🧠','var(--purple-light)','extract_key_points','提取到 <b>5</b> 个议题 · <b>8</b> 个决议<br><span style="color:var(--secondary)">含 4 个待办事项</span>',200);
+  await addRich(
+    '<div class="summary-card"><div class="header">📋 产品评审会纪要</div><div class="body">'+
+    '<div style="font-size:11px;color:var(--secondary);margin-bottom:8px">2026.3.10 14:00 · 45分钟 · 5人参会</div>'+
+    '<div class="section-title">📌 会议要点</div>'+
+    '<div>1. 内容助手 V2 方案通过，下周进入开发</div>'+
+    '<div>2. 多语言翻译模块优先级提升至 P0</div>'+
+    '<div>3. 录音转写准确率需达到 95% 以上</div>'+
+    '<div>4. 周报自动生成功能本月底上线</div>'+
+    '<div>5. 客户反馈整理流程需要优化</div>'+
+    '<div class="section-title">💡 关键决议</div>'+
+    '<div>• 翻译引擎切换为自研模型 — 张明负责</div>'+
+    '<div>• ASR 服务增加说话人分离 — 李华跟进</div>'+
+    '<div>• 周报模板支持自定义 — 王芳设计</div>'+
+    '<div class="section-title">✅ 待办事项</div>'+
+    '<div>• @张明 翻译引擎对比测试报告 — 周三前</div>'+
+    '<div>• @李华 ASR 说话人分离 Demo — 周五前</div>'+
+    '<div>• @王芳 周报模板设计稿 — 下周一</div>'+
+    '<div>• @陈刚 客户反馈分类标签体系 — 下周一</div>'+
+    '<div class="confirm-bar"><button class="action-btn primary" onclick="openNote(&apos;meeting&apos;)">✓ 写入笔记</button><button class="action-btn secondary">✎ 编辑</button><button class="action-btn secondary">📤 分享给参会人</button></div>'+
+    '</div></div>',200);
+  isPlaying=false;
+}
+// === SCENE: 考点/考题生成 ===
+async function sceneExam(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> 帮我根据这份学习资料生成考点梳理和模拟考题<br><span style="font-size:12px;opacity:0.7">📎 《计算机网络》第三章 — 传输层协议</span>');
+  await addThink('解析文档内容...',300);await W(500);rmThink();
+  await addMsg('ai','<div class="thinking-tag">⚡ 读+写</div><br>已识别文档内容，正在提取核心知识点...',200);
+  await addTool('📖','var(--green-light)','doc_parse','已解析 <b>28</b> 页 · 12,640 字<br><span style="color:var(--secondary)">第三章 传输层协议 · TCP/UDP</span>',200);
+  await addTool('🧠','var(--purple-light)','extract_key_points','提取到 <b>6</b> 个核心考点<br><span style="color:var(--secondary)">高频考点 3 个 · 易错点 2 个</span>',200);
+  await addThink('生成考点梳理和模拟题...',200);await W(600);rmThink();
+  await addRich(
+    '<div class="summary-card"><div class="header" style="background:linear-gradient(135deg,var(--purple),#A855F7)">🎓 考点梳理 · 传输层协议</div><div class="body">'+
+    '<div class="section-title">⭐ 核心考点</div>'+
+    '<div><b>1. TCP 三次握手与四次挥手</b><br><span style="color:var(--secondary);font-size:12px">★★★ 高频 · 必考 — 理解每一步的状态变化和序列号</span></div>'+
+    '<div style="margin-top:6px"><b>2. TCP 拥塞控制机制</b><br><span style="color:var(--secondary);font-size:12px">★★★ 高频 — 慢启动、拥塞避免、快重传、快恢复</span></div>'+
+    '<div style="margin-top:6px"><b>3. TCP 与 UDP 的区别</b><br><span style="color:var(--secondary);font-size:12px">★★★ 高频 — 面向连接 vs 无连接，可靠 vs 不可靠</span></div>'+
+    '<div style="margin-top:6px"><b>4. TCP 流量控制（滑动窗口）</b><br><span style="color:var(--secondary);font-size:12px">★★☆ 中频 — 接收窗口与发送窗口的关系</span></div>'+
+    '<div style="margin-top:6px"><b>5. UDP 校验和计算</b><br><span style="color:var(--secondary);font-size:12px">★☆☆ 易错 — 伪首部的构成和计算过程</span></div>'+
+    '<div style="margin-top:6px"><b>6. 端口号与多路复用</b><br><span style="color:var(--secondary);font-size:12px">★★☆ 中频 — 知名端口号、套接字概念</span></div>'+
+    '<div class="confirm-bar"><button class="action-btn primary" onclick="openNote(&apos;exam&apos;)">💾 保存至笔记</button><button class="action-btn secondary" onclick="showExamQuestions()">📝 查看模拟题</button></div>'+
+    '</div></div>',200);
+  await W(800);
+  await showExamQuestions();
+  isPlaying=false;
+}
+async function showExamQuestions(){
+  await addRich(
+    '<div class="summary-card"><div class="header" style="background:linear-gradient(135deg,#00B578,#38EF7D)">📝 模拟考题 · 共5题</div><div class="body">'+
+    '<div style="font-weight:600;color:var(--primary);margin-bottom:4px">一、选择题</div>'+
+    '<div style="margin-top:8px"><b>1.</b> TCP 建立连接时三次握手的主要目的是？<br>'+
+    '<span style="color:var(--secondary);font-size:12px">A. 协商数据传输速率<br>B. 同步双方序列号并确认双方收发能力<br>C. 交换加密密钥<br>D. 确定最大报文段长度</span><br>'+
+    '<span style="color:var(--green);font-size:11px;font-weight:600">答案：B</span></div>'+
+    '<div style="margin-top:10px"><b>2.</b> 以下哪个不属于 TCP 拥塞控制的阶段？<br>'+
+    '<span style="color:var(--secondary);font-size:12px">A. 慢启动<br>B. 拥塞避免<br>C. 流量整形<br>D. 快恢复</span><br>'+
+    '<span style="color:var(--green);font-size:11px;font-weight:600">答案：C</span></div>'+
+    '<div style="font-weight:600;color:var(--primary);margin-top:12px;margin-bottom:4px">二、简答题</div>'+
+    '<div style="margin-top:8px"><b>3.</b> 简述 TCP 和 UDP 的主要区别（至少4点）。</div>'+
+    '<div style="margin-top:8px"><b>4.</b> 画出 TCP 三次握手的过程，标注每一步的报文段标志位和序列号变化。</div>'+
+    '<div style="font-weight:600;color:var(--primary);margin-top:12px;margin-bottom:4px">三、综合题</div>'+
+    '<div style="margin-top:8px"><b>5.</b> 假设 TCP 的拥塞窗口初始值为 1 MSS，慢启动阈值为 16 MSS。请画出前 20 个 RTT 内拥塞窗口的变化曲线，并标注各阶段名称。</div>'+
+    '<div class="confirm-bar"><button class="action-btn primary" onclick="openNote(&apos;exam&apos;)">💾 保存至笔记</button><button class="action-btn secondary">📋 复制</button><button class="action-btn secondary">🔄 换一批</button></div>'+
+    '</div></div>',200);
+}
+// === SCENE: 手表语音 → 快速记录 ===
+async function sceneWatch(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(300);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,var(--accent),#FF8C00);color:white;border-radius:11px;font-size:14px;font-weight:700">M</div>'+
+    '<div class="nb-text"><div class="nb-app">MiClaw · 内容助手 · 来自手表</div><div class="nb-title">⌚ 语音已记录到笔记</div><div class="nb-body">与张总沟通要点 · 4个要点 · 3个待办 · 点击查看</div></div>';
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('watch_note');
+  };
+}
+// === SCENE: 截图感知 → 智能引导 ===
+async function sceneScreenshot(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  // Show a simulated "小红书" content on launcher as context
+  lc.style.cssText='margin:20px 16px;border-radius:16px;background:white;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)';
+  lc.innerHTML=
+    '<div style="padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(0,0,0,0.05)">'+
+      '<div style="width:28px;height:28px;border-radius:8px;background:#FF2442;display:flex;align-items:center;justify-content:center;font-size:14px;color:white;font-weight:700">小</div>'+
+      '<div style="font-size:13px;font-weight:600;color:#333">小红书</div>'+
+      '<div style="margin-left:auto;font-size:11px;color:#999">刚刚浏览</div>'+
+    '</div>'+
+    '<div style="padding:14px 16px">'+
+      '<div style="font-size:15px;font-weight:600;color:#333;margin-bottom:8px">🍳 独居女生的周末早餐｜5款快手搭配</div>'+
+      '<div style="font-size:12px;color:#666;line-height:1.6">牛油果吐司+溏心蛋、希腊酸奶碗、香蕉松饼…每款不超过10分钟！食材简单，摆盘好看，一个人也要好好吃早餐 ☀️</div>'+
+      '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">'+
+        '<span style="font-size:10px;color:#FF2442;background:rgba(255,36,66,0.08);padding:3px 8px;border-radius:10px">#早餐</span>'+
+        '<span style="font-size:10px;color:#FF2442;background:rgba(255,36,66,0.08);padding:3px 8px;border-radius:10px">#独居生活</span>'+
+        '<span style="font-size:10px;color:#FF2442;background:rgba(255,36,66,0.08);padding:3px 8px;border-radius:10px">#快手料理</span>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:12px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.05);font-size:11px;color:#999">'+
+        '<span>❤️ 2.3w</span><span>⭐ 1.8w</span><span>💬 856</span>'+
+      '</div>'+
+    '</div>';
+  await W(1200);
+
+  // System detects screenshot — show smart guide bar at bottom of launcher
+  var guide=document.createElement('div');
+  guide.id='screenshotGuide';
+  guide.style.cssText='position:absolute;bottom:90px;left:12px;right:12px;z-index:55;border-radius:20px;background:rgba(30,30,46,0.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);padding:14px 16px;display:flex;align-items:center;gap:12px;animation:notifDrop 0.5s cubic-bezier(0.16,1,0.3,1);box-shadow:0 12px 40px rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1)';
+  guide.innerHTML=
+    '<div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;font-size:14px;color:white;font-weight:700;flex-shrink:0">M</div>'+
+    '<div style="flex:1">'+
+      '<div style="font-size:12px;color:rgba(255,255,255,0.95);font-weight:600">📸 检测到截图</div>'+
+      '<div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">内容助手可以帮你提取和收藏</div>'+
+    '</div>'+
+    '<div style="display:flex;gap:6px">'+
+      '<button style="padding:6px 12px;border-radius:14px;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);border:none;font-size:11px;font-weight:500;cursor:pointer" onclick="dismissScreenshotGuide()">忽略</button>'+
+      '<button style="padding:6px 12px;border-radius:14px;background:var(--accent);color:white;border:none;font-size:11px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(255,106,0,0.3)" onclick="screenshotToMiclaw()">打开</button>'+
+    '</div>';
+  document.getElementById('launcherScreen').appendChild(guide);
+  await W(2000);
+  // Auto-proceed if user didn't click
+  if(document.getElementById('screenshotGuide')){screenshotToMiclaw()}
+}
+function dismissScreenshotGuide(){
+  var g=document.getElementById('screenshotGuide');
+  if(g){g.style.opacity='0';g.style.transform='translateY(20px)';g.style.transition='all 0.3s';setTimeout(function(){g.remove()},300)}
+}
+async function screenshotToMiclaw(){
+  dismissScreenshotGuide();
+  showMiclaw();
+  openNote('photo_archive');
+}
+// === SCENE: 智能收藏 · 稍后读 ===
+async function sceneSmartClip(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> 我刚收藏了好几篇文章一直没看，帮我整理一下，挑重点的给我看');
+  await addThink('检索收藏内容...',300);await W(400);rmThink();
+  await addMsg('ai','<div class="thinking-tag">⚡ 读+写</div><br>正在整理你的待读收藏...',200);
+  await addTool('📌','var(--accent-light)','bookmark_scan','检测到 <b>12</b> 篇未读收藏<br><span style="color:var(--secondary)">来源：微信5 · 浏览器4 · 知乎3</span>',200);
+  await addTool('🧠','var(--purple-light)','content_analyze','已分析全部内容<br><span style="color:var(--secondary)">按相关度和时效性排序</span>',150);
+  await addThink('生成摘要速览...',200);await W(500);rmThink();
+  await addMsg('ai','为你筛选了 4 篇高价值内容，附带一句话摘要：',200);
+  await addRich(
+    '<div style="display:flex;flex-direction:column;gap:8px">'+
+      '<div style="background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow-sm);border:0.5px solid rgba(0,0,0,0.04);cursor:pointer">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+          '<div style="padding:3px 8px;background:var(--accent-light);border-radius:6px;font-size:10px;font-weight:600;color:var(--accent)">🔥 强烈推荐</div>'+
+          '<span style="font-size:10px;color:var(--secondary)">来自微信</span>'+
+        '</div>'+
+        '<div style="font-size:14px;font-weight:600;color:var(--primary);line-height:1.4">OpenAI 发布 GPT-5：多模态原生，Agent 能力大幅提升</div>'+
+        '<div style="font-size:12px;color:var(--secondary);margin-top:4px;line-height:1.5">核心：GPT-5 原生支持工具调用和多步推理，Agent 任务完成率提升 60%。与你正在做的内容助手方向高度相关。</div>'+
+      '</div>'+
+      '<div style="background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow-sm);border:0.5px solid rgba(0,0,0,0.04);cursor:pointer">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+          '<div style="padding:3px 8px;background:var(--blue-light);border-radius:6px;font-size:10px;font-weight:600;color:var(--blue)">📊 行业洞察</div>'+
+          '<span style="font-size:10px;color:var(--secondary)">来自浏览器</span>'+
+        '</div>'+
+        '<div style="font-size:14px;font-weight:600;color:var(--primary);line-height:1.4">2026 AI 笔记产品趋势报告</div>'+
+        '<div style="font-size:12px;color:var(--secondary);margin-top:4px;line-height:1.5">核心：AI 笔记市场年增长 240%，语音转写+自动整理是用户最期待的功能。</div>'+
+      '</div>'+
+      '<div style="background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow-sm);border:0.5px solid rgba(0,0,0,0.04);cursor:pointer">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+          '<div style="padding:3px 8px;background:var(--green-light);border-radius:6px;font-size:10px;font-weight:600;color:var(--green)">🛠 技术参考</div>'+
+          '<span style="font-size:10px;color:var(--secondary)">来自知乎</span>'+
+        '</div>'+
+        '<div style="font-size:14px;font-weight:600;color:var(--primary);line-height:1.4">RAG 在笔记搜索中的最佳实践</div>'+
+        '<div style="font-size:12px;color:var(--secondary);margin-top:4px;line-height:1.5">核心：混合检索（关键词+向量）效果最优，召回率提升 35%。</div>'+
+      '</div>'+
+      '<div style="background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow-sm);border:0.5px solid rgba(0,0,0,0.04);cursor:pointer">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+          '<div style="padding:3px 8px;background:var(--purple-light);border-radius:6px;font-size:10px;font-weight:600;color:var(--purple)">💡 灵感</div>'+
+          '<span style="font-size:10px;color:var(--secondary)">来自微信</span>'+
+        '</div>'+
+        '<div style="font-size:14px;font-weight:600;color:var(--primary);line-height:1.4">Notion AI 的产品设计复盘</div>'+
+        '<div style="font-size:12px;color:var(--secondary);margin-top:4px;line-height:1.5">核心：AI 功能嵌入编辑器而非独立入口，用户使用率提升 3 倍。</div>'+
+      '</div>'+
+    '</div>',200);
+  await addRich(
+    '<div style="display:flex;gap:8px;margin-top:4px">'+
+      '<button class="action-btn primary" style="flex:1" onclick="openNote(&apos;smartclip&apos;)">💾 全部存入笔记</button>'+
+      '<button class="action-btn secondary" style="flex:1">📋 生成阅读报告</button>'+
+    '</div>',100);
+  isPlaying=false;
+}
+// === SCENE: 每日简报 · 晨间速览 ===
+async function sceneDailyBrief(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(500);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,#F59E0B,#FBBF24);color:white;border-radius:11px">☀️</div>'+
+    '<div class="nb-text"><div class="nb-app">MiClaw · 每日简报</div><div class="nb-title">☀️ 今日简报已生成</div><div class="nb-body">4个日程 · 3个待办 · 2条资讯 · 点击查看笔记</div></div>';
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('dailybrief');
+  };
+}
+// === SCENE: 笔记聚合整理 ===
+async function sceneMerge(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> 帮我把最近关于「内容助手」的笔记整理汇总成一篇完整文档');
+  await addThink('检索相关笔记...',300);await W(400);rmThink();
+  await addMsg('ai','<div class="thinking-tag">⚡ 读+写</div><br>正在检索所有与「内容助手」相关的笔记...',200);
+  await addTool('📝','var(--green-light)','note_search','找到 <b>6</b> 篇相关笔记<br><span style="color:var(--secondary)">时间跨度：2026.2.18 — 2026.3.9</span>',200);
+  // 展示检索到的笔记列表
+  await addRich(
+    '<div style="background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow-sm);border:0.5px solid rgba(0,0,0,0.04)">'+
+      '<div style="font-size:12px;font-weight:600;color:var(--secondary);margin-bottom:10px">已检索到以下笔记：</div>'+
+      '<div style="display:flex;flex-direction:column;gap:6px">'+
+        '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid rgba(0,0,0,0.04)"><span style="font-size:14px">📋</span><div style="flex:1;font-size:12px;color:var(--primary)">产品评审会纪要 — Agent架构</div><span style="font-size:10px;color:var(--secondary)">3/9</span></div>'+
+        '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid rgba(0,0,0,0.04)"><span style="font-size:14px">📋</span><div style="flex:1;font-size:12px;color:var(--primary)">内容助手 Tool Schema 设计</div><span style="font-size:10px;color:var(--secondary)">3/5</span></div>'+
+        '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid rgba(0,0,0,0.04)"><span style="font-size:14px">📋</span><div style="flex:1;font-size:12px;color:var(--primary)">ASR选型评估报告</div><span style="font-size:10px;color:var(--secondary)">3/3</span></div>'+
+        '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid rgba(0,0,0,0.04)"><span style="font-size:14px">📋</span><div style="flex:1;font-size:12px;color:var(--primary)">多语言翻译方案对比</div><span style="font-size:10px;color:var(--secondary)">2/28</span></div>'+
+        '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid rgba(0,0,0,0.04)"><span style="font-size:14px">📋</span><div style="flex:1;font-size:12px;color:var(--primary)">内容助手需求文档 V1</div><span style="font-size:10px;color:var(--secondary)">2/22</span></div>'+
+        '<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><span style="font-size:14px">📋</span><div style="flex:1;font-size:12px;color:var(--primary)">竞品分析 — AI写作助手</div><span style="font-size:10px;color:var(--secondary)">2/18</span></div>'+
+      '</div>'+
+    '</div>',200);
+  await addThink('分析笔记内容，聚合整理...',200);await W(700);rmThink();
+  await addRich(
+    '<div class="summary-card"><div class="header" style="background:linear-gradient(135deg,var(--purple),#A855F7)">📑 内容助手 · 项目全景文档</div><div class="body">'+
+    '<div style="font-size:11px;color:var(--secondary);margin-bottom:8px">聚合自 6 篇笔记 · 2026.2.18 — 3.9</div>'+
+    '<div class="section-title">🎯 项目概述</div>'+
+    '<div>内容助手是基于 MiClaw 平台的 AI Agent，提供写、译、读、听四大核心能力，通过系统级联动实现跨应用智能内容处理。</div>'+
+    '<div class="section-title">🏗 架构设计</div>'+
+    '<div>• Agent 框架基于 MiClaw 二次开发</div>'+
+    '<div>• App ↔ Agent 支持 N:N 调用关系</div>'+
+    '<div>• Tool Schema 已定义 9 个核心接口</div>'+
+    '<div class="section-title">🔧 技术选型</div>'+
+    '<div>• ASR：选定方案 A，准确率 96.2%</div>'+
+    '<div>• 翻译：自研模型 + 第三方兜底</div>'+
+    '<div>• 摘要：基于大模型 RAG 方案</div>'+
+    '<div class="section-title">📊 当前进度</div>'+
+    '<div>• 架构设计 ✅ | Tool接口 ✅ | ASR选型 ✅</div>'+
+    '<div>• Agent框架 60% | Prompt调优 进行中</div>'+
+    '<div class="confirm-bar"><button class="action-btn primary" onclick="openNote(&apos;merge&apos;)">💾 保存至笔记</button><button class="action-btn secondary">✎ 编辑</button><button class="action-btn secondary">📤 分享</button></div>'+
+    '</div></div>',200);
+  isPlaying=false;
+}
+// === SCENE: 视频内容提取摘要 ===
+async function sceneVideo(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> 帮我提取这个视频的要点，保存到笔记<br><span style="font-size:12px;opacity:0.7">📎 「WWDC26 — What\'s New in AI Frameworks」42:18</span>');
+  await addThink('解析视频内容...',300);await W(500);rmThink();
+  await addMsg('ai','<div class="thinking-tag">⚡ 听+读</div><br>正在提取视频音轨并分析画面内容...',200);
+  await addTool('🎙','var(--accent-light)','audio_transcribe','音轨转写完成 <b>42:18</b><br>英文 · 12,840 字 · 1 位演讲者',200);
+  await addTool('🖼','var(--blue-light)','frame_extract','提取关键帧 <b>24</b> 张<br><span style="color:var(--secondary)">含代码截图 8 张 · 架构图 3 张</span>',200);
+  await addTool('🌐','var(--green-light)','translate_text','已翻译为中文<br><span style="color:var(--secondary)">12,840 字 → 9,260 字</span>',150);
+  await addThink('生成结构化摘要...',200);await W(600);rmThink();
+  await addRich(
+    '<div class="summary-card"><div class="header" style="background:linear-gradient(135deg,#E11D48,#F43F5E)">🎬 视频摘要 · WWDC26 AI Frameworks</div><div class="body">'+
+    '<div style="font-size:11px;color:var(--secondary);margin-bottom:8px">时长 42:18 · 英文 → 中文 · 24 张关键帧</div>'+
+    '<div class="section-title">📌 核心要点</div>'+
+    '<div>1. <b>全新 Foundation Models 框架</b> — 支持端侧大模型推理，延迟降低 40%</div>'+
+    '<div style="margin-top:4px">2. <b>App Intents + AI 联动</b> — 第三方 App 可注册 AI 动作，系统级调度</div>'+
+    '<div style="margin-top:4px">3. <b>Writing Tools API 升级</b> — 支持自定义 Prompt 模板和输出格式</div>'+
+    '<div style="margin-top:4px">4. <b>Translation 框架</b> — 新增 12 种语言，支持离线翻译</div>'+
+    '<div style="margin-top:4px">5. <b>Speech 框架更新</b> — 说话人分离 + 实时转写准确率提升至 97%</div>'+
+    '<div class="section-title">⏱ 时间线</div>'+
+    '<div style="font-size:12px;color:var(--secondary);line-height:1.7">'+
+      '<div><span style="color:var(--blue);font-weight:600">00:00</span> 开场介绍</div>'+
+      '<div><span style="color:var(--blue);font-weight:600">03:22</span> Foundation Models 框架演示</div>'+
+      '<div><span style="color:var(--blue);font-weight:600">15:40</span> App Intents + AI 联动</div>'+
+      '<div><span style="color:var(--blue);font-weight:600">24:15</span> Writing Tools API</div>'+
+      '<div><span style="color:var(--blue);font-weight:600">32:08</span> Translation & Speech 更新</div>'+
+      '<div><span style="color:var(--blue);font-weight:600">39:50</span> 总结与展望</div>'+
+    '</div>'+
+    '<div class="confirm-bar"><button class="action-btn primary" onclick="openNote(&apos;video&apos;)">💾 保存至笔记</button><button class="action-btn secondary">📋 复制</button><button class="action-btn secondary">🖼 查看关键帧</button></div>'+
+    '</div></div>',200);
+  isPlaying=false;
+}
+// === SCENE: 搜索 · 跨应用记录检索 ===
+async function sceneSearch(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  await addMsg('user','<span style="background:rgba(255,255,255,0.25);color:white;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-right:4px">@内容助手</span> 空调滤芯更换记录');
+  await addThink('搜索相关记录...',300);await W(400);rmThink();
+  await addMsg('ai','<div class="thinking-tag">⚡ 全局检索</div><br>正在跨应用搜索「空调滤芯更换」相关内容...',200);
+  await addTool('📝','var(--green-light)','note_search','笔记中找到 <b>3</b> 条相关记录<br><span style="color:var(--secondary)">时间跨度：2024.6 — 2026.2</span>',200);
+  await addTool('📅','#FFF8F0','calendar_search','日历中找到 <b>1</b> 条提醒<br><span style="color:var(--secondary)">下次更换提醒 2026.8</span>',150);
+  await addTool('💬','var(--purple-light)','chat_search','聊天记录 <b>2</b> 条相关<br><span style="color:var(--secondary)">4S店客服对话 · 家人群讨论</span>',150);
+  await addMsg('ai','找到以下空调滤芯相关记录，已按时间整理：',200);
+  // 相关笔记卡片列表
+  await addRich(
+    '<div style="display:flex;flex-direction:column;gap:8px">'+
+      '<div style="background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow-sm);border:0.5px solid rgba(0,0,0,0.04);cursor:pointer">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
+          '<div style="padding:3px 8px;background:var(--green-light);border-radius:6px;font-size:10px;font-weight:600;color:var(--green)">笔记</div>'+
+          '<span style="font-size:11px;color:var(--secondary)">2026.2.15</span>'+
+        '</div>'+
+        '<div style="font-size:14px;font-weight:600;color:var(--primary);line-height:1.4">空调滤芯更换 — 第3次</div>'+
+        '<div style="font-size:12px;color:var(--secondary);margin-top:4px;line-height:1.5">品牌：曼牌 CUK2939 | 4S店更换<br>费用：380元（含工时）| 里程：62,000km<br>备注：技师建议下次 8 月前更换</div>'+
+      '</div>'+
+      '<div style="background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow-sm);border:0.5px solid rgba(0,0,0,0.04);cursor:pointer">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
+          '<div style="padding:3px 8px;background:var(--green-light);border-radius:6px;font-size:10px;font-weight:600;color:var(--green)">笔记</div>'+
+          '<span style="font-size:11px;color:var(--secondary)">2025.6.20</span>'+
+        '</div>'+
+        '<div style="font-size:14px;font-weight:600;color:var(--primary);line-height:1.4">空调滤芯更换 — 第2次</div>'+
+        '<div style="font-size:12px;color:var(--secondary);margin-top:4px;line-height:1.5">品牌：曼牌 CUK2939 | 自己动手换<br>费用：89元（京东购入）| 里程：45,000km</div>'+
+      '</div>'+
+      '<div style="background:var(--card);border-radius:16px;padding:14px;box-shadow:var(--shadow-sm);border:0.5px solid rgba(0,0,0,0.04);cursor:pointer">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'+
+          '<div style="padding:3px 8px;background:var(--green-light);border-radius:6px;font-size:10px;font-weight:600;color:var(--green)">笔记</div>'+
+          '<span style="font-size:11px;color:var(--secondary)">2024.9.08</span>'+
+        '</div>'+
+        '<div style="font-size:14px;font-weight:600;color:var(--primary);line-height:1.4">空调滤芯更换 — 第1次</div>'+
+        '<div style="font-size:12px;color:var(--secondary);margin-top:4px;line-height:1.5">品牌：博世 0986AF5706 | 4S店首保<br>费用：420元（含工时）| 里程：28,000km</div>'+
+      '</div>'+
+    '</div>',200);
+  // 汇总分析卡片
+  await addRich(
+    '<div class="summary-card"><div class="header" style="background:linear-gradient(135deg,var(--blue),#60A5FA)">📊 空调滤芯更换汇总</div><div class="body">'+
+    '<div class="stat-row" style="display:flex;gap:10px;margin:0 0 12px">'+
+      '<div style="flex:1;text-align:center;padding:10px 8px;background:var(--bg);border-radius:12px"><div style="font-size:22px;font-weight:700;color:var(--accent)">3</div><div style="font-size:10px;color:var(--secondary);margin-top:3px">更换次数</div></div>'+
+      '<div style="flex:1;text-align:center;padding:10px 8px;background:var(--bg);border-radius:12px"><div style="font-size:22px;font-weight:700;color:var(--accent)">889</div><div style="font-size:10px;color:var(--secondary);margin-top:3px">总花费(元)</div></div>'+
+      '<div style="flex:1;text-align:center;padding:10px 8px;background:var(--bg);border-radius:12px"><div style="font-size:22px;font-weight:700;color:var(--accent)">~8</div><div style="font-size:10px;color:var(--secondary);margin-top:3px">月均周期</div></div>'+
+    '</div>'+
+    '<div style="font-size:13px;color:var(--primary);line-height:1.6">'+
+      '<div style="font-weight:600;color:var(--blue);margin-bottom:4px">💡 建议</div>'+
+      '<div>• 下次更换预计 <b>2026年8月</b>，届时里程约 80,000km</div>'+
+      '<div>• 自购滤芯（曼牌 CUK2939）比4S店节省约 300 元</div>'+
+      '<div>• 已为你设置日历提醒：8月1日</div>'+
+    '</div>'+
+    '<div class="confirm-bar"><button class="action-btn primary" onclick="openNote(&apos;search&apos;)">💾 保存至笔记</button><button class="action-btn secondary">📅 查看提醒</button></div>'+
+    '</div></div>',300);
+  isPlaying=false;
+}
+</script>
+<script>
+// === SCENE: 超级岛 Dynamic Island ===
+async function sceneIsland(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  var nb=document.getElementById('notifBanner');
+  // Reset to island mode - use left/right for proper centering inside phone frame
+  nb.style.cssText='position:absolute;z-index:60;display:flex;cursor:pointer;overflow:hidden;transition:all 0.45s cubic-bezier(0.16,1,0.3,1);top:4px;border-radius:24px;background:rgba(0,0,0,0.95);padding:8px 14px;box-shadow:0 4px 20px rgba(0,0,0,0.5);border:none;align-items:center;gap:8px;left:106px;right:106px';
+
+  // Step 1: Compact pill - 录音中
+  nb.innerHTML=
+    '<div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:700;flex-shrink:0">M</div>'+
+    '<div style="flex:1;font-size:12px;color:rgba(255,255,255,0.9);font-weight:600;white-space:nowrap">录音中 32:15</div>'+
+    '<div style="width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 6px rgba(250,81,81,0.5);animation:wave1 1s ease-in-out infinite"></div>';
+  await W(2000);
+
+  // Step 2: Expand - 语音录音界面
+  nb.style.left='26px';
+  nb.style.right='26px';
+  nb.style.padding='0';
+  nb.style.borderRadius='28px';
+  nb.style.flexDirection='column';
+  nb.style.alignItems='stretch';
+  nb.innerHTML=
+    '<div style="padding:14px 16px">'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+
+        '<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;font-size:13px;color:white;font-weight:700">M</div>'+
+        '<div style="flex:1"><div style="font-size:13px;color:white;font-weight:600">正在录音...</div><div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">内容助手 · 听</div></div>'+
+      '</div>'+
+      '<div style="padding:12px 14px;background:rgba(250,81,81,0.1);border-radius:14px;border:1px solid rgba(250,81,81,0.15)">'+
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+
+          '<div style="width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 8px rgba(250,81,81,0.5);animation:wave1 1s ease-in-out infinite"></div>'+
+          '<span style="font-size:13px;color:white;font-weight:600">产品评审会</span>'+
+          '<span style="font-size:11px;color:rgba(255,255,255,0.35);margin-left:auto">32:15</span>'+
+        '</div>'+
+        '<div style="display:flex;align-items:end;gap:2px;height:28px;padding:0 4px">'+
+          '<div style="width:3px;border-radius:2px;background:var(--red);animation:wave1 0.5s ease-in-out infinite"></div>'+
+          '<div style="width:3px;border-radius:2px;background:var(--red);animation:wave2 0.5s ease-in-out infinite 0.05s"></div>'+
+          '<div style="width:3px;border-radius:2px;background:var(--red);animation:wave1 0.5s ease-in-out infinite 0.1s"></div>'+
+          '<div style="width:3px;border-radius:2px;background:var(--red);animation:wave2 0.5s ease-in-out infinite 0.15s"></div>'+
+          '<div style="width:3px;border-radius:2px;background:var(--red);animation:wave1 0.5s ease-in-out infinite 0.2s"></div>'+
+          '<div style="width:3px;border-radius:2px;background:var(--red);animation:wave2 0.5s ease-in-out infinite 0.25s"></div>'+
+          '<div style="width:3px;border-radius:2px;background:var(--red);animation:wave1 0.5s ease-in-out infinite 0.3s"></div>'+
+          '<div style="width:3px;border-radius:2px;background:var(--red);animation:wave2 0.5s ease-in-out infinite 0.35s"></div>'+
+          '<div style="width:3px;border-radius:2px;background:var(--red);animation:wave1 0.5s ease-in-out infinite 0.4s"></div>'+
+          '<div style="width:3px;border-radius:2px;background:var(--red);animation:wave2 0.5s ease-in-out infinite 0.45s"></div>'+
+          '<div style="width:3px;border-radius:2px;background:var(--red);animation:wave1 0.5s ease-in-out infinite 0.5s"></div>'+
+          '<div style="width:3px;border-radius:2px;background:var(--red);animation:wave2 0.5s ease-in-out infinite 0.55s"></div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:10px;margin-top:10px;justify-content:center">'+
+        '<div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer">⏸</div>'+
+        '<div style="width:40px;height:40px;border-radius:50%;background:rgba(250,81,81,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer">⏹</div>'+
+      '</div>'+
+    '</div>';
+  await W(2500);
+
+  // Step 3: 录音结束，转写完成，选择处理方式
+  nb.innerHTML=
+    '<div style="padding:14px 16px 10px">'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+
+        '<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;font-size:13px;color:white;font-weight:700">M</div>'+
+        '<div style="flex:1"><div style="font-size:13px;color:white;font-weight:600">录音已转写，选择处理方式</div><div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px">MiClaw · 内容助手 · 32:15</div></div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:6px">'+
+        '<div class="island-opt" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,106,0,0.12);border-radius:12px;border:1px solid rgba(255,106,0,0.25);cursor:pointer" onclick="selectIslandOpt(this)"><div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--accent);flex-shrink:0;display:flex;align-items:center;justify-content:center"><div style="width:10px;height:10px;border-radius:50%;background:var(--accent)"></div></div><span style="font-size:13px;color:white;font-weight:500">生成会议纪要</span><span style="margin-left:auto;font-size:12px;color:var(--accent)">✓</span></div>'+
+        '<div class="island-opt" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:12px;cursor:pointer" onclick="selectIslandOpt(this)"><div style="width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);flex-shrink:0"></div><span style="font-size:13px;color:rgba(255,255,255,0.85)">提取待办事项</span></div>'+
+        '<div class="island-opt" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:12px;cursor:pointer" onclick="selectIslandOpt(this)"><div style="width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);flex-shrink:0"></div><span style="font-size:13px;color:rgba(255,255,255,0.85)">翻译为英文</span></div>'+
+        '<div class="island-opt" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,0.06);border-radius:12px;cursor:pointer" onclick="selectIslandOpt(this)"><div style="width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);flex-shrink:0"></div><span style="font-size:13px;color:rgba(255,255,255,0.85)">起草周报</span></div>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:flex-end;margin-top:12px;padding-bottom:4px">'+
+        '<div style="padding:8px 28px;background:var(--accent);border-radius:20px;font-size:13px;color:white;font-weight:600;cursor:pointer;box-shadow:0 2px 10px rgba(255,106,0,0.3)" onclick="islandConfirm()">确定</div>'+
+      '</div>'+
+    '</div>';
+  await W(3000);
+
+  // Step 4: 会议纪要生成完成预览
+  nb.innerHTML=
+    '<div style="padding:14px 16px">'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+
+        '<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;font-size:13px;color:white;font-weight:700">M</div>'+
+        '<div style="flex:1"><div style="font-size:13px;color:white;font-weight:600;line-height:1.4">会议纪要已生成</div><div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">产品评审会 · 32分钟录音</div></div>'+
+      '</div>'+
+      '<div style="border-radius:14px;overflow:hidden;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);padding:12px">'+
+        '<div style="display:flex;gap:10px;align-items:center">'+
+          '<div style="width:50px;height:50px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;flex-shrink:0"><div style="font-size:20px">📋</div></div>'+
+          '<div style="flex:1"><div style="font-size:13px;color:white;font-weight:600;line-height:1.4">产品评审会纪要</div><div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px">5个要点 · 3个待办 · 刚刚</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px;margin-top:10px">'+
+        '<div style="flex:1;padding:8px;background:rgba(255,255,255,0.08);border-radius:12px;text-align:center;font-size:12px;color:rgba(255,255,255,0.6);cursor:pointer">💾 存入笔记</div>'+
+        '<div style="flex:1;padding:8px;background:rgba(52,120,246,0.2);border-radius:12px;text-align:center;font-size:12px;color:var(--blue);cursor:pointer" onclick="islandToChat()">👁 查看详情</div>'+
+      '</div>'+
+    '</div>';
+  await W(2500);
+
+  // Step 5: Collapse back to compact pill
+  nb.style.left='106px';
+  nb.style.right='106px';
+  nb.style.padding='8px 14px';
+  nb.style.borderRadius='24px';
+  nb.style.flexDirection='row';
+  nb.style.alignItems='center';
+  nb.innerHTML=
+    '<div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:700;flex-shrink:0">M</div>'+
+    '<div style="flex:1;font-size:12px;color:rgba(255,255,255,0.9);font-weight:600">已完成</div>'+
+    '<div style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div>';
+}
+function selectIslandOpt(el){
+  document.querySelectorAll('.island-opt').forEach(function(o){
+    o.style.background='rgba(255,255,255,0.06)';o.style.border='none';
+    var c=o.querySelector('div:first-child');if(c){c.style.border='2px solid rgba(255,255,255,0.2)';c.innerHTML=''}
+    var ck=o.querySelector('span:last-child');if(ck&&ck.textContent==='✓')ck.remove();
+    var t=o.querySelector('span');if(t){t.style.color='rgba(255,255,255,0.85)';t.style.fontWeight='400'}
+  });
+  el.style.background='rgba(255,106,0,0.12)';el.style.border='1px solid rgba(255,106,0,0.25)';
+  var c=el.querySelector('div:first-child');if(c){c.style.border='2px solid var(--accent)';c.innerHTML='<div style="width:10px;height:10px;border-radius:50%;background:var(--accent)"></div>'}
+  var t=el.querySelector('span');if(t){t.style.color='white';t.style.fontWeight='500'}
+  var ck=document.createElement('span');ck.style.cssText='margin-left:auto;font-size:12px;color:var(--accent)';ck.textContent='✓';el.appendChild(ck);
+}
+async function islandConfirm(){
+  var nb=document.getElementById('notifBanner');
+  nb.style.left='106px';nb.style.right='106px';nb.style.padding='8px 14px';nb.style.borderRadius='24px';nb.style.flexDirection='row';nb.style.alignItems='center';
+  nb.innerHTML='<div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:700;flex-shrink:0">M</div><div style="flex:1;font-size:12px;color:rgba(255,255,255,0.9);font-weight:600">已完成</div><div style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div>';
+}
+async function islandToChat(){
+  document.getElementById('notifBanner').style.display='none';
+  showMiclaw();
+  openNote('recording_note');
+}
+
+// === SCENE: 小部件 Widget ===
+async function sceneWidget(){
+  showLauncher();
+  document.getElementById('launcherCard').innerHTML='';
+  var card=document.getElementById('launcherCard');
+  await W(300);
+  
+  // Flat widget card - no nested card, directly show content-assistant capabilities
+  card.style.cssText='margin:20px 16px;border-radius:22px;background:rgba(255,255,255,0.55);backdrop-filter:blur(40px) saturate(180%);-webkit-backdrop-filter:blur(40px) saturate(180%);overflow:hidden;animation:cardSlideUp 0.6s cubic-bezier(0.16,1,0.3,1);box-shadow:0 4px 24px rgba(0,0,0,0.08);padding:18px 18px 16px';
+  card.innerHTML=
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px" onclick="widgetTapContent()">'+
+      '<div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;font-size:18px;color:white;font-weight:700;box-shadow:0 3px 10px rgba(255,106,0,0.3)">M</div>'+
+      '<div style="flex:1">'+
+        '<div style="font-size:16px;color:#1B1B1F;font-weight:700">内容助手</div>'+
+        '<div style="font-size:12px;color:#72727A;margin-top:2px">写 · 译 · 读 · 听</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="display:flex;flex-direction:column;gap:8px">'+
+      '<div style="font-size:11px;color:#9E9EA8;font-weight:600;letter-spacing:0.5px;padding:0 2px">最近完成</div>'+
+      '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,106,0,0.04);border-radius:10px;cursor:pointer" onclick="widgetTapContent()">'+
+        '<div style="font-size:14px;flex-shrink:0">✍️</div>'+
+        '<div style="flex:1;min-width:0"><div style="font-size:12px;color:#1B1B1F;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">项目汇报邮件草稿</div></div>'+
+        '<div style="font-size:10px;color:#B0B0B8;flex-shrink:0">刚刚</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(52,120,246,0.04);border-radius:10px;cursor:pointer" onclick="widgetTapContent()">'+
+        '<div style="font-size:14px;flex-shrink:0">🌐</div>'+
+        '<div style="flex:1;min-width:0"><div style="font-size:12px;color:#1B1B1F;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">AI Agent规模定律 · 摘要</div></div>'+
+        '<div style="font-size:10px;color:#B0B0B8;flex-shrink:0">2小时前</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(0,181,120,0.04);border-radius:10px;cursor:pointer" onclick="widgetTapContent()">'+
+        '<div style="font-size:14px;flex-shrink:0">📖</div>'+
+        '<div style="flex:1;min-width:0"><div style="font-size:12px;color:#1B1B1F;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">产品评审会纪要</div></div>'+
+        '<div style="font-size:10px;color:#B0B0B8;flex-shrink:0">今天</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(124,58,237,0.04);border-radius:10px;cursor:pointer" onclick="widgetTapContent()">'+
+        '<div style="font-size:14px;flex-shrink:0">🎙</div>'+
+        '<div style="flex:1;min-width:0"><div style="font-size:12px;color:#1B1B1F;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">录音转写 32:15</div></div>'+
+        '<div style="font-size:10px;color:#B0B0B8;flex-shrink:0">今天</div>'+
+      '</div>'+
+    '</div>';
+}
+async function widgetTapContent(){
+  showMiclaw();chatArea.innerHTML='';isPlaying=true;
+  await addMsg('ai','<div class="thinking-tag">⚡ 内容助手</div><br>你好！我是内容助手，可以帮你 写、译、读、听。<br><br>📝 刚才的会议纪要已生成<br>📅 明天 15:00 有产品评审会<br>🌐 剪贴板有 1 篇英文文章待翻译<br><br>需要我帮你处理哪个？',200);
+  isPlaying=false;
+}
+</script>
+<script>
+// === 端外语音速记（老板反馈版）===
+// 核心设计原则：AI键=唤醒MiClaw，语义驱动意图判断，零确认录入
+
+// 场景1：AI键 — 会后速记
+async function sceneAikeyRecord(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(400);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,#7C3AED,#A855F7);color:white;border-radius:11px;font-size:16px">🔑</div>'+
+    '<div class="nb-text"><div class="nb-app">AI 键 · 已记录到笔记</div><div class="nb-title">🔑 Q2评审会速记已保存</div><div class="nb-body">2个决策 · 1个待办 · 1个分歧 · 点击查看笔记</div></div>';
+  await W(1500);
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('aikey_note');
+  };
+}
+
+async function sceneAikeyQuery(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(400);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,#7C3AED,#A855F7);color:white;border-radius:11px;font-size:16px">🔑</div>'+
+    '<div class="nb-text"><div class="nb-app">AI 键 · 查询结果</div><div class="nb-title">🔑 明天上午2个会议</div><div class="nb-body">9:00 产品周会 · 10:30 和老王1:1 · 点击查看</div></div>';
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('aikey_query_note');
+  };
+}
+
+async function sceneAikeyFuzzy(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(400);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,#7C3AED,#A855F7);color:white;border-radius:11px;font-size:16px">🔑</div>'+
+    '<div class="nb-text"><div class="nb-app">AI 键 · 产品想法已记录</div><div class="nb-title">🔑 笔记语音搜索想法已保存</div><div class="nb-body">自动关联 #笔记产品设计 · 点击查看笔记</div></div>';
+  await W(1500);
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('aikey_fuzzy_note');
+  };
+}
+
+// 场景4：手表 — 多意图拆解
+async function sceneWatchMulti(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(400);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,#3478F6,#60A5FA);color:white;border-radius:11px;font-size:16px">⌚</div>'+
+    '<div class="nb-text"><div class="nb-app">小米手表 · 多意图处理完成</div><div class="nb-title">⌚ 2个任务已处理</div><div class="nb-body">提醒：买牛奶鸡蛋 · 待办：跟张三沟通方案 · 点击查看笔记</div></div>';
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('watch_multi_note');
+  };
+}
+
+// 场景5：灵动岛/锁屏 — 3秒快速录入
+async function sceneLockscreen(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  // 模拟锁屏状态
+  lc.style.cssText='margin:20px 16px;border-radius:22px;background:rgba(0,0,0,0.3);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);overflow:hidden;padding:20px;text-align:center';
+  lc.innerHTML=
+    '<div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:12px">🔒 锁屏状态</div>'+
+    '<div style="font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6">用户手机锁屏，突然想到一个 idea<br>下拉灵动岛 → 点击语音入口</div>';
+  await W(1500);
+  // 灵动岛展开
+  var nb=document.getElementById('notifBanner');
+  nb.style.cssText='position:absolute;z-index:60;display:flex;cursor:pointer;overflow:hidden;transition:all 0.45s cubic-bezier(0.16,1,0.3,1);top:4px;border-radius:24px;background:rgba(0,0,0,0.95);padding:8px 14px;box-shadow:0 4px 20px rgba(0,0,0,0.5);border:none;align-items:center;gap:8px;left:106px;right:106px';
+  nb.innerHTML=
+    '<div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:700;flex-shrink:0">M</div>'+
+    '<div style="flex:1;font-size:12px;color:rgba(255,255,255,0.9);font-weight:600;white-space:nowrap">MiClaw 聆听中...</div>'+
+    '<div style="display:flex;align-items:end;gap:2px;height:14px"><div style="width:3px;border-radius:2px;background:var(--accent);animation:wave1 0.5s ease-in-out infinite"></div><div style="width:3px;border-radius:2px;background:var(--accent);animation:wave2 0.5s ease-in-out infinite 0.1s"></div><div style="width:3px;border-radius:2px;background:var(--accent);animation:wave1 0.5s ease-in-out infinite 0.2s"></div></div>';
+  await W(2500);
+  // 录入完成 → 灵动岛显示结果
+  nb.style.left='26px';nb.style.right='26px';nb.style.padding='0';nb.style.borderRadius='28px';nb.style.flexDirection='column';nb.style.alignItems='stretch';
+  nb.innerHTML=
+    '<div style="padding:14px 16px">'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'+
+        '<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;font-size:12px;color:white;font-weight:700">M</div>'+
+        '<div style="flex:1"><div style="font-size:13px;color:white;font-weight:600">✅ 已记录</div><div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px">内容 Agent · 3秒完成</div></div>'+
+      '</div>'+
+      '<div style="padding:10px 12px;background:rgba(255,255,255,0.06);border-radius:12px;border:1px solid rgba(255,255,255,0.08)">'+
+        '<div style="font-size:13px;color:white;font-weight:600;margin-bottom:4px">📝 竞品分析 · Notion AI 笔记搜索</div>'+
+        '<div style="font-size:11px;color:rgba(255,255,255,0.5);line-height:1.5">Notion AI 的笔记搜索做得不错，但不支持语音输入，这是我们的机会。</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px;margin-top:10px">'+
+        '<div style="flex:1;padding:7px;background:rgba(255,255,255,0.08);border-radius:12px;text-align:center;font-size:12px;color:rgba(255,255,255,0.6);cursor:pointer" onclick="lockscreenToChat()">查看完整笔记</div>'+
+      '</div>'+
+    '</div>';
+  await W(3000);
+  // 收回灵动岛
+  nb.style.left='106px';nb.style.right='106px';nb.style.padding='8px 14px';nb.style.borderRadius='24px';nb.style.flexDirection='row';nb.style.alignItems='center';
+  nb.innerHTML=
+    '<div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#FF8C00);display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:700;flex-shrink:0">M</div>'+
+    '<div style="flex:1;font-size:12px;color:rgba(255,255,255,0.9);font-weight:600">已记录 · 竞品分析</div>'+
+    '<div style="width:6px;height:6px;border-radius:50%;background:var(--green)"></div>';
+}
+async function lockscreenToChat(){
+  document.getElementById('notifBanner').style.display='none';
+  showMiclaw();
+  openNote('lockscreen_note');
+}
+</script>
+<script>
+// === SCENE: 戒指 · 轻触录入笔记 ===
+async function sceneRing(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(400);
+  // 戒指震动提示 → 通知推送到手机
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,#C084FC,#7C3AED);color:white;border-radius:11px;font-size:16px">💍</div>'+
+    '<div class="nb-text"><div class="nb-app">小米智能戒指 · 语音输入</div><div class="nb-title">💍 已记录到笔记</div><div class="nb-body">Q3海外市场拓展 · 日程已创建 · 3个待办 · 点击查看</div></div>';
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('ring_note');
+  };
+}
+</script>
+<script>
+// === 新增场景：通话摘要 ===
+async function sceneCallSummary(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(500);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,#22C55E,#4ADE80);color:white;border-radius:11px">📞</div>'+
+    '<div class="nb-text"><div class="nb-app">MiClaw · 通讯Agent</div><div class="nb-title">📞 通话摘要已生成</div><div class="nb-body">与张总通话 12:35 · 3个关键信息 · 2个待办 · 点击查看</div></div>';
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('call_summary');
+  };
+}
+
+// === 新增场景：出差报告 ===
+async function sceneTripReport(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(500);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,#F59E0B,#FBBF24);color:white;border-radius:11px">✈️</div>'+
+    '<div class="nb-text"><div class="nb-app">MiClaw · 日程出行Agent</div><div class="nb-title">✈️ 出差报告已生成</div><div class="nb-body">上海出差 3.22-3.24 · 3天 · 总花费 ¥4,280 · 点击查看</div></div>';
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('trip_report');
+  };
+}
+
+// === 新增场景：短信结构化 ===
+async function sceneSmsParse(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(500);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,var(--blue),#60A5FA);color:white;border-radius:11px">💬</div>'+
+    '<div class="nb-text"><div class="nb-app">MiClaw · 系统智能</div><div class="nb-title">💬 3条重要短信已处理</div><div class="nb-body">航班变更 · 快递到达 · 银行消费 — 已归档到笔记 · 点击查看</div></div>';
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('sms_parse');
+  };
+}
+
+// === 新增场景：金融简报 ===
+async function sceneFinanceBrief(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(500);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,#E11D48,#F43F5E);color:white;border-radius:11px">📈</div>'+
+    '<div class="nb-text"><div class="nb-app">MiClaw · 金融助手Agent</div><div class="nb-title">📈 今日持仓简报已生成</div><div class="nb-body">小米集团 +3.2% · 浮盈 +¥2,340 · 点击查看笔记</div></div>';
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('finance_brief');
+  };
+}
+
+// === 新增场景：出差报销汇总 ===
+async function sceneExpense(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(500);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,#F59E0B,#FBBF24);color:white;border-radius:11px">🧾</div>'+
+    '<div class="nb-text"><div class="nb-app">MiClaw · 日程出行Agent</div><div class="nb-title">🧾 报销清单已整理完成</div><div class="nb-body">上海出差 · ¥4,280 · 16笔消费 · 5张发票 · 点击查看</div></div>';
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('expense_report');
+  };
+}
+
+// === 新增场景：通讯录备注 ===
+async function sceneContactNote(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(500);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,var(--purple),#A855F7);color:white;border-radius:11px">👤</div>'+
+    '<div class="nb-text"><div class="nb-app">MiClaw · 通讯Agent</div><div class="nb-title">👤 联系人备注已更新</div><div class="nb-body">与张总通话摘要已同步到笔记 · 点击查看</div></div>';
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('contact_note_detail');
+  };
+}
+
+// === 新增场景：耳机语音速记 ===
+async function sceneEarphone(){
+  showLauncher();
+  var lc=document.getElementById('launcherCard');lc.innerHTML='';lc.style.cssText='';
+  await W(400);
+  var nb=document.getElementById('notifBanner');
+  nb.style.display='flex';
+  nb.innerHTML=
+    '<div class="nb-icon" style="background:linear-gradient(135deg,#0EA5E9,#38BDF8);color:white;border-radius:11px;font-size:16px">🎧</div>'+
+    '<div class="nb-text"><div class="nb-app">小米耳机 · 已记录到笔记</div><div class="nb-title">🎧 2条待办已保存</div><div class="nb-body">设计稿发老王 · PPT加竞品分析 · 已同步日历 · 点击查看</div></div>';
+  await W(1500);
+  nb.onclick=async function(){
+    nb.style.display='none';
+    showMiclaw();
+    openNote('earphone_note');
+  };
+}
+
+function loadScene(s,btn){
+  if(isPlaying)return;
+  chatArea.innerHTML='';
+  noteDetail.style.display='none';noteDetail.classList.remove('closing');
+  document.getElementById('notifBanner').style.display='none';
+  document.getElementById('notifBanner').style.cssText='position:absolute;top:60px;left:10px;right:10px;z-index:60;border-radius:var(--radius-lg);background:rgba(30,30,46,0.88);backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);padding:14px 16px;display:none;align-items:center;gap:12px;box-shadow:0 12px 40px rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);cursor:pointer';
+  document.getElementById('shareSheet').style.display='none';
+  var t=document.getElementById('clipToast');if(t)t.remove();
+  var ab=document.getElementById('agentBanner');if(ab)ab.remove();
+  var sg=document.getElementById('screenshotGuide');if(sg)sg.remove();
+  document.querySelectorAll('.scene-btn').forEach(function(b){b.classList.remove('active')});
+  if(btn)btn.classList.add('active');
+  switch(s){
+    case 'launcher':sceneLauncher();break;
+    case 'recording':sceneRecording();break;
+    case 'share':sceneShare();break;
+    case 'create':sceneCreate();break;
+    case 'translate':sceneTranslate();break;
+    case 'weekly':sceneWeekly();break;
+    case 'ocr':sceneOcr();break;
+    case 'meeting':sceneMeeting();break;
+    case 'exam':sceneExam();break;
+    case 'search':sceneSearch();break;
+    case 'merge':sceneMerge();break;
+    case 'video':sceneVideo();break;
+    case 'watch':sceneWatch();break;
+    case 'screenshot':sceneScreenshot();break;
+    case 'smartclip':sceneSmartClip();break;
+    case 'dailybrief':sceneDailyBrief();break;
+    case 'island':sceneIsland();break;
+    case 'widget':sceneWidget();break;
+    case 'aikey_record':sceneAikeyRecord();break;
+    case 'aikey_query':sceneAikeyQuery();break;
+    case 'aikey_fuzzy':sceneAikeyFuzzy();break;
+    case 'watch_multi':sceneWatchMulti();break;
+    case 'lockscreen':sceneLockscreen();break;
+    case 'ring':sceneRing();break;
+    case 'call_summary':sceneCallSummary();break;
+    case 'trip_report':sceneTripReport();break;
+    case 'sms_parse':sceneSmsParse();break;
+    case 'finance_brief':sceneFinanceBrief();break;
+    case 'expense':sceneExpense();break;
+    case 'contact_note':sceneContactNote();break;
+    case 'earphone':sceneEarphone();break;
+    default:sceneLauncher();
+  }
+}
+function sendMessage(){
+  var t=inputField.value.trim();if(!t||isPlaying)return;inputField.value='';
+  addMsg('user',t).then(function(){isPlaying=true;addThink('思考中...',200).then(function(){setTimeout(function(){rmThink();addMsg('ai','点击右侧场景按钮查看完整演示 😊');isPlaying=false},500)})});
+}
+window.onload=function(){setTimeout(function(){loadScene('recording',document.querySelector('.scene-btn'))},200)};
+</script>
+</body>
+</html>

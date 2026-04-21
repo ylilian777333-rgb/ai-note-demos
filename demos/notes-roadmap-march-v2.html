@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 笔记 v1 · 2026 年 3 月</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; background: #f8f9fb; color: #1a1a2e; font-size: 13px; line-height: 1.6; min-height: 100vh; }
+
+.topbar { background: #fff; border-bottom: 1px solid #e8eaed; padding: 0 28px; height: 48px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.tb-badge { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #e8590c; background: #fff4ef; border: 1.5px solid #fbc9a8; padding: 2px 8px; border-radius: 4px; }
+.tb-title { font-size: 13px; font-weight: 600; color: #374151; }
+.topbar-right { display: flex; gap: 8px; }
+.btn-edit  { padding: 5px 14px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid #e2e8f0; background: #fff; color: #374151; }
+.btn-share { padding: 5px 16px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(135deg, #ff6b35, #e8590c); color: #fff; }
+
+.main { max-width: 1280px; margin: 0 auto; padding: 36px 40px 80px; }
+.page-label { font-size: 10px; font-weight: 800; letter-spacing: 2px; color: #e8590c; text-transform: uppercase; display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.page-label::before { content: ''; display: block; width: 3px; height: 14px; background: #e8590c; border-radius: 2px; }
+.page-title { font-size: 30px; font-weight: 800; color: #111827; letter-spacing: -0.5px; margin-bottom: 8px; }
+.page-desc  { font-size: 13px; color: #6b7280; margin-bottom: 28px; }
+
+/* Timeline — no 上线 text */
+.timeline-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+.timeline-month   { font-size: 12px; font-weight: 700; color: #9ca3af; flex-shrink: 0; }
+.timeline-track   { flex: 1; height: 3px; background: #e5e7eb; border-radius: 2px; position: relative; }
+.timeline-progress { position: absolute; left: 0; top: 0; height: 100%; width: 50%; background: #e8590c; border-radius: 2px; }
+.timeline-end     { font-size: 11px; font-weight: 700; color: #9ca3af; white-space: nowrap; flex-shrink: 0; }
+
+.sec-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #9ca3af; text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.sec-label-line { display: block; height: 1px; flex: 1; background: #e5e7eb; }
+
+.ar-note-outer { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 12px; font-weight: 700; color: #15803d; }
+.ar-note-outer .ar-icon { background: #dcfce7; border-radius: 6px; padding: 3px 8px; font-size: 11px; }
+.ar-note-outer .ar-divider { width: 1px; height: 14px; background: #d1fae5; }
+.ar-note-outer .ar-body { color: #374151; font-weight: 500; font-size: 12px; }
+.ar-note-outer .ar-body strong { color: #15803d; font-weight: 700; }
+
+/* Dots / Timeline */
+.timeline-outer { position: relative; margin-bottom: 4px; padding: 0 0 20px 0; }
+.timeline-track-full { position: absolute; top: 8px; left: 0; right: 0; height: 2px; background: #e5e7eb; border-radius: 2px; }
+.timeline-progress-full { position: absolute; top: 0; left: 0; height: 100%; width: 32%; background: #e8590c; border-radius: 2px; }
+.timeline-dots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; position: relative; z-index: 2; }
+.dot-col { display: flex; flex-direction: column; align-items: flex-start; }
+.dot { width: 16px; height: 16px; border-radius: 50%; border: 3px solid #f8f9fb; flex-shrink: 0; }
+.dot-red    { box-shadow: 0 0 0 2px #e8590c; background: #e8590c; }
+.dot-orange { box-shadow: 0 0 0 2px #f59e0b; background: #f59e0b; }
+.dot-purple { box-shadow: 0 0 0 2px #8b5cf6; background: #f8f9fb; }
+.dot-blue   { box-shadow: 0 0 0 2px #3b82f6; background: #f8f9fb; }
+.dot-label  { font-size: 10px; font-weight: 700; color: #9ca3af; margin-top: 6px; }
+.dot-end    { position: absolute; right: 0; top: -4px; font-size: 10px; font-weight: 700; color: #9ca3af; }
+
+/* Cards — use flex column so milestone always sticks to bottom */
+.weeks-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; align-items: stretch; }
+.week-card  { background: #fff; border-radius: 14px; border: 1.5px solid #e5e7eb; padding: 18px 20px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+.week-card.done   { background: #fffbf5; border-color: #fed7aa; }
+.week-card.done-y { background: #fffdf0; border-color: #fde68a; }
+.week-card.w1::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:#e8590c; }
+.week-card.w2::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:#f59e0b; }
+.week-card.w3::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:#8b5cf6; }
+.week-card.w4::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:#3b82f6; }
+
+.card-hd { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+.card-week-lbl { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #9ca3af; white-space: nowrap; }
+.badge-diff  { font-size: 10px; font-weight: 700; color: #d97706; background: #fef3c7; border: 1px solid #fde68a; padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+.badge-maybe { font-size: 10px; font-weight: 700; color: #6b7280; background: #f3f4f6; border: 1px solid #e5e7eb; padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+.badge-done  { font-size: 10px; font-weight: 700; color: #15803d; background: #dcfce7; border: 1px solid #86efac; padding: 1px 6px; border-radius: 3px; white-space: nowrap; margin-left: auto; flex-shrink: 0; }
+
+.card-date  { font-size: 12px; font-weight: 700; color: #6b7280; margin-bottom: 4px; }
+.card-title { font-size: 15px; font-weight: 800; color: #111827; margin-bottom: 6px; line-height: 1.35; }
+.card-desc  { font-size: 12px; color: #6b7280; line-height: 1.6; margin-bottom: 14px; }
+
+.features { display: flex; flex-direction: column; gap: 7px; margin-bottom: 0; flex: 1; }
+.feat { display: flex; align-items: baseline; gap: 7px; font-size: 12px; line-height: 1.5; }
+.feat-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.feat-dot.c1  { background: #e8590c; }
+.feat-dot.c2  { background: #f59e0b; }
+.feat-dot.c3  { background: #8b5cf6; }
+.feat-dot.c4  { background: #3b82f6; }
+.feat-dot.dim { background: #d1d5db; }
+.feat.bold  { font-weight: 600; color: #111827; }
+.feat.faded { color: #9ca3af; }
+
+/* Milestone pinned to bottom, always same height */
+.milestone { border-top: 1px solid #f3f4f6; margin-top: 14px; padding-top: 11px; min-height: 38px; display: flex; align-items: center; gap: 5px; }
+.ms-label { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #9ca3af; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; }
+.ms-text { font-size: 11.5px; font-weight: 700; }
+.ms-text.c1 { color: #e8590c; }
+.ms-text.c2 { color: #d97706; }
+.ms-text.c3 { color: #7c3aed; }
+.ms-text.c4 { color: #2563eb; }
+
+/* Guangzhou note — compact inline badge */
+.gz-banner { display: flex; align-items: center; justify-content: center; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; padding: 4px 10px; font-size: 11px; color: #9a3412; font-weight: 600; margin-bottom: 10px; white-space: nowrap; text-align: center; }
+
+/* Other tracks */
+.other-section { margin-top: 28px; }
+.other-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.other-card { background: #fff; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+.other-card-icon { font-size: 18px; flex-shrink: 0; }
+.other-card-name { font-size: 13px; font-weight: 800; color: #374151; white-space: nowrap; }
+.other-tag { display: inline-flex; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; margin-left: auto; flex-shrink: 0; }
+.tag-done  { background: #dcfce7; color: #15803d; }
+.tag-next  { background: #ede9fe; color: #7c3aed; }
+
+.miclaw-bar { background: linear-gradient(135deg, #1e1b4b, #312e81); border-radius: 10px; padding: 14px 20px; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center; }
+.miclaw-title { font-size: 13px; font-weight: 800; color: #fff; }
+.miclaw-sub   { font-size: 11px; color: #a5b4fc; margin-top: 2px; }
+
+.legend { display: flex; align-items: center; justify-content: space-between; margin-top: 28px; }
+.legend-left { display: flex; gap: 20px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #374151; }
+.ld { width: 8px; height: 8px; border-radius: 50%; }
+.legend-done { font-size: 12px; color: #10b981; font-weight: 600; }
+
+.toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-60px); background: #1e293b; color: #fff; padding: 9px 18px; border-radius: 8px; font-size: 12px; z-index: 999; transition: transform 0.3s; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="tb-badge">PRODUCT ROADMAP</span>
+    <span class="tb-title">AI 笔记 v1 · 2026 年 3 月</span>
+  </div>
+  <div class="topbar-right">
+    <button class="btn-edit">✏️ 编辑</button>
+    <button class="btn-share" onclick="shareDoc()">🔗 分享</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="page-label">PRODUCT ROADMAP</div>
+  <div class="page-title">AI 笔记 v1 · 2026 年 3 月</div>
+  <div class="page-desc">一个月四个版本，前两周聚焦 AI 差异化核心体验，后两周拓展系统能力与 AskAI 场景。</div>
+
+
+
+  <div class="sec-label">AR NOTE · 笔记赛道</div>
+
+  <div class="timeline-outer">
+    <div class="timeline-track-full">
+      <div class="timeline-progress-full"></div>
+    </div>
+    <div class="timeline-dots">
+      <div class="dot-col"><div class="dot dot-red"></div><div class="dot-label">3月</div></div>
+      <div class="dot-col"><div class="dot dot-orange"></div><div class="dot-label">3/10</div></div>
+      <div class="dot-col"><div class="dot dot-purple"></div><div class="dot-label">3/17</div></div>
+      <div class="dot-col" style="position:relative;">
+        <div class="dot dot-blue"></div>
+        <div class="dot-label">3/24</div>
+        <div class="dot-end">3/31</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="weeks-grid" style="margin-top:8px; margin-bottom:-4px;">
+    <div style="grid-column: 1 / 3; display:flex; align-items:flex-end; width:100%;">
+      <div class="gz-banner" style="width:100%; box-sizing:border-box; justify-content:center;">⚡ AI 开发提效 · 7 天完成两周内容，进度领先计划一周</div>
+    </div>
+    <div style="grid-column: 3 / 5; display:flex; align-items:flex-end; width:100%;">
+      <div class="gz-banner" style="width:100%; box-sizing:border-box;">📍 Week 3 / 4 排期待定，计划赴广州对齐后确认</div>
+    </div>
+  </div>
+
+  <div class="weeks-grid">
+
+    <!-- W1 -->
+    <div class="week-card w1 done">
+      <div class="card-hd">
+        <span class="card-week-lbl">WEEK 1 · V1</span>
+        <span class="badge-diff">⭐ 差异化</span>
+        <span class="badge-done">✅ 已完成</span>
+      </div>
+      <div class="card-date">3/5 – 3/9</div>
+      <div class="card-title">语音 + 对话 MVP</div>
+      <div class="card-desc">让用户第一次打开就感知到「AI 笔记」，语音输入 + 与笔记直接对话是核心体验</div>
+      <div class="features">
+        <div class="feat bold"><div class="feat-dot c1"></div>旧版本数据升级确认</div>
+        <div class="feat bold"><div class="feat-dot c1"></div>笔记 APP 内语音新建笔记</div>
+        <div class="feat bold"><div class="feat-dot c1"></div>针对单篇笔记支持 AI 问答 / 对话编辑</div>
+        <div class="feat bold"><div class="feat-dot c1"></div>重点场景：会议录音自动整理</div>
+      </div>
+      <div class="milestone">
+        <span class="ms-label">里程碑</span>
+        <span class="ms-text c1">⭐ 差异化体验首批可 Demo</span>
+      </div>
+    </div>
+
+    <!-- W2 -->
+    <div class="week-card w2 done-y">
+      <div class="card-hd">
+        <span class="card-week-lbl">WEEK 2 · V2</span>
+        <span class="badge-diff">⭐ 差异化</span>
+        <span class="badge-done">✅ 已完成</span>
+      </div>
+      <div class="card-date">3/10 – 3/16</div>
+      <div class="card-title">AI 能力接入 & 打通</div>
+      <div class="card-desc">全面接入 AI 核心能力，打通对话修改、内容生成、记忆查询等关键链路</div>
+      <div class="features">
+        <div class="feat bold"><div class="feat-dot c2"></div>通过对话修改和补充记录</div>
+        <div class="feat bold"><div class="feat-dot c2"></div>结构化会议纪要自动生成</div>
+        <div class="feat bold"><div class="feat-dot c2"></div>通话录音自动进入笔记</div>
+        <div class="feat bold"><div class="feat-dot c2"></div>生成待办 / 日程</div>
+        <div class="feat faded"><div class="feat-dot dim"></div>其他基础功能文字笔记等功能补齐</div>
+      </div>
+      <div class="milestone">
+        <span class="ms-label">里程碑</span>
+        <span class="ms-text c2">⭐ AI 能力全链路闭环可演示</span>
+      </div>
+    </div>
+
+    <!-- W3 -->
+    <div class="week-card w3">
+      <div class="card-hd">
+        <span class="card-week-lbl">WEEK 3 · V3</span>
+        <span class="badge-maybe">待定</span>
+      </div>
+      <div class="card-date">3/17 – 3/23</div>
+      <div class="card-title">系统级能力拉通</div>
+      <div class="card-desc">打通系统层输入能力，构建个人记忆库底层基础，为 AskAI 全局查询做准备</div>
+      <div class="features">
+        <div class="feat bold"><div class="feat-dot c3"></div>系统级语音输入</div>
+        <div class="feat bold"><div class="feat-dot c3"></div>屏幕读屏 / 上下文感知记录</div>
+        <div class="feat bold"><div class="feat-dot c3"></div>记忆索引基础能力</div>
+        <div class="feat faded"><div class="feat-dot dim"></div>项目复盘自动整理</div>
+      </div>
+      <div class="milestone">
+        <span class="ms-label">里程碑</span>
+        <span class="ms-text c3">系统级能力接入完成</span>
+      </div>
+    </div>
+
+    <!-- W4 -->
+    <div class="week-card w4">
+      <div class="card-hd">
+        <span class="card-week-lbl">WEEK 4 · V4</span>
+        <span class="badge-maybe">待定</span>
+      </div>
+      <div class="card-date">3/24 – 3/31</div>
+      <div class="card-title">AskAI 扩展 & 体验优化</div>
+      <div class="card-desc">在前三周基础上扩展 AskAI 使用场景，并对语音、对话等核心链路做体验提升</div>
+      <div class="features">
+        <div class="feat bold"><div class="feat-dot c4"></div>系统小爱 Ask AI 查询入口</div>
+        <div class="feat faded"><div class="feat-dot dim"></div>ASR 准确率 & 响应延迟优化</div>
+        <div class="feat faded"><div class="feat-dot dim"></div>AI 对话修改准确率提升</div>
+        <div class="feat faded"><div class="feat-dot dim"></div>多端语音输入一致性联调</div>
+      </div>
+      <div class="milestone">
+        <span class="ms-label">里程碑</span>
+        <span class="ms-text c4">AskAI 扩展 + 核心链路体验提升</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Other tracks -->
+  <div class="other-section">
+    <div class="sec-label">其他赛道协同 · 产研敏捷小组 <span class="sec-label-line"></span></div>
+    <div class="other-grid">
+      <div class="other-card">
+        <span class="other-card-icon">📞</span>
+        <span class="other-card-name">通信</span>
+        <span class="other-tag tag-next">Agent 梳理</span>
+      </div>
+      <div class="other-card">
+        <span class="other-card-icon">📅</span>
+        <span class="other-card-name">日程 & 出行</span>
+        <span class="other-tag tag-next">Agent 梳理</span>
+      </div>
+      <div class="other-card">
+        <span class="other-card-icon">🎙️</span>
+        <span class="other-card-name">录音机</span>
+        <span class="other-tag tag-next">Agent 梳理</span>
+      </div>
+      <div class="other-card">
+        <span class="other-card-icon">📷</span>
+        <span class="other-card-name">影像</span>
+        <span class="other-tag tag-next">Agent 梳理</span>
+      </div>
+    </div>
+    <div class="miclaw-bar">
+      <div>
+        <div class="miclaw-title">以上 Agent 能力会统一对齐 Miclaw 接入</div>
+      </div>
+    </div>
+  </div>
+
+
+
+</div>
+
+<script>
+function shareDoc(){navigator.clipboard.writeText(window.location.href).then(()=>showToast('✅ 链接已复制')).catch(()=>showToast('请下载后分享'));}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+</script>
+</body>
+</html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>AI笔记 · 搜索+问答融合Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#f7f7f7;--card:#fff;--text:#1a1a1a;--sub:#555;--hint:#999;--blue:#3478f6;--orange:#f5a623;--green:#34c759;--purple:#af52de;--red:#ff3b30;--radius:14px;--shadow:0 .5px 2px rgba(0,0,0,.08)}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Display','PingFang SC',sans-serif;min-height:100vh;overflow-x:hidden}
+.phone{width:393px;min-height:852px;margin:20px auto;background:var(--bg);position:relative;overflow:hidden;border-radius:44px;border:8px solid #1a1a1a;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.status-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 28px 0;font-size:12px;font-weight:600}
+.status-bar .time{font-size:15px;font-weight:700}
+
+/* Search page */
+.search-page{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:100;overflow-y:auto;padding-bottom:40px}
+.search-bar-wrap{padding:48px 16px 12px;position:sticky;top:0;background:var(--bg);z-index:10;display:flex;gap:8px;align-items:center}
+.search-input{flex:1;background:var(--card);border:1.5px solid rgba(0,0,0,.08);border-radius:12px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;color:var(--text);transition:border-color .2s}
+.search-input:focus{border-color:var(--blue)}
+.search-input::placeholder{color:var(--hint)}
+.search-cancel{font-size:14px;color:var(--blue);font-weight:500;cursor:pointer;flex-shrink:0}
+.search-body{padding:0 16px}
+
+/* Tabs */
+.tab-bar{display:flex;gap:0;margin-bottom:12px;border-bottom:1px solid rgba(0,0,0,.06)}
+.tab{flex:1;text-align:center;padding:10px 0;font-size:13px;font-weight:500;color:var(--hint);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:600}
+
+/* Suggestion chips */
+.suggest-wrap{padding:8px 0 16px;display:flex;flex-wrap:wrap;gap:8px}
+.suggest-chip{background:var(--card);border:1px solid rgba(0,0,0,.06);border-radius:20px;padding:8px 14px;font-size:12px;color:var(--sub);cursor:pointer;transition:all .15s}
+.suggest-chip:active{background:rgba(0,0,0,.04)}
+.suggest-chip .emoji{margin-right:4px}
+
+/* Search results */
+.section-label{font-size:11px;font-weight:600;color:var(--hint);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.result-card{background:var(--card);border-radius:12px;padding:13px 15px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s}
+.result-card:active{transform:scale(.98)}
+.result-title{font-size:13px;font-weight:600;margin-bottom:3px;line-height:1.4}
+.result-preview{font-size:11px;color:var(--sub);line-height:1.5}
+.result-preview mark{background:rgba(52,120,246,.12);color:var(--blue);border-radius:2px;padding:0 2px}
+.result-meta{font-size:10px;color:var(--hint);margin-top:5px;display:flex;gap:8px;align-items:center}
+.result-tag{font-size:10px;color:var(--purple);font-weight:500}
+
+/* AI Answer area */
+.ai-answer{background:var(--card);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border-left:3px solid var(--purple)}
+.ai-answer-header{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.ai-avatar{width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,var(--purple),var(--blue));display:flex;align-items:center;justify-content:center}
+.ai-avatar svg{color:#fff}
+.ai-answer-label{font-size:12px;font-weight:600;color:var(--purple)}
+.ai-answer-text{font-size:13px;line-height:1.7;color:var(--text)}
+.ai-answer-text p{margin-bottom:8px}
+.ai-answer-text .highlight{background:rgba(175,82,222,.08);padding:2px 4px;border-radius:3px}
+.ai-sources{margin-top:12px;padding-top:10px;border-top:1px solid rgba(0,0,0,.05)}
+.ai-sources-label{font-size:10px;color:var(--hint);margin-bottom:6px}
+.ai-source-item{display:flex;align-items:center;gap:6px;padding:6px 0;font-size:12px;color:var(--blue);cursor:pointer}
+.ai-source-item:hover{text-decoration:underline}
+.ai-followup{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+.ai-followup-chip{background:rgba(175,82,222,.06);border:1px solid rgba(175,82,222,.12);border-radius:16px;padding:6px 12px;font-size:11px;color:var(--purple);cursor:pointer;transition:background .15s}
+.ai-followup-chip:active{background:rgba(175,82,222,.12)}
+
+/* Typing animation */
+.typing-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--purple);margin:0 2px;animation:typing .8s infinite}
+.typing-dot:nth-child(2){animation-delay:.15s}
+.typing-dot:nth-child(3){animation-delay:.3s}
+@keyframes typing{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+
+/* Views */
+.view{display:none}
+.view.active{display:block}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.anim{animation:fadeUp .3s ease both}
+.anim-d1{animation-delay:.05s}.anim-d2{animation-delay:.1s}.anim-d3{animation-delay:.15s}.anim-d4{animation-delay:.2s}.anim-d5{animation-delay:.25s}
+
+/* Hint bar */
+.hint-bar{text-align:center;padding:20px 16px;color:var(--hint);font-size:12px}
+.hint-bar .icon-hint{font-size:28px;margin-bottom:6px}
+
+/* Chat panel */
+.chat-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);z-index:300;opacity:0;pointer-events:none;transition:opacity .3s}
+.chat-overlay.show{opacity:1;pointer-events:auto}
+.chat-panel{position:fixed;left:50%;transform:translateX(-50%) translateY(100%);bottom:0;width:393px;background:var(--bg);border-radius:20px 20px 0 0;z-index:301;transition:transform .35s cubic-bezier(.25,.1,.25,1);max-height:65vh;display:flex;flex-direction:column;box-shadow:0 -4px 20px rgba(0,0,0,.15)}
+.chat-panel.show{transform:translateX(-50%) translateY(0)}
+.chat-handle{display:flex;justify-content:center;padding:10px 0 4px;cursor:pointer}
+.chat-handle-bar{width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.12)}
+.chat-header{display:flex;align-items:center;gap:8px;padding:4px 16px 12px;border-bottom:1px solid rgba(0,0,0,.05)}
+.chat-body{flex:1;overflow-y:auto;padding:16px}
+.chat-msg{margin-bottom:14px}
+.chat-msg-user{background:var(--text);color:#fff;padding:10px 14px;border-radius:16px 16px 4px 16px;font-size:13px;display:inline-block;max-width:80%;float:right;clear:both}
+.chat-msg-ai{clear:both;display:flex;gap:8px;align-items:flex-start}
+.chat-msg-ai-avatar{width:24px;height:24px;border-radius:8px;background:linear-gradient(135deg,var(--purple),var(--blue));display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.chat-msg-ai-avatar svg{color:#fff}
+.chat-msg-ai-content{background:var(--card);padding:12px 14px;border-radius:4px 16px 16px 16px;font-size:13px;line-height:1.7;max-width:85%;box-shadow:var(--shadow)}
+.chat-msg-ai-content p{margin-bottom:6px}
+.chat-msg-ai-content .hl{background:rgba(175,82,222,.08);padding:1px 4px;border-radius:3px}
+.chat-sources{margin-top:10px;padding-top:8px;border-top:1px solid rgba(0,0,0,.04);font-size:11px;color:var(--hint)}
+.chat-source-link{color:var(--blue);cursor:pointer;display:block;padding:3px 0}
+.chat-followups{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;clear:both}
+.chat-followup-btn{background:rgba(175,82,222,.06);border:1px solid rgba(175,82,222,.12);border-radius:16px;padding:6px 12px;font-size:11px;color:var(--purple);cursor:pointer}
+.chat-input-wrap{display:flex;gap:8px;padding:12px 16px 28px;border-top:1px solid rgba(0,0,0,.05);background:var(--bg)}
+.chat-input{flex:1;background:var(--card);border:1px solid rgba(0,0,0,.08);border-radius:20px;padding:10px 14px;font-size:13px;font-family:inherit;outline:none}
+.chat-send{width:36px;height:36px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+
+/* Demo controls */
+.demo-controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:999;background:rgba(0,0,0,.85);padding:8px 12px;border-radius:12px}
+.demo-btn{background:rgba(255,255,255,.15);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:background .15s}
+.demo-btn:hover{background:rgba(255,255,255,.25)}
+.demo-btn.active{background:var(--blue);color:#fff}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar">
+    <span class="time">11:24</span>
+    <span class="right" style="display:flex;gap:6px;align-items:center;font-size:11px">86%</span>
+  </div>
+
+  <div class="search-page">
+    <div class="search-bar-wrap">
+      <input class="search-input" id="searchInput" placeholder="搜索笔记，或问AI任何问题..." readonly/>
+      <span class="search-cancel">取消</span>
+    </div>
+
+    <div class="search-body">
+      <!-- View 0: Empty state with suggestions -->
+      <div class="view active" id="view-empty">
+        <div class="hint-bar">
+          <div class="icon-hint">🔍</div>
+          搜关键词找笔记，或用自然语言问AI
+        </div>
+        <div class="section-label">试试这样搜</div>
+        <div class="suggest-wrap">
+          <div class="suggest-chip" onclick="demo('search')"><span class="emoji">📋</span>首页改版</div>
+          <div class="suggest-chip" onclick="demo('qa')"><span class="emoji">💬</span>上次和张总聊了什么</div>
+          <div class="suggest-chip" onclick="demo('qa2')"><span class="emoji">📊</span>最近三次评审会的共同问题</div>
+          <div class="suggest-chip" onclick="demo('search2')"><span class="emoji">📞</span>张总</div>
+        </div>
+        <div class="section-label" style="margin-top:8px">最近浏览</div>
+        <div class="result-card anim">
+          <div class="result-title">产品评审会纪要 · 2026-04-13</div>
+          <div class="result-preview">决定采用A方案（卡片流），合集入口改为横滑卡片</div>
+          <div class="result-meta"><span>今天 10:35</span><span>会议纪要</span></div>
+        </div>
+        <div class="result-card anim anim-d1">
+          <div class="result-title">与张总通话 · 方案确认</div>
+          <div class="result-preview">张总确认了首页改版方向，要求周五前提交完整方案</div>
+          <div class="result-meta"><span>昨天 17:22</span><span>通话摘要</span></div>
+        </div>
+      </div>
+
+      <!-- View 1: Search results (keyword: 首页改版) -->
+      <div class="view" id="view-search">
+        <div class="section-label anim"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 精确匹配 · 2条</div>
+        <div class="result-card anim anim-d1">
+          <div class="result-title">首页改版方案 v2</div>
+          <div class="result-preview">决定采用A方案（卡片流），<mark>首页改版</mark>合集入口改为横滑卡片释放纵向空间</div>
+          <div class="result-meta"><span>04-08</span><span>会议纪要</span></div>
+        </div>
+        <div class="result-card anim anim-d2">
+          <div class="result-title">首页可以加个AI推荐区</div>
+          <div class="result-preview">走路时想到的，<mark>首页</mark>除了时间线还可以有一个AI推荐区</div>
+          <div class="result-meta"><span>昨天</span><span>灵感速记</span></div>
+        </div>
+        <div class="section-label anim anim-d3" style="margin-top:16px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> AI语义关联 · 2条</div>
+        <div class="result-card anim anim-d4">
+          <div class="result-title">产品评审会纪要 · 2026-04-13</div>
+          <div class="result-preview">讨论了首页方案选型，AI推荐tab点击率优化</div>
+          <div class="result-meta"><span>今天</span><span>会议纪要</span><span class="result-tag">同项目</span></div>
+        </div>
+        <div class="result-card anim anim-d5">
+          <div class="result-title">与张总通话 · 方案确认</div>
+          <div class="result-preview">张总确认了首页改版方向，要求周五前提交完整方案</div>
+          <div class="result-meta"><span>昨天</span><span>通话摘要</span><span class="result-tag">同主题</span></div>
+        </div>
+      </div>
+
+      <!-- View 2: AI Q&A (question: 上次和张总聊了什么) -->
+      <div class="view" id="view-qa">
+        <div class="ai-answer anim">
+          <div class="ai-answer-header">
+            <div class="ai-avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+            <span class="ai-answer-label">AI 回答</span>
+          </div>
+          <div class="ai-answer-text">
+            <p>昨天下午5:22和张总通了8分钟电话，主要聊了<span class="highlight">首页改版方案</span>：</p>
+            <p>1. 张总<span class="highlight">确认了A方案（卡片流）</span>的方向，整体认可</p>
+            <p>2. 要求<span class="highlight">周五前提交完整方案</span>，需要有数据支撑</p>
+            <p>3. 重点关注AI推荐的准确性和用户留存数据</p>
+            <p>4. 下周二安排一次线下评审</p>
+          </div>
+          <div class="ai-sources">
+            <div class="ai-sources-label">来源笔记</div>
+            <div class="ai-source-item">📞 与张总通话 · 方案确认 · 昨天 17:22</div>
+            <div class="ai-source-item">📋 产品评审会纪要 · 今天 10:35</div>
+          </div>
+          <div class="ai-followup">
+            <div class="ai-followup-chip">张总之前还说过什么？</div>
+            <div class="ai-followup-chip">帮我整理所有和张总相关的笔记</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- View 3: AI Q&A (question: 最近三次评审会的共同问题) -->
+      <div class="view" id="view-qa2">
+        <div class="ai-answer anim">
+          <div class="ai-answer-header">
+            <div class="ai-avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+            <span class="ai-answer-label">AI 回答</span>
+          </div>
+          <div class="ai-answer-text">
+            <p>分析了最近三次产品评审会（4/13、3/28、3/15），共同出现的问题有：</p>
+            <p>1. <span class="highlight">AI推荐点击率持续偏低</span>——三次会议都提到了这个问题，从8%→12%→12%，距离30%目标差距大</p>
+            <p>2. <span class="highlight">合集入口不够明显</span>——用户找不到合集功能，三次会议都在讨论入口位置</p>
+            <p>3. <span class="highlight">录音转写准确率</span>——专有名词识别错误的问题反复出现，自定义词库方案推进慢</p>
+          </div>
+          <div class="ai-sources">
+            <div class="ai-sources-label">来源笔记（3篇）</div>
+            <div class="ai-source-item">📋 产品评审会纪要 · 2026-04-13</div>
+            <div class="ai-source-item">📋 产品评审会纪要 · 2026-03-28</div>
+            <div class="ai-source-item">📋 产品评审会纪要 · 2026-03-15</div>
+          </div>
+          <div class="ai-followup">
+            <div class="ai-followup-chip">AI推荐的改进方案有哪些？</div>
+            <div class="ai-followup-chip">帮我生成一份问题跟踪表</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- View 4: Search results (keyword: 张总) -->
+      <div class="view" id="view-search2">
+        <div class="section-label anim">搜索"张总"· 找到4条相关笔记</div>
+        <div class="result-card anim anim-d1">
+          <div class="result-title">与张总通话 · 方案确认</div>
+          <div class="result-preview"><mark>张总</mark>确认了首页改版方向，要求周五前提交完整方案</div>
+          <div class="result-meta"><span>昨天 17:22</span><span>通话摘要</span></div>
+        </div>
+        <div class="result-card anim anim-d2">
+          <div class="result-title">产品评审会纪要 · 2026-04-13</div>
+          <div class="result-preview">参会人：<mark>张</mark>三、李四、王五、赵六</div>
+          <div class="result-meta"><span>今天 10:35</span><span>会议纪要</span><span class="result-tag">参会人匹配</span></div>
+        </div>
+        <div class="result-card anim anim-d3">
+          <div class="result-title">上次与张总通话 · Q2规划</div>
+          <div class="result-preview"><mark>张总</mark>提到Q2重点是AI能力落地，要看到用户数据</div>
+          <div class="result-meta"><span>03-20</span><span>通话摘要</span></div>
+        </div>
+        <div class="result-card anim anim-d4">
+          <div class="result-title">产品评审会纪要 · 2026-03-28</div>
+          <div class="result-preview"><mark>张总</mark>要求首页改版方案本周内确定</div>
+          <div class="result-meta"><span>03-28</span><span>会议纪要</span><span class="result-tag">正文匹配</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat panel overlay (inside search-page) -->
+    <div class="chat-overlay" id="chatOverlay" onclick="closeChat()"></div>
+    <div class="chat-panel" id="chatPanel">
+      <div class="chat-handle" onclick="closeChat()"><div class="chat-handle-bar"></div></div>
+      <div class="chat-header">
+        <div class="ai-avatar" style="width:28px;height:28px;border-radius:10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+        <span style="font-size:14px;font-weight:600">AI 问答</span>
+        <span style="font-size:11px;color:var(--hint);margin-left:auto">基于你的笔记回答</span>
+      </div>
+      <div class="chat-body" id="chatBody"></div>
+      <div class="chat-input-wrap">
+        <input class="chat-input" placeholder="继续追问..." readonly/>
+        <div class="chat-send"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Demo controls -->
+<div class="demo-controls">
+  <div class="demo-btn active" onclick="demo('empty')">空状态</div>
+  <div class="demo-btn" onclick="demo('search')">搜索：首页改版</div>
+  <div class="demo-btn" onclick="demo('qa')">问答：张总聊了什么</div>
+  <div class="demo-btn" onclick="demo('qa2')">问答：评审会问题</div>
+  <div class="demo-btn" onclick="demo('search2')">搜索：张总</div>
+</div>
+
+<script>
+const qaContent = {
+  qa: {
+    question: '上次和张总聊了什么',
+    answer: `<p>昨天下午5:22和张总通了8分钟电话，主要聊了<span class="hl">首页改版方案</span>：</p>
+<p>1. 张总<span class="hl">确认了A方案（卡片流）</span>的方向，整体认可</p>
+<p>2. 要求<span class="hl">周五前提交完整方案</span>，需要有数据支撑</p>
+<p>3. 重点关注AI推荐的准确性和用户留存数据</p>
+<p>4. 下周二安排一次线下评审</p>`,
+    sources: ['📞 与张总通话 · 方案确认 · 昨天 17:22', '📋 产品评审会纪要 · 今天 10:35'],
+    followups: ['张总之前还说过什么？', '帮我整理所有和张总相关的笔记']
+  },
+  qa2: {
+    question: '最近三次评审会的共同问题是什么',
+    answer: `<p>分析了最近三次产品评审会（4/13、3/28、3/15），共同问题：</p>
+<p>1. <span class="hl">AI推荐点击率持续偏低</span>——从8%→12%→12%，距30%目标差距大</p>
+<p>2. <span class="hl">合集入口不够明显</span>——用户找不到合集功能，三次都在讨论入口位置</p>
+<p>3. <span class="hl">录音转写准确率</span>——专有名词识别错误反复出现，词库方案推进慢</p>`,
+    sources: ['📋 产品评审会纪要 · 2026-04-13', '📋 产品评审会纪要 · 2026-03-28', '📋 产品评审会纪要 · 2026-03-15'],
+    followups: ['AI推荐的改进方案有哪些？', '帮我生成一份问题跟踪表']
+  }
+};
+
+const views = {
+  empty: {input: '', view: 'view-empty', chat: false},
+  search: {input: '首页改版', view: 'view-search', chat: false},
+  qa: {input: '上次和张总聊了什么', view: 'view-empty', chat: true, qaKey: 'qa'},
+  qa2: {input: '最近三次评审会的共同问题是什么', view: 'view-empty', chat: true, qaKey: 'qa2'},
+  search2: {input: '张总', view: 'view-search2', chat: false}
+};
+
+function demo(key) {
+  const cfg = views[key];
+  document.getElementById('searchInput').value = cfg.input;
+  
+  // Hide all views, show target
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(cfg.view).classList.add('active');
+  
+  // Handle chat panel
+  if (cfg.chat) {
+    openChat(cfg.qaKey);
+  } else {
+    closeChat();
+  }
+  
+  // Update demo buttons
+  document.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
+  if (event && event.target) event.target.classList.add('active');
+}
+
+function openChat(qaKey) {
+  const data = qaContent[qaKey];
+  const body = document.getElementById('chatBody');
+  body.innerHTML = `
+    <div class="chat-msg" style="overflow:hidden">
+      <div class="chat-msg-user">${data.question}</div>
+    </div>
+    <div class="chat-msg">
+      <div class="chat-msg-ai">
+        <div class="chat-msg-ai-avatar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+        <div class="chat-msg-ai-content">
+          ${data.answer}
+          <div class="chat-sources">
+            <div style="margin-bottom:4px">来源笔记：</div>
+            ${data.sources.map(s => `<div class="chat-source-link">${s}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-followups">
+      ${data.followups.map(f => `<div class="chat-followup-btn">${f}</div>`).join('')}
+    </div>
+  `;
+  
+  setTimeout(() => {
+    document.getElementById('chatOverlay').classList.add('show');
+    document.getElementById('chatPanel').classList.add('show');
+  }, 100);
+}
+
+function closeChat() {
+  document.getElementById('chatOverlay').classList.remove('show');
+  document.getElementById('chatPanel').classList.remove('show');
+}
+</script>
+</body>
+</html>

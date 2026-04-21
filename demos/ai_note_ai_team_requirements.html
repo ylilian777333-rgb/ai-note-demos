@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI NOTE · AI团队功能需求清单</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: #f5f5f7; color: #1d1d1f; padding: 32px 24px; line-height: 1.6;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+.header { margin-bottom: 24px; }
+.header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.header .sub { font-size: 13px; color: #888; }
+.section { margin-bottom: 24px; }
+.section-title {
+  font-size: 15px; font-weight: 700; padding: 8px 14px; border-radius: 8px;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.st-blue { background: #eff6ff; color: #1e40af; }
+.st-orange { background: #fff7ed; color: #c2410c; }
+.st-green { background: #ecfdf5; color: #065f46; }
+.st-purple { background: #f5f3ff; color: #5b21b6; }
+.st-gray { background: #f3f4f6; color: #374151; }
+
+.card {
+  background: #fff; border-radius: 8px; padding: 16px 18px; margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.card h3 { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.card p { font-size: 12.5px; color: #555; margin-bottom: 6px; }
+.card ul { font-size: 12.5px; padding-left: 18px; color: #555; }
+.card ul li { margin-bottom: 3px; }
+
+table {
+  width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 10px;
+  background: #fff; border-radius: 8px; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+th { background: #f8fafc; font-weight: 700; text-align: left; padding: 10px 14px; color: #1d1d1f; }
+td { padding: 10px 14px; color: #555; vertical-align: top; }
+tr:not(:last-child) td { border-bottom: 1px solid #f1f5f9; }
+
+.tag {
+  display: inline-block; font-size: 10px; color: #fff; padding: 1px 8px;
+  border-radius: 3px; font-weight: 600; white-space: nowrap;
+}
+.tag-p0 { background: #ef4444; }
+.tag-p1 { background: #f59e0b; }
+.tag-p2 { background: #6b7280; }
+.tag-must { background: #3b82f6; }
+.tag-phase1 { background: #10b981; }
+.tag-phase2 { background: #8b5cf6; }
+
+.callout {
+  padding: 12px 16px; border-radius: 8px; font-size: 12.5px; margin-bottom: 12px;
+}
+.callout-blue { background: #eff6ff; color: #1e40af; }
+.callout-orange { background: #fff7ed; color: #9a3412; }
+.callout-green { background: #ecfdf5; color: #065f46; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>AI NOTE · AI团队功能需求清单</h1>
+  <div class="sub">基于《AI 笔记质量评估标准》文档 · 回应AI同学反馈 · 2025.03.18</div>
+</div>
+
+<div class="callout callout-blue">
+  💡 本文档基于产品PRD《AI 笔记质量评估标准》，提炼出需要AI团队（善德）落地的功能清单、模板数量、记忆体系需求、质量标准和分工边界，供AI同学对齐开发。
+</div>
+
+<!-- ========== 产品形态概览 ========== -->
+<div class="section">
+  <div class="section-title st-gray">🏗️ 产品形态概览</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+
+    <!-- 四APP合并 -->
+    <div class="card">
+      <h3 style="color:#1e40af;">📦 四APP合并为内容管线</h3>
+      <div style="font-size:12px;color:#555;">
+        <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f1f5f9;">
+          <span style="font-size:10px;background:#3b82f6;color:#fff;padding:1px 6px;border-radius:3px;font-weight:600;">录音机</span>
+          <span>→ 采集能力（产出物落笔记）</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f1f5f9;">
+          <span style="font-size:10px;background:#8b5cf6;color:#fff;padding:1px 6px;border-radius:3px;font-weight:600;">文件管理</span>
+          <span>→ 组织能力（分类/标签/归档）</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f1f5f9;">
+          <span style="font-size:10px;background:#f59e0b;color:#fff;padding:1px 6px;border-radius:3px;font-weight:600;">文件预览</span>
+          <span>→ 理解能力（信息提取/摘要）</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:5px 0;">
+          <span style="font-size:10px;background:#10b981;color:#fff;padding:1px 6px;border-radius:3px;font-weight:600;">笔记</span>
+          <span>→ 主界面（知识库浏览器）</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 六种输入源 -->
+    <div class="card">
+      <h3 style="color:#c2410c;">📥 六种输入源</h3>
+      <div style="font-size:12px;color:#555;">
+        <div style="padding:3px 0;">🎙️ 语音录音 → 转写 → 提炼 → 结构化</div>
+        <div style="padding:3px 0;">📝 文本记录 → 理解 → 整理 → 归档</div>
+        <div style="padding:3px 0;">📄 文件内容 → 读取 → 分析 → 摘要</div>
+        <div style="padding:3px 0;">🖼️ 图片信息 → OCR → 提取 → 整理</div>
+        <div style="padding:3px 0;">🌐 网页信息 → 提取 → 翻译 → 摘要</div>
+        <div style="padding:3px 0;">📹 视频内容 → 转写 → 关键帧 → 时间线摘要</div>
+      </div>
+    </div>
+
+    <!-- 子Agent交互 -->
+    <div class="card">
+      <h3 style="color:#5b21b6;">🔗 与其他子Agent交互</h3>
+      <div style="font-size:12px;color:#555;">
+        <div style="padding:4px 0;border-bottom:1px solid #f1f5f9;">
+          <span style="font-size:10px;background:#6366f1;color:#fff;padding:1px 6px;border-radius:3px;font-weight:600;">通讯助手</span>
+          ↔ 内容助手<br><span style="color:#888;font-size:11px;">通话录音 / 摘要</span>
+        </div>
+        <div style="padding:4px 0;border-bottom:1px solid #f1f5f9;">
+          <span style="font-size:10px;background:#3b82f6;color:#fff;padding:1px 6px;border-radius:3px;font-weight:600;">日程出行助手</span>
+          ↔ 内容助手<br><span style="color:#888;font-size:11px;">会议信息 / 待办日程</span>
+        </div>
+        <div style="padding:4px 0;border-bottom:1px solid #f1f5f9;">
+          <span style="font-size:10px;background:#f59e0b;color:#fff;padding:1px 6px;border-radius:3px;font-weight:600;">影像助手</span>
+          → 内容助手<br><span style="color:#888;font-size:11px;">白板OCR / 照片</span>
+        </div>
+        <div style="padding:4px 0;">
+          <span style="font-size:10px;background:#10b981;color:#fff;padding:1px 6px;border-radius:3px;font-weight:600;">内容助手</span>
+          → 主Agent记忆中心<br><span style="color:#888;font-size:11px;">人物 / 术语 / 项目 / 风格</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========== 一、模板清单 ========== -->
+<div class="section">
+  <div class="section-title st-blue">📋 一、笔记生成模板清单（共14套）</div>
+
+  <div class="callout callout-orange">
+    ⚠️ 回应AI同学问题：「多少个模板的支持？」—— 共14种笔记类型，每种需要一套独立的 Prompt + 后处理逻辑。建议分两期落地。
+  </div>
+
+  <table>
+    <tr>
+      <th style="width:40px;">#</th>
+      <th style="width:140px;">笔记类型</th>
+      <th style="width:180px;">触发场景</th>
+      <th>输入 → 输出</th>
+      <th style="width:80px;">处理方式</th>
+      <th style="width:70px;">优先级</th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>📋 会议纪要</td>
+      <td>长录音（>5min）+ 日历有会议</td>
+      <td>会议录音 → 参会人 + 议题 + 结论 + 行动项</td>
+      <td>全自动</td>
+      <td><span class="tag tag-p0">P0</span></td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>💡 灵感速记</td>
+      <td>短语音（<1min）+ 无上下文</td>
+      <td>短语音 → 核心想法 + 关联 + 下一步</td>
+      <td>全自动</td>
+      <td><span class="tag tag-p0">P0</span></td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>✅ 任务清单</td>
+      <td>包含多个事项/时间的语音</td>
+      <td>语音 → 优先级清单 + 分类 + 时间</td>
+      <td>全自动</td>
+      <td><span class="tag tag-p0">P0</span></td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>📞 通话摘要</td>
+      <td>通话录音（来自通讯助手）</td>
+      <td>通话录音 → 通话目的 + 结论 + 承诺事项</td>
+      <td>全自动</td>
+      <td><span class="tag tag-p0">P0</span></td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>📝 课堂笔记</td>
+      <td>长录音 + 无会议上下文</td>
+      <td>课堂录音 → 知识点结构 + 重点标注 + 举例</td>
+      <td>全自动</td>
+      <td><span class="tag tag-p0">P0</span></td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>📸 截图整理</td>
+      <td>截图/图片输入</td>
+      <td>截图 → 结构化信息 + 待办提取 + 原图关联</td>
+      <td>全自动</td>
+      <td><span class="tag tag-p0">P0</span></td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>📰 文章摘要/翻译</td>
+      <td>URL / 英文文章分享</td>
+      <td>网页链接 → 核心观点 + 关键数据 + 一句话总结</td>
+      <td>全自动</td>
+      <td><span class="tag tag-p1">P1</span></td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>🗂️ 文档摘要</td>
+      <td>PDF / Word / PPT 文件</td>
+      <td>文件 → 核心内容 + 结构层级 + 关键标注</td>
+      <td>全自动</td>
+      <td><span class="tag tag-p1">P1</span></td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>✉️ 邮件/文案草稿</td>
+      <td>明确的创作指令</td>
+      <td>用户指令 → 称呼 + 正文 + 结尾</td>
+      <td>对话式</td>
+      <td><span class="tag tag-p1">P1</span></td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>📊 研究简报</td>
+      <td>用户指令 + 笔记库素材</td>
+      <td>指令 → 背景 → 分析 → 发现 → 结论 → 建议</td>
+      <td>对话式</td>
+      <td><span class="tag tag-p1">P1</span></td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td>📹 视频提取</td>
+      <td>视频文件/链接</td>
+      <td>视频 → 核心要点 + 时间线 + 关键帧</td>
+      <td>全自动</td>
+      <td><span class="tag tag-p2">P2</span></td>
+    </tr>
+    <tr>
+      <td>12</td>
+      <td>📅 周报/日报</td>
+      <td>周报指令 + 本周笔记数据</td>
+      <td>本周数据 → 按项目：进展 + 计划 + 风险</td>
+      <td>半自动</td>
+      <td><span class="tag tag-p2">P2</span></td>
+    </tr>
+    <tr>
+      <td>13</td>
+      <td>🔖 收藏整理</td>
+      <td>跨应用收藏的文章/链接</td>
+      <td>收藏列表 → 排序清单 + 一句话摘要 + 分类标签</td>
+      <td>全自动</td>
+      <td><span class="tag tag-p2">P2</span></td>
+    </tr>
+    <tr>
+      <td>14</td>
+      <td>🌐 每日简报</td>
+      <td>系统自动生成（日历+待办+资讯）</td>
+      <td>多源数据 → 日程 + 待办 + 资讯 + 统计</td>
+      <td>全自动</td>
+      <td><span class="tag tag-p2">P2</span></td>
+    </tr>
+  </table>
+
+  <div class="callout callout-green">
+    ✅ 建议分期：一期（Beta前）落地 P0 的 6 套模板，二期补齐 P1 的 4 套，P2 的 4 套后续迭代。
+  </div>
+</div>
+
+<!-- ========== 二、场景识别 ========== -->
+<div class="section">
+  <div class="section-title st-purple">🧠 二、场景自动识别能力（AI团队负责）</div>
+
+  <div class="card">
+    <h3>场景判断逻辑</h3>
+    <p>用户输入内容后，AI需要自动判断属于哪种场景，选择对应模板生成笔记。判断依据三个维度：</p>
+    <ul>
+      <li>输入形式：语音/图片/文件/链接/文字指令</li>
+      <li>内容长度：短语音（<1min）vs 长录音（>5min）</li>
+      <li>上下文线索：日历是否有会议、来源APP、用户历史行为</li>
+    </ul>
+  </div>
+
+  <table>
+    <tr>
+      <th>用户行为</th>
+      <th>输入特征</th>
+      <th>AI判断为</th>
+      <th>生成笔记类型</th>
+    </tr>
+    <tr>
+      <td>开完会，录音结束</td>
+      <td>长录音（>5min）+ 日历有会议</td>
+      <td>会议场景</td>
+      <td>会议纪要</td>
+    </tr>
+    <tr>
+      <td>随口说了一段话</td>
+      <td>短语音（<1min）+ 无上下文</td>
+      <td>灵感场景</td>
+      <td>灵感速记</td>
+    </tr>
+    <tr>
+      <td>截了一张图</td>
+      <td>截图/图片</td>
+      <td>截图场景</td>
+      <td>截图整理</td>
+    </tr>
+    <tr>
+      <td>分享了链接/文件</td>
+      <td>URL / PDF / 文档</td>
+      <td>文档场景</td>
+      <td>文章摘要 / 文档摘要</td>
+    </tr>
+    <tr>
+      <td>说"帮我写封邮件"</td>
+      <td>明确的创作指令</td>
+      <td>创作场景</td>
+      <td>邮件草稿</td>
+    </tr>
+    <tr>
+      <td>说"今天要做这些事"</td>
+      <td>包含多个事项/时间</td>
+      <td>任务场景</td>
+      <td>任务清单</td>
+    </tr>
+    <tr>
+      <td>接完一个电话</td>
+      <td>通话录音（来自通讯助手）</td>
+      <td>通话场景</td>
+      <td>通话摘要</td>
+    </tr>
+    <tr>
+      <td>上课/听讲座时录音</td>
+      <td>长录音 + 无会议上下文</td>
+      <td>学习场景</td>
+      <td>课堂笔记</td>
+    </tr>
+  </table>
+
+  <div class="callout callout-orange">
+    ⚠️ 判断优先级：用户明确说了要干嘛 > 有上下文线索（日历/来源APP） > 根据输入形式和长度猜测。判断不了时直接问用户。
+  </div>
+</div>
+
+<!-- ========== 三、记忆体系 ========== -->
+<div class="section">
+  <div class="section-title st-green">🧩 三、记忆体系需求（越用越懂你）</div>
+
+  <div class="callout callout-orange">
+    ⚠️ 回应AI同学问题：「是否要实现记忆？」—— 是的，记忆是核心差异化能力。建议分两阶段实现。
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3><span class="tag tag-phase1">一期·基础记忆</span> 4/20 Beta前必须</h3>
+      <ul>
+        <li>写作风格偏好（正式/口语化）</li>
+        <li>详细程度偏好（精简/详细）</li>
+        <li>结构偏好（列表 vs 表格 vs 段落）</li>
+        <li>常用术语和缩写记忆</li>
+      </ul>
+      <p style="margin-top:8px;font-size:11px;color:#10b981;font-weight:600;">实现方式：记录用户每次修改行为，提取偏好规则，下次生成时注入</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag tag-phase2">二期·深度记忆</span> Beta后持续迭代</h3>
+      <ul>
+        <li>人物关系图谱（张总=产品总监）</li>
+        <li>项目上下文关联（跨笔记关联）</li>
+        <li>历史笔记内容检索和引用</li>
+        <li>重复内容检测和提示</li>
+        <li>风格一致性（和历史笔记保持一致）</li>
+      </ul>
+      <p style="margin-top:8px;font-size:11px;color:#8b5cf6;font-weight:600;">实现方式：构建用户知识图谱 + 向量检索 + 偏好模型</p>
+    </div>
+  </div>
+
+  <table>
+    <tr>
+      <th>AI记住什么</th>
+      <th>怎么学到的</th>
+      <th>下次怎么用</th>
+    </tr>
+    <tr>
+      <td>写作风格</td>
+      <td>用户总是把正式表达改成口语化</td>
+      <td>下次生成时默认用口语化风格</td>
+    </tr>
+    <tr>
+      <td>详细程度</td>
+      <td>用户经常删掉细节，只保留结论</td>
+      <td>下次生成时更精简，结论先行</td>
+    </tr>
+    <tr>
+      <td>人物关系</td>
+      <td>多次出现"张总=产品总监"</td>
+      <td>下次提到张总时自动标注职位</td>
+    </tr>
+    <tr>
+      <td>常用术语</td>
+      <td>用户多次使用"大招"指代某功能</td>
+      <td>下次遇到"大招"自动理解含义</td>
+    </tr>
+    <tr>
+      <td>结构偏好</td>
+      <td>用户总是把列表改成表格</td>
+      <td>下次优先用表格呈现</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ========== 四、质量标准 ========== -->
+<div class="section">
+  <div class="section-title st-orange">🎯 四、AI输出质量标准（7条通用标准）</div>
+
+  <div class="card">
+    <h3>优先级排序：信息保真 > 结构匹配 > 信息密度 > 可读性 > 可执行性 > 克制 > 上下文感知</h3>
+    <p>前四条是基础，任何笔记都必须满足；后三条是进阶，随记忆体系成熟逐步提升。</p>
+  </div>
+
+  <table>
+    <tr>
+      <th style="width:50px;">序号</th>
+      <th style="width:120px;">标准</th>
+      <th>核心要求</th>
+      <th style="width:100px;">严重等级</th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>信息保真</td>
+      <td>关键事实不丢失 · 不产生幻觉 · 不篡改立场 · 来源可追溯</td>
+      <td>🔴 致命</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>结构匹配</td>
+      <td>场景识别正确 · 模板选择正确 · 必要元素齐全 · 层级清晰</td>
+      <td>🔴 致命</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>信息密度</td>
+      <td>冗余过滤 · 提炼而非罗列 · 长度匹配输入 · 零废话</td>
+      <td>🟡 重要</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>可读性</td>
+      <td>标题准确 · 语言通顺 · 逻辑连贯 · 术语保留</td>
+      <td>🟡 重要</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>可执行性</td>
+      <td>待办三要素（做什么+谁做+什么时候）· 时间可解析 · 格式可操作</td>
+      <td>🟡 重要</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>克制</td>
+      <td>不过度发散 · 不擅自决策 · 建议与事实分开 · 语气匹配</td>
+      <td>🟡 重要</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>上下文感知</td>
+      <td>关联已有内容 · 风格一致 · 术语对齐 · 重复检测</td>
+      <td>🟢 优化</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ========== 五、分工边界 ========== -->
+<div class="section">
+  <div class="section-title st-gray">🤝 五、产品与AI团队分工边界</div>
+
+  <table>
+    <tr>
+      <th style="width:100px;">模块</th>
+      <th>产品负责</th>
+      <th>AI团队（善德）负责</th>
+    </tr>
+    <tr>
+      <td>场景区分</td>
+      <td>定义场景分类表 · 定义判断优先级和兜底策略</td>
+      <td>实现场景识别逻辑 · 接入日历/通讯录等上下文数据源</td>
+    </tr>
+    <tr>
+      <td>笔记生成</td>
+      <td>定义每种类型的模板（必须有什么、格式要求）· 定义质量标准</td>
+      <td>Prompt 工程化 · 模型调用和输出处理 · 自动质量检查</td>
+    </tr>
+    <tr>
+      <td>用户修改</td>
+      <td>定义交互方式（语音指令/选中修改/追加）· 定义展示方式</td>
+      <td>实现对话理解和内容修改 · 实现修改历史记录</td>
+    </tr>
+    <tr>
+      <td>记忆体系</td>
+      <td>定义要记住哪些维度（风格/详细度/人物/术语）</td>
+      <td>实现记忆存储和检索 · 实现生成时的偏好注入</td>
+    </tr>
+    <tr>
+      <td>端侧接入</td>
+      <td>定义触发时机和 UI 交互规范</td>
+      <td>API 开发和端侧 SDK 对接</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ========== 六、交互能力 ========== -->
+<div class="section">
+  <div class="section-title st-blue">💬 六、用户修改交互能力（AI团队需实现）</div>
+
+  <table>
+    <tr>
+      <th style="width:130px;">用户操作</th>
+      <th style="width:160px;">触发方式</th>
+      <th>AI需要做什么</th>
+    </tr>
+    <tr>
+      <td>语音指令修改</td>
+      <td>底部对话框说话</td>
+      <td>理解指令 → 定位到笔记中对应位置 → 修改 → 高亮显示改动</td>
+    </tr>
+    <tr>
+      <td>选中段落修改</td>
+      <td>长按选中 → 气泡菜单</td>
+      <td>根据用户选择（改写/展开/精简/删除）处理选中内容</td>
+    </tr>
+    <tr>
+      <td>追加内容</td>
+      <td>对话框说"再加一段关于..."</td>
+      <td>在合适位置插入新内容，保持整体结构一致</td>
+    </tr>
+    <tr>
+      <td>整体调整</td>
+      <td>对话框说"整体改简洁一点"</td>
+      <td>全文重新精简，保留核心信息，展示修改前后对比</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ========== 七、时间节奏 ========== -->
+<div class="section">
+  <div class="section-title st-green">📅 七、时间节奏对齐</div>
+
+  <div class="card">
+    <h3>跟随 Miclaw ROM 版本节奏</h3>
+    <table style="box-shadow:none;">
+      <tr>
+        <th style="width:140px;">时间</th>
+        <th>里程碑</th>
+        <th>AI团队交付物</th>
+      </tr>
+      <tr>
+        <td>3/18 — 4/7</td>
+        <td>核心特性开发 + 测试并行</td>
+        <td>P0 的 6 套模板 Prompt 完成 · 场景识别逻辑上线 · 基础记忆能力 MVP</td>
+      </tr>
+      <tr>
+        <td>4/8 — 4/19</td>
+        <td>BugFix + 准出</td>
+        <td>模板质量调优 · 场景识别准确率达标 · 对话修改能力上线</td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;color:#059669;">4/20</td>
+        <td style="font-weight:700;color:#059669;">⭐ 跟随 Miclaw Beta 外发</td>
+        <td style="font-weight:700;">P0 模板 + 场景识别 + 基础记忆 + 对话修改 全部就绪</td>
+      </tr>
+      <tr>
+        <td>4/20 — 5/20</td>
+        <td>Beta 质量看护（20w+用户）</td>
+        <td>P1 模板补齐 · 深度记忆迭代 · 根据Beta反馈持续优化</td>
+      </tr>
+      <tr>
+        <td>6/1</td>
+        <td>OS4.0 Beta 发布</td>
+        <td>全部14套模板就绪 · 记忆体系完整上线</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

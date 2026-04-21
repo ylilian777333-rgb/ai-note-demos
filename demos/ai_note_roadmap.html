@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#F8F9FA;
+  font-family:'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color:#1a1a1a;
+  padding:28px;
+  width:1400px;
+}
+.rw{background:#fff;border-radius:12px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,0.07)}
+.header{font-size:13px;color:#6b7280;font-weight:500;margin-bottom:14px}
+.ph-title{font-size:10px;color:#9ca3af;font-weight:500;margin:14px 0 6px;letter-spacing:.5px}
+.row4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px;align-items:stretch}
+.card{border-radius:8px;border:0.5px solid #e5e7eb;padding:10px 11px;background:#fff;display:flex;flex-direction:column;height:100%}
+.card.done{border-color:#22C55E;background:#F0FDF4}
+.card.act{border-color:#818CF8;border-width:1.5px;background:#EEF2FF}
+.card.plan{background:#F9FAFB}
+.card.mig{border-color:#F59E0B;background:#FFFBEB}
+.card.launch{border-color:#3B82F6;background:#EFF6FF}
+.card.gray{border-color:#8B5CF6;background:#F5F3FF}
+.wtag{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:500;padding:2px 6px;border-radius:4px;margin-bottom:5px}
+.wtag.g{background:#DCFCE7;color:#15803D}
+.wtag.o{background:#FEF3C7;color:#B45309}
+.wtag.b{background:#EFF6FF;color:#1D4ED8}
+.wtag.r{background:#FEF2F2;color:#B91C1C}
+.wh{font-size:12px;font-weight:600;line-height:1.4;margin-bottom:3px}
+.ws{font-size:9px;color:#6b7280;line-height:1.5;margin-bottom:6px}
+.tk{display:flex;align-items:flex-start;gap:5px;margin:3px 0;font-size:9px;line-height:1.5}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.ms{font-size:9px;color:#F59E0B;margin-top:auto;padding-top:6px;border-top:0.5px solid #e5e7eb}
+.cg{font-size:8px;font-weight:600;color:#9ca3af;margin:6px 0 3px;letter-spacing:.3px}
+.dec-row{display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:0.5px solid #e5e7eb}
+.dec-row:last-child{border-bottom:none;padding-bottom:0}
+.dec-tag{font-size:8px;font-weight:500;padding:2px 6px;border-radius:3px;flex-shrink:0;margin-top:1px;white-space:nowrap}
+
+/* Timeline */
+.tl-wrap{display:flex;gap:2px;margin-bottom:14px}
+.tl-seg{display:flex;flex-direction:column}
+.tl-bar{height:24px;display:flex;align-items:center;justify-content:center;font-size:8px;color:white;font-weight:600}
+.tl-date{font-size:8px;color:#9ca3af;padding-top:3px}
+</style>
+</head>
+<body>
+<div class="rw">
+<div class="header">AI NOTE · 完整版本发布节奏 · 目标 4/30 灰度外发</div>
+
+<!-- Timeline -->
+<div class="tl-wrap">
+  <div class="tl-seg" style="flex:5"><div class="tl-bar" style="background:#22C55E;border-radius:5px 0 0 5px">W1</div><div class="tl-date">3/5</div></div>
+  <div class="tl-seg" style="flex:7"><div class="tl-bar" style="background:#16A34A">W2</div><div class="tl-date">3/10</div></div>
+  <div class="tl-seg" style="flex:7"><div class="tl-bar" style="background:#818CF8">W3</div><div class="tl-date">3/17</div></div>
+  <div class="tl-seg" style="flex:8"><div class="tl-bar" style="background:#6366F1">W4</div><div class="tl-date">3/24</div></div>
+  <div class="tl-seg" style="flex:7"><div class="tl-bar" style="background:#F59E0B">旧功能迁移</div><div class="tl-date">4/1</div></div>
+  <div class="tl-seg" style="flex:14"><div class="tl-bar" style="background:linear-gradient(to right,#EF4444 50%,#3B82F6 50%)">BugFix + 内外测并行</div><div class="tl-date">4/8</div></div>
+  <div class="tl-seg" style="flex:7"><div class="tl-bar" style="background:#7C3AED">灰度发布</div><div class="tl-date">4/22</div></div>
+  <div class="tl-seg" style="flex:1"><div class="tl-bar" style="background:#0F172A;border-radius:0 5px 5px 0">✦</div><div class="tl-date">4/30</div></div>
+</div>
+
+<!-- Phase 1 -->
+<div class="ph-title">阶段一 · 新功能开发（3/5 — 3/31）</div>
+<div class="row4">
+  <div class="card done">
+    <div class="wtag g">✅ Week 1 · 3/5—3/9</div>
+    <div class="wh">语音 + 对话 MVP</div>
+    <div class="ws">语音输入 + 与笔记直接对话是核心体验</div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>AI 问答 / 对话编辑</span></div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>会议录音自动整理</span></div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>APP 内语音新建笔记</span></div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>新版兼容旧版笔记格式</span></div>
+    <div class="ms">🏁 差异化体验首批可 Demo</div>
+  </div>
+  <div class="card done">
+    <div class="wtag g">✅ Week 2 · 3/10—3/16</div>
+    <div class="wh">AI 能力接入 & 打通</div>
+    <div class="ws">打通对话修改、内容生成、记忆查询等关键链路</div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>结构化会议纪要自动生成</span></div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>语音修改和补充记录（基础）</span></div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>通话录音自动进入笔记</span></div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>生成待办 / 日程</span></div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>智能文件夹（基础能力）</span></div>
+    <div class="ms">🏁 AI 能力全链路闭环可演示</div>
+  </div>
+  <div class="card act">
+    <div class="wtag o">🔥 Week 3 · 3/17—3/23</div>
+    <div class="wh">系统能力补齐 & 依赖对齐</div>
+    <div class="ws">完成本周交付项，推进外部依赖对齐</div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>多场景总结生成</span></div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>思维导图生成</span></div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>录音入库 / 智能文件夹完善</span></div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>P0 功能补齐（视图/录音岛/日程）</span></div>
+    <div class="tk"><div class="dot" style="background:#22C55E"></div><span>支持笔记内容页直接编辑</span></div>
+    <div class="ms">🏁 核心 AI 能力全面可用</div>
+  </div>
+  <div class="card plan">
+    <div class="wtag b">Week 4 · 3/24—3/31</div>
+    <div class="wh">AskAI 扩展 & 体验优化</div>
+    <div class="ws">推进 Miclaw Ask AI 接入，补齐创建能力</div>
+    <div class="tk"><div class="dot" style="background:#F59E0B"></div><span>AI 笔记入 Miclaw（Skills/Tools）</span></div>
+    <div class="tk"><div class="dot" style="background:#F59E0B"></div><span>记忆索引能力建设</span></div>
+    <div class="tk"><div class="dot" style="background:#F59E0B"></div><span>创建笔记补齐（图片/音频）</span></div>
+    <div class="tk"><div class="dot" style="background:#F59E0B"></div><span>AI 效果优化（识别率/响应速度）</span></div>
+    <div class="tk"><div class="dot" style="background:#EF4444"></div><span>旧版兼容 & 数据兼容（依赖外部）</span></div>
+    <div class="ms">🏁 3/31 所有新功能开发完成</div>
+  </div>
+</div>
+
+<!-- Phase 2 -->
+<div class="ph-title">阶段二 · 旧功能迁移 + BugFix + 内外测（4/1 — 4/21）</div>
+<div style="display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:6px;margin-bottom:6px;align-items:stretch">
+  <div class="card mig">
+    <div class="wtag o">4/1—4/7 · 旧功能迁移</div>
+    <div class="wh">存量 P0 功能适配</div>
+    <div class="ws">核心存量功能平滑迁移到新版本</div>
+    <div class="cg">数据与同步</div>
+    <div class="tk"><div class="dot" style="background:#F59E0B"></div><span>云同步（笔记/文件夹/媒体）</span></div>
+    <div class="tk"><div class="dot" style="background:#F59E0B"></div><span>私密笔记（加锁/解锁交互）</span></div>
+    <div class="tk"><div class="dot" style="background:#F59E0B"></div><span>本地 & 云回收站</span></div>
+    <div class="cg">编辑功能</div>
+    <div class="tk"><div class="dot" style="background:#F59E0B"></div><span>编辑器主题（18+ 款）</span></div>
+    <div class="tk"><div class="dot" style="background:#F59E0B"></div><span>拍照 & 导入图片 / 涂鸦</span></div>
+    <div class="tk"><div class="dot" style="background:#EF4444"></div><span>旧版录音入口（OS4 策略待定）</span></div>
+    <div class="tk"><div class="dot" style="background:#F59E0B"></div><span>笔记分享 & 导出</span></div>
+    <div class="cg">历史 AI</div>
+    <div class="tk"><div class="dot" style="background:#F59E0B"></div><span>AI 文本控件 & 速记入口</span></div>
+    <div class="ms">🏁 4/7 迁移全部完成</div>
+  </div>
+  <div class="card" style="border-color:#EF4444;background:#FEF2F2">
+    <div class="wtag r">4/8—4/21 · 持续 BugFix</div>
+    <div class="wh">全面回归 & 问题修复</div>
+    <div class="ws">与内外测同步进行，发现问题即时修复</div>
+    <div class="tk"><div class="dot" style="background:#EF4444"></div><span>新功能全量回归测试</span></div>
+    <div class="tk"><div class="dot" style="background:#EF4444"></div><span>旧功能迁移后回归验证</span></div>
+    <div class="tk"><div class="dot" style="background:#EF4444"></div><span>数据兼容专项测试</span></div>
+    <div class="tk"><div class="dot" style="background:#EF4444"></div><span>多机型 / 系统版本覆盖</span></div>
+    <div class="tk"><div class="dot" style="background:#EF4444"></div><span>性能压测（启动/录音/AI响应）</span></div>
+    <div class="ms" style="color:#EF4444;border-color:#FECACA">⚑ 严重问题持续修复直至灰度前</div>
+  </div>
+  <div class="card launch">
+    <div class="wtag b">内测 · 4/8—4/14</div>
+    <div class="wh">核心用户验证</div>
+    <div class="ws">内部跑通，同时驱动问题优先级排序</div>
+    <div class="tk"><div class="dot" style="background:#3B82F6"></div><span>用研核心用户邀请（人数待定）</span></div>
+    <div class="tk"><div class="dot" style="background:#3B82F6"></div><span>收集 P0 体验反馈，快速修复</span></div>
+    <div class="tk"><div class="dot" style="background:#3B82F6"></div><span>AI 准确率 / 体验指标建立基线</span></div>
+    <div class="ms" style="color:#3B82F6">⚑ 4/14 内测完成，进入外测阶段</div>
+  </div>
+  <div class="card launch">
+    <div class="wtag b">外测 · 4/15—4/21</div>
+    <div class="wh">社区 + 用研筛选测试用户</div>
+    <div class="ws">外测反馈直接进入修复队列</div>
+    <div class="tk"><div class="dot" style="background:#3B82F6"></div><span>社区招募种子用户（人数待定）</span></div>
+    <div class="tk"><div class="dot" style="background:#3B82F6"></div><span>用研协助定向邀请目标人群</span></div>
+    <div class="tk"><div class="dot" style="background:#3B82F6"></div><span>分发测试包 / 问卷 + 录屏收集</span></div>
+    <div class="tk"><div class="dot" style="background:#3B82F6"></div><span>AI 体验满意度评分</span></div>
+    <div class="tk"><div class="dot" style="background:#3B82F6"></div><span>反馈问题 48h 内响应修复</span></div>
+    <div class="ms" style="color:#3B82F6">⚑ 4/21 汇总反馈，决定是否启动灰度</div>
+  </div>
+</div>
+
+<!-- Phase 3 -->
+<div class="ph-title">阶段三 · 灰度发布（4/22 — 4/30）</div>
+<div style="display:grid;grid-template-columns:1.8fr 1fr;gap:6px;margin-bottom:6px;align-items:stretch">
+  <div class="card gray">
+    <div class="wh" style="margin-bottom:7px">灰度形式（App 自升级）</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px">
+      <div style="background:#EDE9FE;border-radius:6px;padding:9px 11px;font-size:9px;line-height:1.7;color:#4C1D95">
+        <div style="font-weight:600;margin-bottom:3px">✅ App 自升级（推荐）</div>
+        灰度节奏完全由我们自己把控，随时可以暂停或回滚，不依赖外部排期<br>
+        可以按机型、用户标签精准控制推送范围，方便定向验证<br>
+        <span style="color:#6D28D9;font-weight:600">这个版本改动量大，首选这条路</span>
+      </div>
+      <div style="background:#F1F5F9;border-radius:6px;padding:9px 11px;font-size:9px;line-height:1.7;color:#334155">
+        <div style="font-weight:600;margin-bottom:3px">⏳ ROM 版本（后延）</div>
+        需要提前锁定版本、配合系统排期，灵活性较低<br>
+        回滚成本高，不适合当前阶段<br>
+        <span style="color:#64748B;font-weight:600">计划：OTA 灰度跑稳后，Q3 再评估 ROM 预装</span>
+      </div>
+    </div>
+    <div style="font-size:9px;color:#6D28D9;padding:7px 9px;background:#EDE9FE;border-radius:5px;line-height:1.6;margin-top:auto">
+      📌 本次发布：App OTA 灰度（4/22 起）→ 4/30 全量外发 → 稳定后 Q3 评估 ROM 预装
+    </div>
+  </div>
+  <div class="card gray">
+    <div class="wh" style="margin-bottom:7px">分批推送（4/22 — 4/30）</div>
+    <div style="display:flex;flex-direction:column;flex:1">
+      <div style="display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:0.5px solid #e9d5ff">
+        <div style="font-size:9px;color:#7C3AED;font-weight:600;width:36px;flex-shrink:0;padding-top:1px">4/22</div>
+        <div style="font-size:9px;line-height:1.5">推送约 <strong>5,000 人</strong>，五一前维持一周观察</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:9px;padding:7px 0">
+        <div style="font-size:9px;color:#7C3AED;font-weight:600;width:36px;flex-shrink:0;padding-top:1px">4/30+</div>
+        <div style="font-size:9px;line-height:1.5">后续扩量节奏视用户反馈情况持续放开，不预设固定时间节点</div>
+      </div>
+    </div>
+    <div style="font-size:8.5px;color:#6b7280;margin-top:7px;padding-top:6px;border-top:0.5px solid #e9d5ff;line-height:1.5">
+      💡 灰度期间如出现重大问题，随时暂停扩量并排查修复
+    </div>
+  </div>
+</div>
+
+<!-- 范围决策 -->
+<div class="ph-title">🔖 范围决策</div>
+<div style="border:0.5px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:8px">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0">
+    <div style="padding:11px 13px;border-right:0.5px solid #e5e7eb;background:#FEF2F2">
+      <div style="font-size:10px;font-weight:600;color:#B91C1C;margin-bottom:7px">❌ V1 不做，移至 V2</div>
+      <div class="dec-row" style="border-color:#FECACA">
+        <span class="dec-tag" style="background:#FEE2E2;color:#B91C1C">后延</span>
+        <div style="font-size:9px;line-height:1.5">换机 / 备份 / 贴贴：数据链路复杂</div>
+      </div>
+      <div class="dec-row" style="border-color:#FECACA">
+        <span class="dec-tag" style="background:#FEE2E2;color:#B91C1C">后延</span>
+        <div style="font-size:9px;line-height:1.5">网页剪藏 & 插入文档：依赖较多</div>
+      </div>
+      <div class="dec-row" style="border-color:#FECACA">
+        <span class="dec-tag" style="background:#FEE2E2;color:#B91C1C">后延</span>
+        <div style="font-size:9px;line-height:1.5">跨端 / 海外版 / UI 全量迁移</div>
+      </div>
+      <div class="dec-row" style="border-color:#FECACA">
+        <span class="dec-tag" style="background:#FEE2E2;color:#B91C1C">后延</span>
+        <div style="font-size:9px;line-height:1.5">低端机适配：V1 优先旗舰 / 主流机型</div>
+      </div>
+    </div>
+    <div style="padding:11px 13px;border-right:0.5px solid #e5e7eb;background:#FFFBEB">
+      <div style="font-size:10px;font-weight:600;color:#B45309;margin-bottom:7px">🔖 待决策点</div>
+      <div class="dec-row" style="border-color:#FDE68A">
+        <span class="dec-tag" style="background:#FEF9C3;color:#854D0E">待确认</span>
+        <div style="font-size:9px;line-height:1.5">旧版录音 OS4 策略：是否下线旧版本地录音</div>
+      </div>
+      <div class="dec-row" style="border-color:#FDE68A">
+        <span class="dec-tag" style="background:#FEF9C3;color:#854D0E">待确认</span>
+        <div style="font-size:9px;line-height:1.5">旧版兼容 & 数据兼容外部排期对齐</div>
+      </div>
+      <div class="dec-row" style="border-color:#FDE68A">
+        <span class="dec-tag" style="background:#FEF9C3;color:#854D0E">待确认</span>
+        <div style="font-size:9px;line-height:1.5">Miclaw 接入方案及 skill 支持时间</div>
+      </div>
+    </div>
+    <div style="padding:11px 13px;background:#F0FDF4">
+      <div style="font-size:10px;font-weight:600;color:#15803D;margin-bottom:7px">✅ V1 聚焦目标</div>
+      <div class="dec-row" style="border-color:#BBF7D0">
+        <div class="dot" style="background:#22C55E;margin-top:5px"></div>
+        <div style="font-size:9px;line-height:1.5">核心 AI 体验（语音/对话/总结/思维导图）完整可用</div>
+      </div>
+      <div class="dec-row" style="border-color:#BBF7D0">
+        <div class="dot" style="background:#22C55E;margin-top:5px"></div>
+        <div style="font-size:9px;line-height:1.5">基础数据安全：云同步 + 私密笔记 + 回收站</div>
+      </div>
+      <div class="dec-row" style="border-color:#BBF7D0">
+        <div class="dot" style="background:#22C55E;margin-top:5px"></div>
+        <div style="font-size:9px;line-height:1.5">存量核心功能（编辑器/主题/分享）平滑迁移</div>
+      </div>
+      <div class="dec-row" style="border-color:transparent">
+        <div class="dot" style="background:#22C55E;margin-top:5px"></div>
+        <div style="font-size:9px;line-height:1.5">4/30 灰度外发，用户反馈驱动 V2 排期</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Summary -->
+<div style="background:#0F172A;border-radius:8px;padding:13px 16px">
+  <div style="font-size:10px;color:#818CF8;margin-bottom:5px">完整时间节奏</div>
+  <div style="font-size:12px;font-weight:600;color:white;line-height:1.9">
+    3/5 开始新功能开发 &nbsp;→&nbsp; 3/31 新功能开发完成 &nbsp;→&nbsp; 4/7 旧功能迁移完成 &nbsp;→&nbsp; 4/8 BugFix 与内外测并行 &nbsp;→&nbsp; 4/21 外测收尾 &nbsp;→&nbsp; <span style="color:#A78BFA">4/22 灰度启动，5,000 人先行观察</span>
+  </div>
+</div>
+</div>
+</body>
+</html>

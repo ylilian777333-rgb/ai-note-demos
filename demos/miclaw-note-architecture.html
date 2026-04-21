@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiClaw视角下的笔记定位</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", "PingFang SC", sans-serif;
+    background: #ffffff;
+    color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    padding: 36px 40px;
+  }
+  .container { width: 1100px; max-width: 100%; }
+  .header { text-align: center; margin-bottom: 16px; }
+  .header h1 { font-size: 28px; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; color: #1a1a1a; }
+  .header .subtitle { font-size: 14px; color: #888; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .header .core-line { font-size: 12px; color: #5b5fc7; font-weight: 500; }
+
+  .layer { position: relative; margin-bottom: 0; }
+  .layer-box { margin-left: 0; border-radius: 12px; padding: 16px 20px; }
+  .layer-title { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .layer-title h2 { font-size: 16px; font-weight: 600; }
+  .badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+
+  .card { background: #fff; border-radius: 8px; padding: 10px 12px; }
+  .card-title { font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #2a2a2a; }
+  .card-desc { font-size: 11px; color: #777; line-height: 1.55; }
+  .card-detail { font-size: 10px; color: #aaa; line-height: 1.45; margin-top: 5px; padding-top: 5px; border-top: 1px solid #f0f0f0; }
+
+  .connector { display: flex; align-items: center; justify-content: center; padding: 0; }
+  .connector-inner { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .connector .arrow { color: #bbb; font-size: 14px; }
+  .connector .label { font-size: 11px; color: #999; letter-spacing: 0.5px; padding: 3px 14px; border-radius: 20px; background: #f5f5f5; border: 1px solid #e8e8e8; }
+
+  .side-note { display: flex; justify-content: space-between; padding: 0 8px; margin-top: 1px; }
+  .side-note span { font-size: 10px; color: #aaa; }
+
+  .boundary-bar { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .boundary-item { border-radius: 8px; padding: 10px 14px; }
+  .bi-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; margin-bottom: 3px; }
+  .bi-text { font-size: 11px; color: #777; }
+
+  .tagline { text-align: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid #eee; }
+  .tagline p { font-size: 12px; color: #999; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>笔记接入 MiClaw · 产品形态与定位</h1>
+    <p class="subtitle">从 MiClaw 系统视角看笔记 APP 的位置与价值</p>
+    <p class="core-line">核心主张：说话，AI 帮你把它写完、改好、记住、推动执行</p>
+  </div>
+
+  <!-- Layer 1: MiClaw System -->
+  <div class="layer">
+    <div class="layer-box" style="background: #f0f2ff; border: 1px solid #d4d8f8;">
+      <div class="layer-title">
+        <h2 style="color: #3b3f8c;">MiClaw · 系统级 AI 助手</h2>
+        <span class="badge" style="background: rgba(99,102,241,0.12); color: #5b5fc7; border: 1px solid rgba(99,102,241,0.25);">多端采集 · 内容在 APP 外产生</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+        <div class="card" style="border: 1px solid #e0e3f0; text-align: center;">
+          <div style="font-size: 22px; margin-bottom: 4px;">⌚</div>
+          <div class="card-title">穿戴设备</div>
+          <div class="card-desc">无感记录<br>不用掏手机</div>
+          <div class="card-detail">戒指 · 手表 · 手环<br>随时语音速记 · 环境感知</div>
+        </div>
+        <div class="card" style="border: 1px solid #e0e3f0; text-align: center;">
+          <div style="font-size: 22px; margin-bottom: 4px;">🔑</div>
+          <div class="card-title">AI 键</div>
+          <div class="card-desc">一键唤起 MiClaw<br>说句话就能记</div>
+          <div class="card-detail">长按说话 → 闪念速记<br>一句话创建笔记 / 待办</div>
+        </div>
+        <div class="card" style="border: 1px solid #e0e3f0; text-align: center;">
+          <div style="font-size: 22px; margin-bottom: 4px;">🤖</div>
+          <div class="card-title">MiClaw</div>
+          <div class="card-desc">全局 AI 对话<br>随时随地可调起</div>
+          <div class="card-detail">问问题 · 写邮件 · 写文案<br>在任何 APP 里都能用</div>
+        </div>
+        <div class="card" style="border: 1px solid #e0e3f0; text-align: center;">
+          <div style="font-size: 22px; margin-bottom: 4px;">📡</div>
+          <div class="card-title">后台任务与主动推送</div>
+          <div class="card-desc">超级岛后台处理<br>桌面 / 锁屏主动触达</div>
+          <div class="card-detail">会议纪要 · 通话摘要 · 录音转写<br>每日简报 · 会前提醒 · Launcher 卡片</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-note">
+    <span>80% 内容在 APP 外产生 · 用户无需打开笔记即可完成记录</span>
+    <span>MiClaw OS 统一规范</span>
+  </div>
+
+  <div class="connector">
+    <div class="connector-inner">
+      <div class="arrow">▼</div>
+      <div class="label">统一接入 → 内容助手处理</div>
+      <div class="arrow">▼</div>
+    </div>
+  </div>
+
+  <!-- Layer 2: Content Agent -->
+  <div class="layer">
+    <div class="layer-box" style="background: #f0faf4; border: 1px solid #c8e6d0;">
+      <div class="layer-title">
+        <h2 style="color: #1a6b3a;">内容助手 · MiClaw 子 Agent</h2>
+        <span class="badge" style="background: rgba(52,211,153,0.12); color: #1a8a4a; border: 1px solid rgba(52,211,153,0.3);">理解 · 加工 · 记忆 — 内容管理中枢</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+        <div class="card" style="border: 1px solid #d8ead8;">
+          <div class="card-title">📥 采集加工</div>
+          <div class="card-desc">各种来源的内容统一收进来<br>AI 自动整理成结构化笔记</div>
+          <div class="card-detail">语音 · 会议 · 截图 · 网页 · 通话<br>录音结束后自动存入笔记，无需手动操作</div>
+        </div>
+        <div class="card" style="border: 1px solid #d8ead8;">
+          <div class="card-title">🧩 意图理解</div>
+          <div class="card-desc">听懂你想干什么<br>自动分类、自动关联</div>
+          <div class="card-detail">识别 10 种场景 · 自动打标签<br>关联相关的项目和人物 · 语义检索</div>
+        </div>
+        <div class="card" style="border: 1px solid #d8ead8;">
+          <div class="card-title">🧠 记忆积累</div>
+          <div class="card-desc">越用越懂你<br>把你的习惯记下来</div>
+          <div class="card-detail">学习你的人物关系 · 常用术语 · 写作风格<br>5 个维度持续学习，写入 MiClaw 记忆</div>
+        </div>
+        <div class="card" style="border: 1px solid #d8ead8;">
+          <div class="card-title">🔌 能力开放</div>
+          <div class="card-desc">其他 AI 也能调用笔记<br>不是一个孤立的 APP</div>
+          <div class="card-detail">小爱问"我之前记过什么" → 调用笔记回答<br>系统搜索 · AI 推荐 · 跨 Agent 协作</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector">
+    <div class="connector-inner">
+      <div class="arrow">▼</div>
+      <div class="label">产出物推送到笔记 APP · 用户审阅确认</div>
+      <div class="arrow">▼</div>
+    </div>
+  </div>
+
+  <!-- Layer 3: Note APP -->
+  <div class="layer">
+    <div class="layer-box" style="background: #fff8f0; border: 1px solid #f0dcc0;">
+      <div class="layer-title">
+        <h2 style="color: #8a5a1a;">笔记 APP · 内容沉淀与行动中枢</h2>
+        <span class="badge" style="background: rgba(251,191,36,0.12); color: #9a6a10; border: 1px solid rgba(251,191,36,0.3);">沉淀 + 执行 — 四主体协作系统</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+        <div class="card" style="border: 1px solid #f0e0c8;">
+          <div class="card-title">👁️ 智能首页</div>
+          <div class="card-desc">AI 自动分类整理<br>打开就能看到最新内容</div>
+          <div class="card-detail">按项目 / 人物 / 时间自动归类<br>待处理 → 今日相关 → 最近更新</div>
+        </div>
+        <div class="card" style="border: 1px solid #f0e0c8;">
+          <div class="card-title">💬 对话修改</div>
+          <div class="card-desc">说句话就能改笔记<br>不用手动编辑</div>
+          <div class="card-detail">语音指令 · 选中后一键优化<br>多轮对话讨论 · AI 主动建议修改</div>
+        </div>
+        <div class="card" style="border: 1px solid #f0e0c8;">
+          <div class="card-title">📚 持续沉淀</div>
+          <div class="card-desc">同一件事持续记录<br>自动更新，越记越完整</div>
+          <div class="card-detail">多次追加 · 自动合并同主题内容<br>每次对话都接着上次聊，上下文不断</div>
+        </div>
+        <div class="card" style="border: 1px solid #f0e0c8;">
+          <div class="card-title">⚡ 行动执行</div>
+          <div class="card-desc">记完之后推动执行<br>不只是记下来就完了</div>
+          <div class="card-detail">生成待办 · 创建日程 · 周期提醒<br>导出分享 · 联动系统服务</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-note">
+    <span>APP 内操作 · 分类浏览、对话修改、持续沉淀、推动执行</span>
+    <span>贝壳主导设计</span>
+  </div>
+
+  <!-- Design boundary -->
+  <div class="boundary-bar">
+    <div class="boundary-item" style="background: #f0f2ff; border: 1px solid #d4d8f8;">
+      <div class="bi-label" style="color: #5b5fc7;">MICLAW OS 规范</div>
+      <div class="bi-text">APP 外场景（AI 键 · MiClaw · 后台任务与主动推送 · 穿戴设备）</div>
+    </div>
+    <div class="boundary-item" style="background: #fff8f0; border: 1px solid #f0dcc0;">
+      <div class="bi-label" style="color: #9a6a10;">贝壳主导设计</div>
+      <div class="bi-text">APP 内场景（浏览 · 修改 · 沉淀 · 执行）+ 跨端体验</div>
+    </div>
+  </div>
+
+  <div class="tagline">
+    <p>笔记不是记录工具，而是围绕「表达 → 理解 → 沉淀 → 执行」的事务协作系统。</p>
+  </div>
+
+</div>
+</body>
+</html>

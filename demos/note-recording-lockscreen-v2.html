@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>AI笔记 · 录音锁屏优化方案</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:#111;font-family:-apple-system,'SF Pro Display','PingFang SC',sans-serif;min-height:100vh}
+
+.phones{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;padding:20px 12px 100px}
+.phone-wrap{text-align:center}
+.phone-label{color:rgba(255,255,255,.5);font-size:11px;margin-bottom:6px;font-weight:500;max-width:280px;margin-left:auto;margin-right:auto}
+.phone-label em{color:#ff3b30;font-style:normal}
+.phone-label b{color:rgba(255,255,255,.8)}
+
+.phone{width:280px;height:607px;background:linear-gradient(160deg,#8B6914 0%,#C4943A 30%,#A67B2E 60%,#7A5A1A 100%);position:relative;overflow:hidden;border-radius:32px;border:5px solid #333;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+
+.sbar{display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font-size:10px;color:#fff;font-weight:600}
+.lock{text-align:left;padding:28px 20px 0}
+.lock-date{font-size:12px;color:rgba(255,255,255,.7);font-weight:500}
+.lock-time{font-size:60px;font-weight:800;color:#fff;letter-spacing:-2px;line-height:1}
+
+/* Focus notification card - matches real screenshot style */
+.focus-card{margin:16px 14px;background:rgba(255,248,230,.92);backdrop-filter:blur(20px);border-radius:18px;padding:12px 16px;display:flex;align-items:center;gap:10px}
+
+/* Wave animation */
+.wave{display:flex;align-items:center;gap:1.5px;height:20px}
+.wave-bar{width:2.5px;border-radius:1.5px;background:#c0392b;animation:w .5s ease-in-out infinite alternate}
+.wave-bar:nth-child(1){height:6px;animation-delay:0s}
+.wave-bar:nth-child(2){height:14px;animation-delay:.08s}
+.wave-bar:nth-child(3){height:20px;animation-delay:.16s}
+.wave-bar:nth-child(4){height:10px;animation-delay:.24s}
+.wave-bar:nth-child(5){height:16px;animation-delay:.12s}
+.wave-bar:nth-child(6){height:8px;animation-delay:.2s}
+.wave-bar:nth-child(7){height:12px;animation-delay:.06s}
+@keyframes w{to{height:4px}}
+
+.focus-time{font-size:14px;font-weight:600;color:#1a1a1a;flex:1}
+.focus-btn{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.focus-btn-pause{background:rgba(0,0,0,.06)}
+.focus-btn-stop{background:rgba(0,0,0,.06);border:2px solid #1a1a1a}
+.focus-btn-stop-inner{width:10px;height:10px;border-radius:2px;background:#c0392b}
+
+/* Optimized cards */
+.opt-card{margin:16px 14px;background:rgba(255,248,230,.88);backdrop-filter:blur(20px);border-radius:18px;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.opt-icon{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.opt-text{font-size:13px;color:#1a1a1a;font-weight:500;flex:1}
+.opt-sub{font-size:11px;color:rgba(0,0,0,.4);margin-top:1px}
+.opt-time{font-size:13px;color:rgba(0,0,0,.5);font-weight:500;font-variant-numeric:tabular-nums;flex-shrink:0}
+
+/* Dot */
+.rdot{width:6px;height:6px;border-radius:50%;background:#c0392b;animation:pulse 1.5s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Expanded card */
+.exp-card{margin:16px 14px;background:rgba(255,248,230,.92);backdrop-filter:blur(20px);border-radius:18px;padding:14px 16px}
+.exp-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.exp-time{font-size:22px;font-weight:700;color:#1a1a1a;text-align:center;margin-bottom:10px;font-variant-numeric:tabular-nums}
+.exp-controls{display:flex;gap:8px;justify-content:center}
+.exp-btn{height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;cursor:pointer;padding:0 14px}
+.exp-btn-pause{background:rgba(0,0,0,.06);color:#1a1a1a}
+.exp-btn-stop{background:rgba(192,57,43,.12);color:#c0392b}
+.exp-hint{font-size:10px;color:rgba(0,0,0,.3);text-align:center;margin-top:8px}
+
+.lock-bottom{position:absolute;bottom:0;left:0;right:0;padding:16px 14px 24px;display:flex;justify-content:space-between}
+.lock-ico{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center}
+
+.title{color:rgba(255,255,255,.3);font-size:10px;text-align:center;padding:24px 0 8px;text-transform:uppercase;letter-spacing:1px}
+</style>
+</head>
+<body>
+
+<div class="title">当前 vs 优化方案</div>
+<div class="phones">
+
+  <!-- 1: Current -->
+  <div class="phone-wrap">
+    <div class="phone-label"><em>当前</em>：波形+按钮，一看就是录音</div>
+    <div class="phone">
+      <div class="sbar"><span>17:50</span><span>5G 57%</span></div>
+      <div class="lock"><div class="lock-date">4月17日 周五</div><div class="lock-time">16<span style="opacity:.6">55</span></div></div>
+      <div class="focus-card">
+        <div class="wave"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div>
+        <div class="focus-time">00:06</div>
+        <div class="focus-btn focus-btn-pause"><svg width="12" height="12" viewBox="0 0 24 24" fill="#1a1a1a"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></div>
+        <div class="focus-btn focus-btn-stop"><div class="focus-btn-stop-inner"></div></div>
+      </div>
+      <div class="lock-bottom">
+        <div class="lock-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/></svg></div>
+        <div class="lock-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2: Disguised - "笔记工作中" -->
+  <div class="phone-wrap">
+    <div class="phone-label"><b>方案A</b>：改文案，看起来像普通通知</div>
+    <div class="phone">
+      <div class="sbar"><span>17:50</span><span>5G 57%</span></div>
+      <div class="lock"><div class="lock-date">4月17日 周五</div><div class="lock-time">16<span style="opacity:.6">55</span></div></div>
+      <div class="opt-card">
+        <div class="opt-icon" style="background:rgba(245,166,35,.15)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c88a1a" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div style="flex:1"><div class="opt-text">笔记工作中</div><div class="opt-sub">正在处理内容...</div></div>
+        <div class="opt-time">32:15</div>
+      </div>
+      <div class="lock-bottom">
+        <div class="lock-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/></svg></div>
+        <div class="lock-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3: Minimal - dot + text + time -->
+  <div class="phone-wrap">
+    <div class="phone-label"><b>方案B</b>：极简，红点+笔记+时间</div>
+    <div class="phone">
+      <div class="sbar"><span>17:50</span><span>5G 57%</span></div>
+      <div class="lock"><div class="lock-date">4月17日 周五</div><div class="lock-time">16<span style="opacity:.6">55</span></div></div>
+      <div class="opt-card" style="padding:10px 16px">
+        <div class="rdot"></div>
+        <div class="opt-text">笔记</div>
+        <div class="opt-time">32:15</div>
+      </div>
+      <div class="lock-bottom">
+        <div class="lock-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/></svg></div>
+        <div class="lock-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4: Tap to expand -->
+  <div class="phone-wrap">
+    <div class="phone-label"><b>方案B展开</b>：点击后显示操作</div>
+    <div class="phone">
+      <div class="sbar"><span>17:50</span><span>5G 57%</span></div>
+      <div class="lock"><div class="lock-date">4月17日 周五</div><div class="lock-time">16<span style="opacity:.6">55</span></div></div>
+      <div class="exp-card">
+        <div class="exp-header">
+          <div class="rdot"></div>
+          <div style="font-size:12px;color:rgba(0,0,0,.5);flex:1">笔记录音中</div>
+        </div>
+        <div class="exp-time">00:32:15</div>
+        <div class="exp-controls">
+          <div class="exp-btn exp-btn-pause">⏸ 暂停</div>
+          <div class="exp-btn exp-btn-stop">⏹ 停止 · AI生成纪要</div>
+        </div>
+        <div class="exp-hint">停止后自动整理成结构化纪要</div>
+      </div>
+      <div class="lock-bottom">
+        <div class="lock-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/></svg></div>
+        <div class="lock-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="color:rgba(255,255,255,.4);font-size:11px;text-align:center;padding:0 20px 40px;line-height:1.8;max-width:500px;margin:0 auto">
+  核心改动：不换技术方案，只改焦点通知的内容。<br>
+  去掉波形动画、去掉"录音"字样、图标换成笔记图标。<br>
+  别人看到就像普通APP通知，不会联想到录音。
+</div>
+
+</body>
+</html>

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内容助手 Agent · 能力定义</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+  background: #f7f8fa;
+  color: #1a1a2e;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* Topbar */
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid #e8edf3;
+  padding: 0 40px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.doc-tag {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: #2563eb;
+  background: #eff6ff; border: 1px solid #bfdbfe;
+  padding: 3px 8px; border-radius: 4px;
+}
+.doc-title { font-size: 14px; font-weight: 700; color: #0f172a; }
+.topbar-right { display: flex; gap: 8px; }
+.btn {
+  padding: 6px 14px; border-radius: 7px; font-size: 12px;
+  font-weight: 600; cursor: pointer; border: none; transition: all 0.15s;
+}
+.btn-edit { background: #f1f5f9; color: #475569; }
+.btn-edit:hover { background: #e2e8f0; }
+.btn-edit.active { background: #0f172a; color: #fff; }
+.btn-share { background: #2563eb; color: #fff; }
+.btn-share:hover { background: #1d4ed8; }
+
+.edit-hint {
+  background: #fefce8; border-bottom: 1px solid #fde047;
+  padding: 8px 40px; font-size: 12px; color: #854d0e;
+  display: none; align-items: center; gap: 6px;
+}
+.edit-hint.show { display: flex; }
+
+/* Toast */
+.toast {
+  position: fixed; top: 20px; left: 50%;
+  transform: translateX(-50%) translateY(-60px);
+  background: #1e293b; color: #fff;
+  padding: 10px 20px; border-radius: 8px;
+  font-size: 13px; z-index: 999;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: none; white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Main */
+.main { max-width: 860px; margin: 0 auto; padding: 40px 40px 80px; }
+
+/* Section */
+.section { margin-bottom: 44px; }
+.section-title {
+  font-size: 17px; font-weight: 800; color: #0f172a;
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e2e8f0;
+}
+.section-num {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: #2563eb; color: #fff;
+  font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Definition box */
+.def-box {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-left: 4px solid #2563eb;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.def-box .tagline {
+  font-size: 16px; font-weight: 800; color: #2563eb; margin-bottom: 6px;
+}
+.def-box p { font-size: 13px; color: #475569; line-height: 1.7; }
+
+/* Flow diagram */
+.flow-wrap {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px 28px;
+}
+.flow-label { font-size: 11px; font-weight: 700; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
+.flow-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+.flow-box {
+  flex: 1;
+  border-radius: 10px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+.flow-box-title {
+  font-size: 12px; font-weight: 800; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.flow-box-items { display: flex; flex-direction: column; gap: 4px; }
+.flow-item {
+  font-size: 12px; padding: 3px 0;
+  display: flex; align-items: center; gap: 5px;
+}
+.flow-item::before { content: '·'; font-size: 16px; line-height: 1; flex-shrink: 0; }
+.flow-arrow {
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 6px; color: #94a3b8; font-size: 18px; flex-shrink: 0;
+}
+
+/* Input box */
+.flow-input { background: #f0f9ff; border: 1.5px solid #bae6fd; }
+.flow-input .flow-box-title { color: #0369a1; }
+.flow-input .flow-item { color: #0369a1; }
+.flow-input .flow-item::before { color: #7dd3fc; }
+
+/* Process boxes */
+.flow-proc1 { background: #f5f3ff; border: 1.5px solid #ddd6fe; }
+.flow-proc1 .flow-box-title { color: #6d28d9; }
+.flow-proc1 .flow-item { color: #6d28d9; }
+.flow-proc1 .flow-item::before { color: #c4b5fd; }
+
+.flow-proc2 { background: #fdf4ff; border: 1.5px solid #f0abfc; }
+.flow-proc2 .flow-box-title { color: #a21caf; }
+.flow-proc2 .flow-item { color: #a21caf; }
+.flow-proc2 .flow-item::before { color: #e879f9; }
+
+/* Output box */
+.flow-output { background: #f0fdf4; border: 1.5px solid #bbf7d0; }
+.flow-output .flow-box-title { color: #15803d; }
+.flow-output .flow-item { color: #15803d; }
+.flow-output .flow-item::before { color: #4ade80; }
+
+/* Tables */
+table {
+  width: 100%; border-collapse: collapse;
+  background: #fff; border-radius: 10px; overflow: hidden;
+  border: 1.5px solid #e2e8f0; margin-bottom: 16px;
+  font-size: 13px;
+}
+th {
+  background: #f8fafc; padding: 10px 14px;
+  font-weight: 700; color: #475569; font-size: 12px;
+  text-align: left; border-bottom: 1.5px solid #e2e8f0;
+}
+td {
+  padding: 10px 14px; border-bottom: 1px solid #f1f5f9;
+  vertical-align: top; color: #334155;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafbfc; }
+
+.tag {
+  display: inline-block; padding: 2px 7px; border-radius: 4px;
+  font-size: 11px; font-weight: 700;
+}
+.tag-done { background: #dcfce7; color: #15803d; }
+.tag-wip { background: #fef9c3; color: #854d0e; }
+.tag-todo { background: #fee2e2; color: #991b1b; }
+.tag-defer { background: #f3f4f6; color: #6b7280; }
+.tag-p0 { background: #fee2e2; color: #991b1b; }
+.tag-p1 { background: #fef9c3; color: #854d0e; }
+.tag-p2 { background: #f3f4f6; color: #6b7280; }
+.tag-blue { background: #dbeafe; color: #1d4ed8; }
+
+/* Phase table */
+.phase-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  margin-bottom: 16px;
+}
+.phase-card {
+  background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  padding: 14px 16px;
+}
+.phase-card.active { border-color: #2563eb; background: #eff6ff; }
+.phase-label { font-size: 10px; font-weight: 700; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.phase-date { font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+.phase-items { display: flex; flex-direction: column; gap: 4px; }
+.phase-item { font-size: 11px; color: #475569; display: flex; gap: 5px; }
+.phase-item::before { content: '·'; color: #94a3b8; }
+.phase-status { margin-top: 10px; }
+
+/* Scenario cards */
+.scenario-grid { display: flex; flex-direction: column; gap: 12px; }
+.scenario-card {
+  background: #fff; border: 1.5px solid #e2e8f0; border-radius: 10px;
+  padding: 16px 20px;
+}
+.scenario-title {
+  font-size: 14px; font-weight: 800; color: #0f172a;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.scenario-flow {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 6px; margin-bottom: 10px;
+}
+.scenario-step {
+  background: #f8fafc; border: 1px solid #e2e8f0;
+  border-radius: 6px; padding: 5px 10px;
+  font-size: 12px; color: #334155; font-weight: 500;
+}
+.scenario-arrow { color: #94a3b8; font-size: 14px; }
+.scenario-output {
+  background: #f0fdf4; border: 1px solid #bbf7d0;
+  border-radius: 6px; padding: 8px 12px;
+  font-size: 12px; color: #15803d;
+}
+
+/* Editable */
+.editable { border-bottom: 1.5px dashed transparent; transition: border-color 0.15s; cursor: default; }
+.edit-mode .editable:hover { border-bottom-color: #94a3b8; background: rgba(0,0,0,0.02); }
+.edit-mode .editable { cursor: text; }
+
+/* Priority sync table */
+.sync-note { font-size: 12px; color: #94a3b8; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="doc-tag">Agent Spec</span>
+    <span class="doc-title">内容 / 资料助手 Agent · 能力定义与接入计划</span>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-edit" id="edit-btn" onclick="toggleEdit()">✏️ 编辑</button>
+    <button class="btn btn-share" onclick="shareDoc()">🔗 分享</button>
+  </div>
+</div>
+
+<div class="edit-hint" id="edit-hint">
+  ✏️ 编辑模式 — 点击任意文字直接修改，点击「分享」生成含内容的链接发给团队
+</div>
+
+<div class="main">
+
+  <!-- Section 1 -->
+  <div class="section">
+    <div class="section-title"><div class="section-num">1</div>Agent 定义</div>
+    <div class="def-box">
+      <div class="tagline editable" contenteditable="false">把信息 → 自动变成内容</div>
+      <p class="editable" contenteditable="false">一个运行在 Miclaw 上的系统级 Agent，通过调用系统 App 能力（笔记、录音、浏览器、日历等），把分散的信息自动转化为结构化内容。</p>
+    </div>
+
+    <div class="flow-wrap">
+      <div class="flow-label">信息流转示意</div>
+      <div class="flow-row">
+        <div class="flow-box flow-input">
+          <div class="flow-box-title">📥 输入</div>
+          <div class="flow-box-items">
+            <div class="flow-item">网页</div>
+            <div class="flow-item">录音</div>
+            <div class="flow-item">文档</div>
+            <div class="flow-item">截图</div>
+            <div class="flow-item">聊天记录</div>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box flow-proc1">
+          <div class="flow-box-title">⚙️ 信息理解</div>
+          <div class="flow-box-items">
+            <div class="flow-item">内容总结</div>
+            <div class="flow-item">关键信息提取</div>
+            <div class="flow-item">待办识别</div>
+            <div class="flow-item">纪要生成</div>
+            <div class="flow-item">翻译</div>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box flow-proc2">
+          <div class="flow-box-title">✍️ 内容生成</div>
+          <div class="flow-box-items">
+            <div class="flow-item">生成笔记</div>
+            <div class="flow-item">生成纪要</div>
+            <div class="flow-item">生成周报</div>
+            <div class="flow-item">生成报告</div>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box flow-output">
+          <div class="flow-box-title">📤 写回系统</div>
+          <div class="flow-box-items">
+            <div class="flow-item">笔记</div>
+            <div class="flow-item">会议纪要</div>
+            <div class="flow-item">关键要点</div>
+            <div class="flow-item">待办事项</div>
+            <div class="flow-item">总结报告</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2 -->
+  <div class="section">
+    <div class="section-title"><div class="section-num">2</div>Miclaw 可调用能力集</div>
+
+    <p style="font-size:13px;color:#475569;margin-bottom:16px;">能力分四层，① 获取 → ② 理解 → ③ 生成 → ④ 写回。</p>
+
+    <table>
+      <thead>
+        <tr><th>阶段</th><th>能力</th><th>Tool</th><th>来源</th></tr>
+      </thead>
+      <tbody>
+        <tr><td rowspan="5"><span class="tag tag-blue">① 信息获取</span></td><td>网页内容获取</td><td style="font-family:monospace;font-size:12px;color:#2563eb">get_webpage_content</td><td>Browser</td></tr>
+        <tr><td>录音转写</td><td style="font-family:monospace;font-size:12px;color:#2563eb">transcribe_audio</td><td>Recorder</td></tr>
+        <tr><td>截图 OCR</td><td style="font-family:monospace;font-size:12px;color:#2563eb">ocr_image</td><td>系统</td></tr>
+        <tr><td>剪贴板读取</td><td style="font-family:monospace;font-size:12px;color:#2563eb">get_clipboard_text</td><td>系统</td></tr>
+        <tr><td>文档读取</td><td style="font-family:monospace;font-size:12px;color:#2563eb">read_document</td><td>Files</td></tr>
+        <tr><td rowspan="5"><span class="tag" style="background:#f5f3ff;color:#6d28d9">② 信息理解</span></td><td>内容总结</td><td style="font-family:monospace;font-size:12px;color:#6d28d9">summarize_text</td><td>LLM</td></tr>
+        <tr><td>关键信息提取</td><td style="font-family:monospace;font-size:12px;color:#6d28d9">extract_key_points</td><td>LLM</td></tr>
+        <tr><td>待办识别</td><td style="font-family:monospace;font-size:12px;color:#6d28d9">extract_action_items</td><td>LLM</td></tr>
+        <tr><td>会议纪要生成</td><td style="font-family:monospace;font-size:12px;color:#6d28d9">generate_meeting_minutes</td><td>LLM</td></tr>
+        <tr><td>翻译</td><td style="font-family:monospace;font-size:12px;color:#6d28d9">translate_text</td><td>LLM</td></tr>
+        <tr><td rowspan="3"><span class="tag" style="background:#fdf4ff;color:#a21caf">③ 内容生成</span></td><td>生成笔记</td><td style="font-family:monospace;font-size:12px;color:#a21caf">generate_note</td><td>LLM</td></tr>
+        <tr><td>生成会议纪要</td><td style="font-family:monospace;font-size:12px;color:#a21caf">generate_meeting_report</td><td>LLM</td></tr>
+        <tr><td>生成周报</td><td style="font-family:monospace;font-size:12px;color:#a21caf">generate_weekly_summary</td><td>LLM</td></tr>
+        <tr><td rowspan="8"><span class="tag tag-done">④ 系统写回</span></td><td>创建笔记</td><td style="font-family:monospace;font-size:12px;color:#15803d">create_note</td><td>Notes</td></tr>
+        <tr><td>追加笔记内容</td><td style="font-family:monospace;font-size:12px;color:#15803d">append_note</td><td>Notes</td></tr>
+        <tr><td>更新笔记</td><td style="font-family:monospace;font-size:12px;color:#15803d">update_note</td><td>Notes</td></tr>
+        <tr><td>读取笔记</td><td style="font-family:monospace;font-size:12px;color:#15803d">get_notes</td><td>Notes</td></tr>
+        <tr><td>搜索笔记</td><td style="font-family:monospace;font-size:12px;color:#15803d">search_notes</td><td>osbot</td></tr>
+        <tr><td>录音 → 创建笔记</td><td style="font-family:monospace;font-size:12px;color:#15803d">create_note_from_audio</td><td>Notes</td></tr>
+        <tr><td>网页 → 创建笔记</td><td style="font-family:monospace;font-size:12px;color:#15803d">create_note_from_web</td><td>Notes</td></tr>
+        <tr><td>图片 → 创建笔记</td><td style="font-family:monospace;font-size:12px;color:#15803d">create_note_from_image</td><td>Notes</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Section 3 -->
+  <div class="section">
+    <div class="section-title"><div class="section-num">3</div>笔记 App 接入状态</div>
+
+    <p style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:10px;">✅ 已接入 / 对齐中</p>
+    <table>
+      <thead>
+        <tr><th>能力</th><th>Tool</th><th>状态</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>读取笔记</td><td style="font-family:monospace;font-size:12px">get_notes</td><td><span class="tag tag-done">✅ 已接入</span></td><td>支持按时间段查询列表及详情</td></tr>
+        <tr><td>创建文本笔记</td><td style="font-family:monospace;font-size:12px">create_note</td><td><span class="tag tag-wip">⚠️ 待交付</span></td><td>暂不支持 Markdown，先用线上格式</td></tr>
+        <tr><td>创建图文笔记</td><td style="font-family:monospace;font-size:12px">create_note</td><td><span class="tag tag-wip">⚠️ 待交付</span></td><td>支持图文混排</td></tr>
+        <tr><td>编辑笔记</td><td style="font-family:monospace;font-size:12px">update_note</td><td><span class="tag tag-wip">⚠️ 对齐中</span></td><td>需同时提供查询、类型、更新三个子能力</td></tr>
+        <tr><td>搜索笔记</td><td style="font-family:monospace;font-size:12px">search_notes</td><td><span class="tag tag-defer">⚠️ 转 AI 子系统</span></td><td>由 osbot 直接对接调用</td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size:13px;font-weight:700;color:#0f172a;margin:16px 0 10px;">🔴 缺口能力（待接入）</p>
+    <table>
+      <thead>
+        <tr><th>能力</th><th>Tool</th><th>优先级</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>追加内容到笔记</td><td style="font-family:monospace;font-size:12px">append_note</td><td><span class="tag tag-p0">P0</span></td></tr>
+        <tr><td>录音 → 创建笔记</td><td style="font-family:monospace;font-size:12px">create_note_from_audio</td><td><span class="tag tag-p0">P0</span></td></tr>
+        <tr><td>网页 → 创建笔记</td><td style="font-family:monospace;font-size:12px">create_note_from_web</td><td><span class="tag tag-p0">P0</span></td></tr>
+        <tr><td>图片 → 创建笔记</td><td style="font-family:monospace;font-size:12px">create_note_from_image</td><td><span class="tag tag-p1">P1</span></td></tr>
+        <tr><td>合并笔记</td><td style="font-family:monospace;font-size:12px">merge_notes</td><td><span class="tag tag-p1">P1</span></td></tr>
+        <tr><td>笔记打标签</td><td style="font-family:monospace;font-size:12px">tag_note</td><td><span class="tag tag-p1">P1</span></td></tr>
+        <tr><td>分享笔记</td><td style="font-family:monospace;font-size:12px">share_note</td><td><span class="tag tag-p2">P2</span></td></tr>
+        <tr><td>关联笔记推荐</td><td style="font-family:monospace;font-size:12px">get_related_notes</td><td><span class="tag tag-p2">P2</span></td></tr>
+        <tr><td>知识库搜索</td><td style="font-family:monospace;font-size:12px">search_knowledge</td><td><span class="tag tag-p2">P2</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Section 4: Phase plan -->
+  <div class="section">
+    <div class="section-title"><div class="section-num">4</div>接入计划</div>
+    <div class="phase-grid">
+      <div class="phase-card active">
+        <div class="phase-label">Phase 1</div>
+        <div class="phase-date">3/3 – 3/9</div>
+        <div class="phase-items">
+          <div class="phase-item">读取笔记</div>
+          <div class="phase-item">创建文本笔记</div>
+          <div class="phase-item">编辑笔记框架</div>
+        </div>
+        <div class="phase-status"><span class="tag tag-done">✅ 对齐完成</span></div>
+      </div>
+      <div class="phase-card">
+        <div class="phase-label">Phase 2</div>
+        <div class="phase-date">3/10 – 3/16</div>
+        <div class="phase-items">
+          <div class="phase-item">图文笔记</div>
+          <div class="phase-item">append_note</div>
+          <div class="phase-item">create_note_from_audio</div>
+        </div>
+        <div class="phase-status"><span class="tag" style="background:#dbeafe;color:#1d4ed8">🔵 进行中</span></div>
+      </div>
+      <div class="phase-card">
+        <div class="phase-label">Phase 3</div>
+        <div class="phase-date">3/17 – 3/23</div>
+        <div class="phase-items">
+          <div class="phase-item">create_note_from_web</div>
+          <div class="phase-item">tag_note</div>
+          <div class="phase-item">merge_notes</div>
+        </div>
+        <div class="phase-status"><span class="tag tag-todo">🔴 待排期</span></div>
+      </div>
+      <div class="phase-card">
+        <div class="phase-label">Phase 4</div>
+        <div class="phase-date">3/24 – 3/31</div>
+        <div class="phase-items">
+          <div class="phase-item">search_knowledge</div>
+          <div class="phase-item">share_note</div>
+          <div class="phase-item">关联推荐</div>
+        </div>
+        <div class="phase-status"><span class="tag tag-todo">🔴 待排期</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5: Scenarios -->
+  <div class="section">
+    <div class="section-title"><div class="section-num">5</div>三个优先验证场景</div>
+    <div class="scenario-grid">
+      <div class="scenario-card" style="border-left:4px solid #e8543a">
+        <div class="scenario-title">
+          🎤 场景 1　会议纪要
+          <span class="tag" style="background:#fff4f2;color:#e8543a">最高优先级</span>
+        </div>
+        <div class="scenario-flow">
+          <div class="scenario-step">录音文件</div>
+          <div class="scenario-arrow">→</div>
+          <div class="scenario-step">ASR 转写</div>
+          <div class="scenario-arrow">→</div>
+          <div class="scenario-step">提取结构</div>
+          <div class="scenario-arrow">→</div>
+          <div class="scenario-step">生成纪要</div>
+          <div class="scenario-arrow">→</div>
+          <div class="scenario-step">写入笔记</div>
+        </div>
+        <div class="scenario-output">输出：会议纪要 · 关键决策 · 待办事项</div>
+      </div>
+      <div class="scenario-card" style="border-left:4px solid #2563eb">
+        <div class="scenario-title">🌐 场景 2　网页资料整理</div>
+        <div class="scenario-flow">
+          <div class="scenario-step">网页链接</div>
+          <div class="scenario-arrow">→</div>
+          <div class="scenario-step">抓取正文</div>
+          <div class="scenario-arrow">→</div>
+          <div class="scenario-step">总结提炼</div>
+          <div class="scenario-arrow">→</div>
+          <div class="scenario-step">写入笔记</div>
+        </div>
+        <div class="scenario-output">输出：网页笔记 · 关键要点</div>
+      </div>
+      <div class="scenario-card" style="border-left:4px solid #6d4aff">
+        <div class="scenario-title">📸 场景 3　信息整合（截图 / 聊天）</div>
+        <div class="scenario-flow">
+          <div class="scenario-step">截图 / 文字</div>
+          <div class="scenario-arrow">→</div>
+          <div class="scenario-step">OCR 识别</div>
+          <div class="scenario-arrow">→</div>
+          <div class="scenario-step">提取要点</div>
+          <div class="scenario-arrow">→</div>
+          <div class="scenario-step">写入笔记</div>
+        </div>
+        <div class="scenario-output">输出：整理笔记 · 待办清单</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 6 -->
+  <div class="section">
+    <div class="section-title"><div class="section-num">6</div>每日进度同步</div>
+    <table>
+      <thead>
+        <tr><th>能力</th><th>Tool</th><th>状态</th><th>交付节点</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>读取笔记</td><td style="font-family:monospace;font-size:12px">get_notes</td><td><span class="tag tag-done">✅ 已接入</span></td><td class="editable" contenteditable="false"></td></tr>
+        <tr><td>创建文本笔记</td><td style="font-family:monospace;font-size:12px">create_note</td><td><span class="tag tag-wip">⚠️ 待交付</span></td><td class="editable" contenteditable="false">3.3 下午 5 点</td></tr>
+        <tr><td>创建图文笔记</td><td style="font-family:monospace;font-size:12px">create_note</td><td><span class="tag tag-wip">⚠️ 待交付</span></td><td class="editable" contenteditable="false">3.4 上午 11 点</td></tr>
+        <tr><td>编辑 / 追加笔记</td><td style="font-family:monospace;font-size:12px">update_note</td><td><span class="tag tag-wip">⚠️ 对齐中</span></td><td class="editable" contenteditable="false"></td></tr>
+        <tr><td>搜索笔记</td><td style="font-family:monospace;font-size:12px">search_notes</td><td><span class="tag tag-defer">转 AI 子系统</span></td><td class="editable" contenteditable="false"></td></tr>
+        <tr><td>录音 → 笔记</td><td style="font-family:monospace;font-size:12px">create_note_from_audio</td><td><span class="tag tag-todo">🔴 未接入</span></td><td class="editable" contenteditable="false"></td></tr>
+        <tr><td>网页 → 笔记</td><td style="font-family:monospace;font-size:12px">create_note_from_web</td><td><span class="tag tag-todo">🔴 未接入</span></td><td class="editable" contenteditable="false"></td></tr>
+        <tr><td>网页抓取</td><td style="font-family:monospace;font-size:12px">get_webpage_content</td><td><span class="tag tag-done">✅ 已接入</span></td><td class="editable" contenteditable="false"></td></tr>
+        <tr><td>录音转写</td><td style="font-family:monospace;font-size:12px">transcribe_audio</td><td><span class="tag tag-done">✅ 已接入</span></td><td class="editable" contenteditable="false"></td></tr>
+      </tbody>
+    </table>
+    <p class="sync-note">💡 交付节点列可直接点击编辑更新</p>
+  </div>
+
+</div>
+
+<script>
+let editMode = false;
+
+function toggleEdit() {
+  editMode = !editMode;
+  document.body.classList.toggle('edit-mode', editMode);
+  const btn = document.getElementById('edit-btn');
+  const hint = document.getElementById('edit-hint');
+  btn.textContent = editMode ? '✓ 完成' : '✏️ 编辑';
+  btn.classList.toggle('active', editMode);
+  hint.classList.toggle('show', editMode);
+  document.querySelectorAll('.editable').forEach(el => {
+    el.contentEditable = editMode ? 'true' : 'false';
+  });
+}
+
+function shareDoc() {
+  try {
+    const html = document.documentElement.outerHTML;
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      showToast('✅ 链接已复制，发给团队直接打开');
+    }).catch(() => {
+      showToast('✅ 右键另存为 HTML 文件后发给团队');
+    });
+  } catch(e) {
+    showToast('请直接下载 HTML 文件分享');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>

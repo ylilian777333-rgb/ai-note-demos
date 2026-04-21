@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>新时代产品经理的交付闭环</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100vw; height: 100vh; overflow: hidden;
+    font-family: 'Noto Sans SC', 'Inter', sans-serif;
+    background: linear-gradient(135deg, #0a0e27 0%, #151b3a 40%, #1a1040 70%, #0d1117 100%);
+    color: #e8eaf6;
+  }
+
+  body { display: flex; flex-direction: column; position: relative; }
+
+  body::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 50% 60% at 30% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 60% at 75% 50%, rgba(236, 72, 153, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .dot-grid {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+    background-size: 32px 32px; pointer-events: none;
+  }
+
+  /* ===== Title ===== */
+  .title-area {
+    padding-top: 2.5vh; text-align: center;
+    position: relative; z-index: 1; flex-shrink: 0;
+  }
+
+  .title-area h1 {
+    font-size: clamp(26px, 3.2vw, 46px);
+    font-weight: 800; letter-spacing: 3px;
+    background: linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 50%, #c4b5fd 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .title-area .subtitle {
+    margin-top: 5px;
+    font-size: clamp(11px, 1.1vw, 16px);
+    font-weight: 300; color: rgba(199, 210, 254, 0.38); letter-spacing: 1px;
+  }
+
+  /* ===== Main 3-Column Layout ===== */
+  .main-content {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 1vh 5vw 2vh;
+    position: relative; z-index: 1; min-height: 0; gap: 2vw;
+  }
+
+  .panel-header {
+    font-size: clamp(10px, 0.9vw, 13px);
+    font-weight: 500; letter-spacing: 4px;
+    margin-bottom: 1vh;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .panel-header::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, currentColor, transparent); opacity: 0.3;
+  }
+
+  /* ===== Left: Deliverables ===== */
+  .panel-left {
+    display: flex; flex-direction: column; gap: 1.2vh;
+    width: 280px; flex-shrink: 0;
+  }
+
+  .panel-left .panel-header { color: rgba(165, 180, 252, 0.7); }
+
+  .deliverable-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 1.1vh 14px; border-radius: 11px;
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.1);
+    transition: all 0.3s ease; position: relative;
+  }
+
+  .deliverable-item::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 3px;
+    border-radius: 3px 0 0 3px;
+    background: linear-gradient(180deg, #818cf8, #6366f1);
+    opacity: 0.5; transition: all 0.3s ease;
+  }
+
+  .item-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+    background: rgba(99, 102, 241, 0.12); transition: all 0.3s ease;
+  }
+
+  .item-label {
+    font-size: clamp(13px, 1.1vw, 17px);
+    font-weight: 600; color: #e0e7ff; letter-spacing: 1px;
+    transition: color 0.3s;
+  }
+
+  .item-desc {
+    font-size: clamp(9px, 0.7vw, 11px);
+    font-weight: 300; color: rgba(165, 180, 252, 0.4); transition: color 0.3s;
+  }
+
+  .level-tag {
+    font-size: 9px; padding: 2px 7px; border-radius: 20px;
+    background: rgba(99, 102, 241, 0.1); color: rgba(165, 180, 252, 0.45);
+    margin-left: auto; white-space: nowrap; transition: all 0.3s;
+  }
+
+  .fault-reason {
+    display: none; font-size: clamp(8px, 0.65vw, 10px);
+    color: #fca5a5; margin-top: 2px;
+  }
+
+  .deliverable-item.fault {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 0 18px rgba(239, 68, 68, 0.12);
+    animation: fault-pulse 2s ease-in-out infinite;
+  }
+
+  .deliverable-item.fault::before { background: linear-gradient(180deg, #ef4444, #dc2626); opacity: 1; }
+  .deliverable-item.fault .item-icon { background: rgba(239, 68, 68, 0.2); }
+  .deliverable-item.fault .item-label { color: #fca5a5; }
+  .deliverable-item.fault .item-desc { color: rgba(252, 165, 165, 0.55); }
+  .deliverable-item.fault .level-tag { background: rgba(239, 68, 68, 0.15); color: rgba(252, 165, 165, 0.6); }
+  .deliverable-item.fault .fault-reason { display: block; }
+
+  @keyframes fault-pulse {
+    0%, 100% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.12); }
+    50% { box-shadow: 0 0 26px rgba(239, 68, 68, 0.22); }
+  }
+
+  /* ===== Center: Arrows ===== */
+  .loop-center {
+    width: 160px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .loop-svg { width: 100%; height: auto; }
+  .arrow-path { fill: none; stroke-width: 2; stroke-linecap: round; }
+  .arrow-top { stroke: url(#gradTop); stroke-dasharray: 8 6; animation: flowTop 4s linear infinite; }
+  .arrow-bottom { stroke: url(#gradBottom); stroke-dasharray: 8 6; animation: flowBottom 4s linear infinite reverse; }
+  .arrow-label-top, .arrow-label-bottom { font-size: 12px; font-weight: 500; letter-spacing: 2px; }
+  .arrow-label-top { fill: rgba(165, 180, 252, 0.65); }
+  .arrow-label-bottom { fill: rgba(251, 191, 36, 0.65); }
+  .arrow-bottom.active { stroke: url(#gradBottomFault); }
+  .arrow-label-bottom.active { fill: rgba(239, 68, 68, 0.75); }
+  @keyframes flowTop { 0% { stroke-dashoffset: 800; } 100% { stroke-dashoffset: 0; } }
+  @keyframes flowBottom { 0% { stroke-dashoffset: 800; } 100% { stroke-dashoffset: 0; } }
+
+  /* ===== Right: Test Cases ===== */
+  .panel-right {
+    display: flex; flex-direction: column;
+    width: 440px; flex-shrink: 0; min-height: 0;
+    max-height: 78vh;
+  }
+
+  .panel-right .panel-header { color: rgba(251, 191, 36, 0.7); }
+
+  .right-title-row {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;
+  }
+
+  .right-title-left { display: flex; align-items: center; gap: 10px; }
+
+  .right-title {
+    font-size: clamp(18px, 1.8vw, 26px); font-weight: 800;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b, #fcd34d);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .run-all-btn {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    background: rgba(52, 211, 153, 0.08);
+    color: rgba(52, 211, 153, 0.7);
+    font-size: 12px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s; font-family: inherit;
+  }
+
+  .run-all-btn:hover {
+    background: rgba(52, 211, 153, 0.15); border-color: rgba(52, 211, 153, 0.5);
+    color: #34d399; box-shadow: 0 0 10px rgba(52, 211, 153, 0.2);
+  }
+
+  .run-all-btn.running {
+    border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1);
+    color: #ef4444; animation: spin-pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes spin-pulse {
+    0%, 100% { box-shadow: 0 0 6px rgba(239, 68, 68, 0.15); }
+    50% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.3); }
+  }
+
+  .mode-btns { display: flex; gap: 5px; }
+
+  .mode-btn {
+    padding: 4px 13px; border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 12px; font-weight: 500; font-family: inherit;
+    cursor: pointer; transition: all 0.3s; letter-spacing: 1px;
+  }
+
+  .mode-btn:hover { background: rgba(255, 255, 255, 0.06); color: rgba(255, 255, 255, 0.55); }
+  .mode-btn.active { background: rgba(251, 191, 36, 0.12); border-color: rgba(251, 191, 36, 0.35); color: #fbbf24; }
+
+  .right-subtitle {
+    font-size: clamp(10px, 0.85vw, 12px);
+    font-weight: 400; color: rgba(253, 230, 138, 0.38);
+    letter-spacing: 1px; margin-bottom: 0.8vh;
+  }
+
+  .right-subtitle span { color: rgba(253, 230, 138, 0.58); font-weight: 500; }
+
+  .tc-count {
+    font-size: clamp(9px, 0.7vw, 11px);
+    color: rgba(251, 191, 36, 0.28); text-align: right;
+    margin-bottom: 0.3vh; flex-shrink: 0;
+  }
+
+  .tc-count strong { color: rgba(251, 191, 36, 0.55); font-weight: 700; }
+
+  .tc-list {
+    display: flex; flex-direction: column; gap: 0.6vh;
+    flex: 1; min-height: 0; overflow-y: auto; padding-right: 3px;
+  }
+
+  .tc-list::-webkit-scrollbar { width: 2px; }
+  .tc-list::-webkit-scrollbar-thumb { background: rgba(251, 191, 36, 0.12); border-radius: 2px; }
+
+  .tc-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 0.8vh 10px; border-radius: 7px;
+    background: rgba(251, 191, 36, 0.03);
+    border: 1px solid rgba(251, 191, 36, 0.07);
+    cursor: pointer; transition: all 0.2s; user-select: none; flex-shrink: 0;
+  }
+
+  .tc-item:hover { background: rgba(251, 191, 36, 0.06); border-color: rgba(251, 191, 36, 0.15); }
+  .tc-item.current-run { background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); }
+
+  .tc-id { font-size: 9px; font-weight: 600; color: rgba(251, 191, 36, 0.38); white-space: nowrap; flex-shrink: 0; width: 30px; }
+  .tc-text { font-size: clamp(11px, 0.9vw, 13px); font-weight: 400; color: rgba(253, 230, 138, 0.65); line-height: 1.4; flex: 1; }
+
+  .tc-status {
+    flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.2s; color: rgba(255,255,255,0.1);
+  }
+
+  .tc-status::after { content: '▶'; font-size: 6px; }
+
+  .tc-item.failed { background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2); }
+  .tc-item.failed .tc-id { color: rgba(252, 165, 165, 0.65); }
+  .tc-item.failed .tc-text { color: rgba(252, 165, 165, 0.75); }
+  .tc-item.failed .tc-status { background: rgba(239, 68, 68, 0.18); border-color: rgba(239, 68, 68, 0.35); color: #ef4444; }
+  .tc-item.failed .tc-status::after { content: '✕'; font-size: 10px; font-weight: 700; }
+
+  .tc-list.launch-mode { gap: 1px; }
+  .tc-list.launch-mode .tc-item { padding: 2px 5px; border-radius: 3px; gap: 4px; }
+  .tc-list.launch-mode .tc-id { font-size: 7px; width: 20px; color: rgba(251, 191, 36, 0.25); }
+  .tc-list.launch-mode .tc-text { font-size: 8px; line-height: 1.2; color: rgba(253, 230, 138, 0.45); }
+  .tc-list.launch-mode .tc-status { width: 10px; height: 10px; display: none; }
+  .tc-list.launch-mode .tc-item.failed .tc-status { display: flex; }
+  .tc-list.launch-mode .tc-status::after { font-size: 4px; }
+  .tc-list.launch-mode .tc-item.failed .tc-status::after { font-size: 6px; }
+
+  .tc-hint {
+    margin-top: 0.5vh; text-align: center;
+    font-size: clamp(9px, 0.7vw, 11px);
+    color: rgba(251, 191, 36, 0.2); font-weight: 300; letter-spacing: 1px;
+    transition: all 0.3s; flex-shrink: 0;
+  }
+
+  .tc-hint.active { color: rgba(239, 68, 68, 0.45); }
+
+  /* ===== Issue Panel (inside flex layout) ===== */
+  .panel-issues {
+    width: 0;
+    max-height: 78vh;
+    display: flex; flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: width 0.4s ease, opacity 0.4s ease, margin 0.4s ease;
+    margin-right: 0;
+  }
+
+  .panel-issues.visible {
+    width: 190px;
+    opacity: 1;
+    margin-right: 2vw;
+  }
+
+  .issues-title {
+    font-size: 22px; font-weight: 800;
+    color: #fca5a5; margin-bottom: 2px;
+  }
+
+  .issues-subtitle {
+    font-size: 11px; font-weight: 400;
+    color: rgba(252, 165, 165, 0.4); letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .issue-summary {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .issue-badge {
+    font-size: 9px; padding: 2px 8px; border-radius: 10px;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    color: rgba(252, 165, 165, 0.5);
+    transition: all 0.3s;
+  }
+
+  .issue-badge.active {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: rgba(252, 165, 165, 0.8);
+  }
+
+  .issue-badge strong { font-weight: 700; }
+
+  .issue-list {
+    flex: 1; min-height: 0; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 3px;
+    padding-right: 2px;
+  }
+
+  .issue-list::-webkit-scrollbar { width: 2px; }
+  .issue-list::-webkit-scrollbar-thumb { background: rgba(239, 68, 68, 0.12); border-radius: 2px; }
+
+  .issue-entry {
+    padding: 4px 8px; border-radius: 5px;
+    background: rgba(239, 68, 68, 0.05);
+    border-left: 2px solid rgba(239, 68, 68, 0.25);
+    animation: issue-in 0.15s ease-out;
+  }
+
+  .issue-entry .issue-reason { font-size: 11px; font-weight: 500; color: rgba(252, 165, 165, 0.8); line-height: 1.35; }
+  .issue-entry .issue-target { font-size: 9px; font-weight: 400; color: rgba(252, 165, 165, 0.35); margin-top: 2px; }
+
+  @keyframes issue-in {
+    from { opacity: 0; transform: translateX(8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .issue-total {
+    margin-top: 6px; text-align: center;
+    font-size: 10px; color: rgba(239, 68, 68, 0.35);
+    flex-shrink: 0;
+  }
+
+  .issue-total strong { color: rgba(239, 68, 68, 0.6); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="dot-grid"></div>
+
+<div class="title-area">
+  <h1>新时代产品经理的交付闭环</h1>
+  <div class="subtitle">不是画交互，不是编排流程，而是交付可运行、可验证的能力单元</div>
+</div>
+
+<div class="main-content">
+
+  <div class="panel-issues" id="panelIssues">
+    <div class="issues-title">问题</div>
+    <div class="issues-subtitle">按交付物分类</div>
+    <div class="issue-summary" id="issueSummary">
+      <div class="issue-badge" data-badge="tool">Tool <strong>0</strong></div>
+      <div class="issue-badge" data-badge="skill">Skill <strong>0</strong></div>
+      <div class="issue-badge" data-badge="agent">Agent <strong>0</strong></div>
+      <div class="issue-badge" data-badge="gui">GUI <strong>0</strong></div>
+      <div class="issue-badge" data-badge="app">APP <strong>0</strong></div>
+    </div>
+    <div class="issue-list" id="issueList"></div>
+    <div class="issue-total" id="issueTotal">共 <strong>0</strong> 个问题</div>
+  </div>
+
+  <div class="panel-left">
+    <div class="panel-header">交付物 BUILD</div>
+    <div class="deliverable-item" data-id="tool">
+      <div class="item-icon">🔧</div>
+      <div><div class="item-label">Tool</div><div class="item-desc">最小能力原子</div><div class="fault-reason"></div></div>
+      <div class="level-tag">原子</div>
+    </div>
+    <div class="deliverable-item" data-id="skill">
+      <div class="item-icon">⚡</div>
+      <div><div class="item-label">Skill</div><div class="item-desc">可复用的能力模板</div><div class="fault-reason"></div></div>
+      <div class="level-tag">模板</div>
+    </div>
+    <div class="deliverable-item" data-id="agent">
+      <div class="item-icon">🤖</div>
+      <div><div class="item-label">Agent</div><div class="item-desc">自主决策的能力体</div><div class="fault-reason"></div></div>
+      <div class="level-tag">智能体</div>
+    </div>
+    <div class="deliverable-item" data-id="gui">
+      <div class="item-icon">🧩</div>
+      <div><div class="item-label">GUI 组件</div><div class="item-desc">可视化交互界面</div><div class="fault-reason"></div></div>
+      <div class="level-tag">界面</div>
+    </div>
+    <div class="deliverable-item" data-id="app">
+      <div class="item-icon">📱</div>
+      <div><div class="item-label">APP</div><div class="item-desc">完整的能力组合</div><div class="fault-reason"></div></div>
+      <div class="level-tag">产品</div>
+    </div>
+  </div>
+
+  <div class="loop-center">
+    <svg class="loop-svg" viewBox="0 0 200 380">
+      <defs>
+        <linearGradient id="gradTop" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#818cf8;stop-opacity:0.7"/><stop offset="100%" style="stop-color:#fbbf24;stop-opacity:0.7"/>
+        </linearGradient>
+        <linearGradient id="gradBottom" x1="100%" y1="0%" x2="0%" y2="0%">
+          <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:0.7"/><stop offset="100%" style="stop-color:#818cf8;stop-opacity:0.7"/>
+        </linearGradient>
+        <linearGradient id="gradBottomFault" x1="100%" y1="0%" x2="0%" y2="0%">
+          <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.8"/><stop offset="100%" style="stop-color:#ef4444;stop-opacity:0.8"/>
+        </linearGradient>
+        <marker id="arrowRight" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#fbbf24" opacity="0.7"/></marker>
+        <marker id="arrowLeft" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto"><polygon points="10 0,0 3.5,10 7" fill="#818cf8" opacity="0.7"/></marker>
+        <marker id="arrowLeftFault" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto"><polygon points="10 0,0 3.5,10 7" fill="#ef4444" opacity="0.8"/></marker>
+      </defs>
+      <path class="arrow-path arrow-top" d="M 15,130 C 15,55 185,55 185,130" marker-end="url(#arrowRight)"/>
+      <text class="arrow-label-top" x="100" y="78" text-anchor="middle">交付产生效果</text>
+      <path id="arrowBottomPath" class="arrow-path arrow-bottom" d="M 185,250 C 185,325 15,325 15,250" marker-end="url(#arrowLeft)"/>
+      <text id="arrowBottomLabel" class="arrow-label-bottom" x="100" y="318" text-anchor="middle">效果驱动迭代</text>
+    </svg>
+  </div>
+
+  <div class="panel-right">
+    <div class="panel-header">效果 VALIDATE</div>
+    <div class="right-title-row">
+      <div class="right-title-left">
+        <div class="right-title">用户的事</div>
+        <button class="run-all-btn" id="runAllBtn" title="运行全部测试">▶</button>
+      </div>
+      <div class="mode-btns">
+        <button class="mode-btn active" data-mode="demo">Demo</button>
+        <button class="mode-btn" data-mode="launch">上线</button>
+      </div>
+    </div>
+    <div class="right-subtitle"><span>用户场景</span> ＝ <span>测试用例</span> ＝ <span>效果验证</span></div>
+    <div class="tc-count" id="tcCount">共 <strong>5</strong> 条用例</div>
+    <div class="tc-list" id="tcList"></div>
+    <div class="tc-hint" id="tcHint">← 点击用例或按 ▶ 运行全部</div>
+  </div>
+</div>
+
+<script>
+const DEMO_CASES = [
+  { id:1, text:'截图朋友圈美食照，说「找张类似的 ins 风摆盘图」，返回 3 张风格匹配结果' },
+  { id:2, text:'选中风景照说「把路人都去掉，只留建筑和天空」，生成干净的抠除结果' },
+  { id:3, text:'拍完自拍说「调成胶片感，加一行手写体日期水印」，一键出片可预览' },
+  { id:4, text:'选 4 张旅行照说「拼成杂志排版发小红书，自动配种草文案」，预览后一键发布' },
+  { id:5, text:'P 完图说「朋友圈发简短感想，小红书发攻略长文，微博带话题 tag」，三平台同时发布' }
+];
+
+const LAUNCH_CASES = [
+  '截图朋友圈美食照，说「找张类似的 ins 风摆盘图」，返回匹配图',
+  '语音说「找一张赛博朋克城市夜景」，返回不同构图的匹配结果',
+  '拍下咖啡杯说「找同款杯子的购买链接」，返回商品图+直达链接',
+  '截图微博穿搭说「找同风格但换成蓝色系」，返回颜色匹配结果',
+  '长按表情包说「找同系列其他表情」，返回同 IP 的表情包合集',
+  '相册搜索说「找去年三亚那组照片」，按时间+地点精确定位',
+  '描述画面说「一个人站在雨中撑伞的背影」，生成 AI 匹配图',
+  '截图说「找这种配色方案的其他设计」，按色彩风格检索',
+  '选中风景照说「把路人都去掉」，生成干净的抠除结果',
+  '选中人像说「换成海边日落背景」，自然合成无违和感',
+  '说「把照片里的文字翻译成英文并替换」，OCR+翻译+修图一体',
+  '选中合照说「把我的脸调亮一点，其他人不变」，局部精修',
+  '说「横图裁成 9:16 竖图，智能补全缺失部分」，AI 扩图',
+  '拍完自拍说「调成胶片感，加手写体日期水印」，一键出片',
+  '选中食物照说「提高饱和度让颜色更诱人，但保持自然」',
+  '说「把这 5 张照片统一成同一种暖色调」，批量风格统一',
+  '选中证件照说「换成白底，调整尺寸为一寸」',
+  '说「把这张模糊的老照片修复清晰」，AI 超分辨率修复',
+  '选中风景说「去掉电线和电线杆」，智能内容消除',
+  '说「把这张白天的照片变成夜景效果」，光影重建',
+  '选中商品照说「去掉复杂背景换成纯白底」，电商级抠图',
+  '说「模仿梵高星空风格重绘这张照片」，AI 风格迁移',
+  '说「把照片中的猫咪放大居中，背景虚化」',
+  'P 完图说「发朋友圈，配文要文艺一点」，自动生成文案+发布',
+  '说「发到小红书，标题要有爆款感，带合适的 tag」',
+  '说「朋友圈发简短感想，小红书发攻略长文，微博带 tag」，三平台分发',
+  '说「只分享给朋友圈里的闺蜜分组」，精准可见范围控制',
+  '说「定时今晚 8 点发布，那个时间段流量最好」',
+  '选旅行照说「拼成杂志排版发小红书，自动配种草文案」',
+  '说「转发到家族群，配一句温馨的问候」',
+  '说「保存到相册，同时备份到云盘的旅行文件夹」',
+  '说「生成一个带二维码的分享海报，扫码能看原图」',
+  '说「发 Instagram Story，自动裁成竖屏加上地点标签」',
+  '说「把这组图做成 10 秒短视频配上音乐发抖音」',
+  '连续发 3 组图后说「今天够了，明天再发一组」，定时排期',
+  '说「帮我看看这张图发出去会不会被压缩，要无损分享」',
+  '说「查看这张图发出去后谁点了赞」，查看互动数据',
+  '弱网环境下分享高清图，自动压缩并附原图下载链接',
+  '说「上次发的那组图反响不错，用同样风格再发一组」',
+  '说「把这张图设为微信头像，同时同步到 QQ」，跨平台同步'
+];
+
+const FAULT_MAP = {
+  1: { targets:['tool'], reasons:{ tool:'搜索 Tool 不理解「ins 风」风格语义' } },
+  2: { targets:['skill'], reasons:{ skill:'抠图 Skill 边缘粗糙' } },
+  3: { targets:['tool','skill'], reasons:{ tool:'色调滤镜 Tool 胶片色偏差大', skill:'水印 Skill 不支持手写体' } },
+  4: { targets:['agent','gui'], reasons:{ agent:'Agent 不理解「杂志排版」意图', gui:'拼图预览 GUI 组件缺失' } },
+  5: { targets:['agent','app'], reasons:{ agent:'分发 Agent 不识别平台差异', app:'APP 缺少微博发布接口' } }
+};
+
+const targetNames = { tool:'Tool', skill:'Skill', agent:'Agent', gui:'GUI 组件', app:'APP' };
+const faultTypes = ['tool','skill','agent','gui','app'];
+const faultPool = {
+  tool:['搜索结果不匹配','风格识别失败','OCR 解析错误','图片格式不兼容','检索超时'],
+  skill:['抠图边缘粗糙','色调偏差大','合成不自然','批量处理失败','分辨率不足'],
+  agent:['意图理解错误','编排策略不合理','多步骤中断','平台差异未处理','排期逻辑错误'],
+  gui:['预览组件缺失','裁切交互卡顿','对比视图不支持','竖屏适配问题','效果无法预览'],
+  app:['平台接口缺失','权限获取失败','跨平台同步断开','定时发布不生效','数据备份失败']
+};
+
+const LAUNCH_FAULT_MAP = {};
+LAUNCH_CASES.forEach((_,i)=>{
+  const id=i+1, n=Math.random()>0.6?2:1;
+  const sh=[...faultTypes].sort(()=>Math.random()-0.5), targets=sh.slice(0,n), reasons={};
+  targets.forEach(t=>{ reasons[t]=faultPool[t][Math.floor(Math.random()*faultPool[t].length)]; });
+  LAUNCH_FAULT_MAP[id]={targets,reasons};
+});
+
+let activeTC=null, currentMode='demo', isRunning=false, runTimer=null;
+const issueCounts = { tool:0, skill:0, agent:0, gui:0, app:0 };
+
+function renderList(mode) {
+  if(isRunning) stopRunAll();
+  resetAll(); currentMode=mode;
+  const list=document.getElementById('tcList'), count=document.getElementById('tcCount');
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+  if(mode==='demo'){
+    list.classList.remove('launch-mode');
+    list.innerHTML=DEMO_CASES.map(c=>`<div class="tc-item" data-tc="${c.id}"><div class="tc-id">TC-${String(c.id).padStart(2,'0')}</div><div class="tc-text">${c.text}</div><div class="tc-status"></div></div>`).join('');
+    count.innerHTML='共 <strong>5</strong> 条用例';
+  } else {
+    list.classList.add('launch-mode');
+    list.innerHTML=LAUNCH_CASES.map((t,i)=>`<div class="tc-item" data-tc="${i+1}"><div class="tc-id">TC-${String(i+1).padStart(2,'0')}</div><div class="tc-text">${t}</div><div class="tc-status"></div></div>`).join('');
+    count.innerHTML='共 <strong>40</strong> 条用例';
+  }
+  bindClicks();
+}
+
+function bindClicks(){
+  document.querySelectorAll('.tc-item').forEach(item=>{
+    item.addEventListener('click',()=>{
+      if(isRunning) return;
+      const tcId=parseInt(item.dataset.tc);
+      if(activeTC===tcId){resetAll();return;}
+      resetAll(); activeTC=tcId;
+      item.classList.add('failed');
+      applyFault(tcId);
+      setArrowFault();
+    });
+  });
+}
+
+function applyFault(tcId){
+  const map=currentMode==='demo'?FAULT_MAP:LAUNCH_FAULT_MAP;
+  const fault=map[tcId]; if(!fault) return;
+  fault.targets.forEach(tid=>{
+    const el=document.querySelector(`.deliverable-item[data-id="${tid}"]`);
+    if(el){ el.classList.add('fault'); const r=el.querySelector('.fault-reason'); if(r) r.textContent='⚠ '+fault.reasons[tid]; }
+  });
+}
+
+function setArrowFault(){
+  document.getElementById('arrowBottomPath').classList.add('active');
+  document.getElementById('arrowBottomPath').setAttribute('marker-end','url(#arrowLeftFault)');
+  document.getElementById('arrowBottomLabel').classList.add('active');
+  document.getElementById('arrowBottomLabel').textContent='定位问题交付物';
+}
+
+function runAll(){
+  if(isRunning){stopRunAll();return;}
+  resetAll(); clearIssues();
+  document.getElementById('panelIssues').classList.add('visible');
+  const btn=document.getElementById('runAllBtn');
+  btn.classList.add('running'); btn.textContent='■'; isRunning=true;
+  setArrowFault();
+  const items=document.querySelectorAll('.tc-item');
+  const total=items.length, interval=3000/total;
+  let idx=0, totalIssues=0;
+  const hint=document.getElementById('tcHint');
+  hint.textContent='正在运行全部测试...'; hint.classList.add('active');
+
+  runTimer=setInterval(()=>{
+    if(idx>=total){
+      clearInterval(runTimer); runTimer=null; isRunning=false;
+      btn.classList.remove('running'); btn.textContent='▶';
+      items.forEach(el=>el.classList.remove('current-run'));
+      hint.textContent=`运行完成 · 发现 ${totalIssues} 个问题`;
+      return;
+    }
+    const item=items[idx], tcId=parseInt(item.dataset.tc);
+    items.forEach(el=>el.classList.remove('current-run'));
+    item.classList.add('current-run','failed');
+    item.scrollIntoView({block:'nearest',behavior:'smooth'});
+
+    const map=currentMode==='demo'?FAULT_MAP:LAUNCH_FAULT_MAP;
+    const fault=map[tcId];
+    if(fault){
+      fault.targets.forEach(tid=>{
+        const el=document.querySelector(`.deliverable-item[data-id="${tid}"]`);
+        if(el){ el.classList.add('fault'); const r=el.querySelector('.fault-reason'); if(r) r.textContent='⚠ '+fault.reasons[tid]; }
+        issueCounts[tid]++;
+        totalIssues++;
+        addIssue(tcId,tid,fault.reasons[tid],totalIssues);
+        updateBadges();
+      });
+    }
+    idx++;
+  },interval);
+}
+
+function stopRunAll(){
+  if(runTimer){clearInterval(runTimer);runTimer=null;}
+  isRunning=false;
+  const btn=document.getElementById('runAllBtn');
+  btn.classList.remove('running'); btn.textContent='▶';
+  document.querySelectorAll('.tc-item').forEach(el=>el.classList.remove('current-run'));
+}
+
+function addIssue(tcId,targetId,reason,total){
+  const list=document.getElementById('issueList');
+  const entry=document.createElement('div');
+  entry.className='issue-entry';
+  entry.innerHTML=`<div class="issue-reason">${reason}</div><div class="issue-target">${targetNames[targetId]}</div>`;
+  list.appendChild(entry);
+  list.scrollTop=list.scrollHeight;
+  document.getElementById('issueTotal').innerHTML=`共 <strong>${total}</strong> 个问题`;
+}
+
+function updateBadges(){
+  faultTypes.forEach(t=>{
+    const badge=document.querySelector(`.issue-badge[data-badge="${t}"]`);
+    if(badge){
+      badge.querySelector('strong').textContent=issueCounts[t];
+      badge.classList.toggle('active',issueCounts[t]>0);
+    }
+  });
+}
+
+function clearIssues(){
+  document.getElementById('issueList').innerHTML='';
+  document.getElementById('issueTotal').innerHTML='共 <strong>0</strong> 个问题';
+  faultTypes.forEach(t=>{ issueCounts[t]=0; });
+  updateBadges();
+}
+
+function resetAll(){
+  activeTC=null;
+  document.querySelectorAll('.tc-item').forEach(el=>el.classList.remove('failed','current-run'));
+  document.querySelectorAll('.deliverable-item').forEach(el=>{
+    el.classList.remove('fault'); const r=el.querySelector('.fault-reason'); if(r) r.textContent='';
+  });
+  document.getElementById('arrowBottomPath').classList.remove('active');
+  document.getElementById('arrowBottomPath').setAttribute('marker-end','url(#arrowLeft)');
+  document.getElementById('arrowBottomLabel').classList.remove('active');
+  document.getElementById('arrowBottomLabel').textContent='效果驱动迭代';
+  const hint=document.getElementById('tcHint');
+  hint.textContent='← 点击用例或按 ▶ 运行全部'; hint.classList.remove('active');
+}
+
+document.getElementById('runAllBtn').addEventListener('click',runAll);
+document.querySelectorAll('.mode-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.getElementById('panelIssues').classList.remove('visible');
+    clearIssues(); renderList(btn.dataset.mode);
+  });
+});
+renderList('demo');
+</script>
+</body>
+</html>

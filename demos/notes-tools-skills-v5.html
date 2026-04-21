@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内容助手 · 笔记 Tools & Skills</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, "PingFang SC", sans-serif; background: #f5f7fa; color: #0f172a; font-size: 13px; line-height: 1.6; }
+
+.topbar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 0 36px; height: 50px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.doc-badge { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #0369a1; background: #f0f9ff; border: 1px solid #bae6fd; padding: 2px 8px; border-radius: 4px; }
+.doc-title { font-size: 13px; font-weight: 700; color: #0f172a; }
+.btn-share { padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: #0369a1; color: #fff; }
+.toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-60px); background: #1e293b; color: #fff; padding: 9px 18px; border-radius: 8px; font-size: 12px; z-index: 999; transition: transform 0.3s; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.main { max-width: 1160px; margin: 0 auto; padding: 36px 40px 80px; }
+.section { margin-bottom: 52px; }
+.sec-hd { font-size: 15px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; margin-bottom: 6px; }
+.sec-num { width: 24px; height: 24px; border-radius: 6px; color: #fff; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.n-blue { background: #0369a1; }
+.n-purple { background: #7c3aed; }
+.sec-sub { font-size: 12px; color: #64748b; margin-bottom: 20px; }
+.grp { font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 1.2px; text-transform: uppercase; margin: 22px 0 10px; }
+
+/* Tags */
+.tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.done { background: #dcfce7; color: #15803d; }
+.sys  { background: #e0f2fe; color: #0369a1; }
+.p0   { background: #fee2e2; color: #b91c1c; }
+.p1   { background: #fef9c3; color: #92400e; }
+.p2   { background: #f1f5f9; color: #64748b; }
+.wip  { background: #fef9c3; color: #92400e; }
+
+/* Tool Table — fixed column widths */
+.ttbl { width: 100%; border-collapse: collapse; background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px; overflow: hidden; table-layout: fixed; }
+.ttbl th { background: #f8fafc; padding: 8px 12px; font-size: 11px; font-weight: 700; color: #64748b; border-bottom: 1.5px solid #e2e8f0; white-space: nowrap; text-align: left; }
+.ttbl th.center { text-align: center; }
+.ttbl td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 12px; color: #334155; }
+.ttbl tr:last-child td { border-bottom: none; }
+.ttbl tr:hover td { background: #fafbfc; }
+.ttbl td.center { text-align: center; }
+
+.tname { font-size: 13px; font-weight: 700; color: #0f172a; white-space: nowrap; }
+.tfn   { font-size: 10px; color: #94a3b8; font-family: 'SF Mono', monospace; margin-top: 2px; white-space: nowrap; }
+
+/* Params */
+.params { display: flex; flex-direction: column; gap: 4px; }
+.pi { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+.pname { font-weight: 400; color: #475569; }
+.preq { font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 0 4px; border-radius: 3px; }
+.popt { font-size: 10px; color: #94a3b8; }
+
+.out-text { font-size: 12px; color: #475569; white-space: nowrap; }
+.remark   { font-size: 12px; color: #64748b; white-space: nowrap; }
+
+/* Skills cards */
+.sk-card { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+.sk-card-hd { padding: 14px 24px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 12px; background: #fafbff; }
+.sk-num  { width: 24px; height: 24px; border-radius: 6px; background: #ede9fe; color: #7c3aed; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sk-row-name { font-size: 13px; font-weight: 700; color: #0f172a; white-space: nowrap; }
+.sk-row-desc { font-size: 12px; color: #94a3b8; white-space: nowrap; }
+.feat-tag { font-size: 10px; font-weight: 700; color: #7c3aed; background: #f5f3ff; border: 1px solid #ddd6fe; padding: 2px 8px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+
+/* 2-col body: io | triggers */
+.sk-card-body { display: grid; grid-template-columns: 1fr 200px; }
+.sk-col-io { padding: 14px 20px; border-right: 1px solid #f1f5f9; display: flex; gap: 32px; }
+.sk-col-tr { padding: 14px 20px; }
+
+.io-group { display: flex; flex-direction: column; gap: 8px; }
+.io-group-hd { font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 4px; }
+.io-row { font-size: 12.5px; color: #334155; white-space: nowrap; padding: 2px 0; }
+.io-row::before { content: '·'; color: #cbd5e1; margin-right: 6px; }
+
+.tr-group-hd { font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 10px; }
+.tr-item { font-size: 12.5px; color: #4c1d95; display: block; margin-bottom: 8px; white-space: nowrap; }
+.tr-item::before { content: '"'; color: #c4b5fd; margin-right: 1px; }
+.tr-item::after  { content: '"'; color: #c4b5fd; margin-left: 1px; }
+.tr-item:last-child { margin-bottom: 0; }
+
+.sk-card-ft { padding: 11px 24px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; align-items: center; gap: 8px; }
+.chain-lbl { font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 1.2px; margin-right: 2px; white-space: nowrap; }
+.chain-flow { display: flex; align-items: center; gap: 7px; }
+.cs { font-size: 12px; color: #0369a1; background: #f0f9ff; border: 1px solid #bae6fd; padding: 3px 12px; border-radius: 5px; white-space: nowrap; }
+.cs.sk { color: #7c3aed; background: #f5f3ff; border-color: #ddd6fe; font-weight: 700; }
+.ca { color: #c4b5fd; font-size: 14px; line-height: 1; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="doc-badge">TOOLS & SKILLS</span>
+    <span class="doc-title">内容助手 · 笔记相关完整定义</span>
+  </div>
+  <button class="btn-share" onclick="shareDoc()">🔗 分享</button>
+</div>
+
+<div class="main">
+
+  <!-- ══════════ TOOLS ══════════ -->
+  <div class="section">
+    <div class="sec-hd"><div class="sec-num n-blue">T</div>Tools · 原子能力（共 17 个）</div>
+    <p class="sec-sub">每个 Tool 只做一件事，无任务理解，仅执行。可被 Skill 或 Miclaw 直接调用。</p>
+
+    <!-- ✅ 已接入 6个 -->
+    <div class="grp">✅ 已接入（6个）</div>
+    <table class="ttbl">
+      <colgroup>
+        <col style="width:140px">
+        <col style="width:96px">
+        <col style="width:240px">
+        <col>
+        <col style="width:220px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>工具名称</th>
+          <th class="center">状态</th>
+          <th>入参</th>
+          <th>出参</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="tname">读取笔记</div><div class="tfn">get_notes</div></td>
+          <td class="center"><span class="tag done">✅ 已接入</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">起始时间</span><span class="popt">可选</span></div>
+              <div class="pi"><span class="pname">结束时间</span><span class="popt">可选</span></div>
+              <div class="pi"><span class="pname">笔记 ID</span><span class="popt">可选，精准获取单条</span></div>
+            </div>
+          </td>
+          <td class="out-text">笔记列表（ID、标题、正文、时间、类型）</td>
+          <td class="remark">不传时间默认最近 20 条</td>
+        </tr>
+        <tr>
+          <td><div class="tname">创建笔记</div><div class="tfn">create_note</div></td>
+          <td class="center"><span class="tag done">✅ 已接入</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">标题</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">正文</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">图片列表</span><span class="popt">可选</span></div>
+            </div>
+          </td>
+          <td class="out-text">新建笔记 ID、创建时间、状态</td>
+          <td class="remark">3.3 文本，3.4 图文，暂不支持 Markdown</td>
+        </tr>
+        <tr>
+          <td><div class="tname">更新笔记</div><div class="tfn">update_note</div></td>
+          <td class="center"><span class="tag done">✅ 已接入</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">笔记 ID</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">新标题</span><span class="popt">可选</span></div>
+              <div class="pi"><span class="pname">新正文</span><span class="popt">可选</span></div>
+            </div>
+          </td>
+          <td class="out-text">笔记 ID、更新时间、状态</td>
+          <td class="remark">依赖三子能力：查类型→取原文→写回</td>
+        </tr>
+        <tr>
+          <td><div class="tname">追加内容</div><div class="tfn">append_note</div></td>
+          <td class="center"><span class="tag done">✅ 已接入</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">笔记 ID</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">追加内容</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">插入位置</span><span class="popt">可选，默认末尾</span></div>
+            </div>
+          </td>
+          <td class="out-text">笔记 ID、更新时间、状态</td>
+          <td class="remark">不覆盖原文，仅追加</td>
+        </tr>
+        <tr>
+          <td><div class="tname">录音转写</div><div class="tfn">transcribe_audio</div></td>
+          <td class="center"><span class="tag done">✅ 已接入</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">录音地址</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">语言</span><span class="popt">可选，默认中文</span></div>
+            </div>
+          </td>
+          <td class="out-text">转写全文、时长、分段文本+时间戳</td>
+          <td class="remark">转写后通常接 Skill 1</td>
+        </tr>
+        <tr>
+          <td><div class="tname">搜索笔记</div><div class="tfn">search_notes</div></td>
+          <td class="center"><span class="tag sys">转 AI 子系统</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">搜索词</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">返回条数</span><span class="popt">可选，默认 10</span></div>
+            </div>
+          </td>
+          <td class="out-text">匹配笔记列表（标题、摘要、相关性评分）</td>
+          <td class="remark">osbot 语义搜索直接对接</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- P0 -->
+    <div class="grp">🔴 P0 · 待接入（3个）</div>
+    <table class="ttbl">
+      <colgroup>
+        <col style="width:140px">
+        <col style="width:70px">
+        <col style="width:240px">
+        <col>
+        <col style="width:220px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>工具名称</th>
+          <th class="center">优先级</th>
+          <th>入参</th>
+          <th>出参</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="tname">录音→创建笔记</div><div class="tfn">create_note_from_audio</div></td>
+          <td class="center"><span class="tag p0">P0</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">录音地址</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">标题</span><span class="popt">可选，自动生成</span></div>
+              <div class="pi"><span class="pname">模式</span><span class="popt">原文 / 纪要</span></div>
+            </div>
+          </td>
+          <td class="out-text">笔记 ID、转写文本、状态</td>
+          <td class="remark">会议纪要链路关键，Phase 2 优先</td>
+        </tr>
+        <tr>
+          <td><div class="tname">网页→创建笔记</div><div class="tfn">create_note_from_web</div></td>
+          <td class="center"><span class="tag p0">P0</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">网页地址</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">模式</span><span class="popt">全文 / 摘要</span></div>
+              <div class="pi"><span class="pname">标题</span><span class="popt">可选</span></div>
+            </div>
+          </td>
+          <td class="out-text">笔记 ID、网页原标题、状态</td>
+          <td class="remark">依赖网页抓取，两者需同步排期</td>
+        </tr>
+        <tr>
+          <td><div class="tname">删除笔记</div><div class="tfn">delete_note</div></td>
+          <td class="center"><span class="tag p0">P0</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">笔记 ID</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">彻底删除</span><span class="popt">可选，默认移入回收站</span></div>
+            </div>
+          </td>
+          <td class="out-text">删除状态、回收站 ID</td>
+          <td class="remark">对话编辑链路基础原子能力</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- P1 -->
+    <div class="grp">🟡 P1 · 待接入（5个）</div>
+    <table class="ttbl">
+      <colgroup>
+        <col style="width:140px">
+        <col style="width:70px">
+        <col style="width:240px">
+        <col>
+        <col style="width:220px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>工具名称</th>
+          <th class="center">优先级</th>
+          <th>入参</th>
+          <th>出参</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="tname">网页内容抓取</div><div class="tfn">get_webpage_content</div></td>
+          <td class="center"><span class="tag p1">P1</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">网页地址</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">提取方式</span><span class="popt">正文（默认）/ 全文</span></div>
+            </div>
+          </td>
+          <td class="out-text">页面标题、正文内容、抓取时间</td>
+          <td class="remark">过滤广告和导航，供 Skill 2 消费</td>
+        </tr>
+        <tr>
+          <td><div class="tname">图片文字识别</div><div class="tfn">ocr_image</div></td>
+          <td class="center"><span class="tag p1">P1</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">图片地址</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">识别语言</span><span class="popt">可选，默认中文</span></div>
+            </div>
+          </td>
+          <td class="out-text">识别文字、区域坐标、置信度</td>
+          <td class="remark">纯 OCR 原子能力，不创建笔记</td>
+        </tr>
+        <tr>
+          <td><div class="tname">图片→创建笔记</div><div class="tfn">create_note_from_image</div></td>
+          <td class="center"><span class="tag p1">P1</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">图片地址</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">文字识别</span><span class="popt">默认开启</span></div>
+              <div class="pi"><span class="pname">标题</span><span class="popt">可选</span></div>
+            </div>
+          </td>
+          <td class="out-text">笔记 ID、识别文字、状态</td>
+          <td class="remark">截图整合链路，供 Skill 3 消费</td>
+        </tr>
+        <tr>
+          <td><div class="tname">合并笔记</div><div class="tfn">merge_notes</div></td>
+          <td class="center"><span class="tag p1">P1</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">笔记 ID 列表</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">合并后标题</span><span class="popt">可选</span></div>
+              <div class="pi"><span class="pname">保留原笔记</span><span class="popt">默认保留</span></div>
+            </div>
+          </td>
+          <td class="out-text">合并后笔记 ID、合并条数、状态</td>
+          <td class="remark">周报/总结生成必需</td>
+        </tr>
+        <tr>
+          <td><div class="tname">笔记打标签</div><div class="tfn">tag_note</div></td>
+          <td class="center"><span class="tag p1">P1</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">笔记 ID</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">标签列表</span><span class="preq">必填</span></div>
+            </div>
+          </td>
+          <td class="out-text">笔记 ID、当前全部标签、状态</td>
+          <td class="remark">知识管理基础，支持按标签检索</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- P2 -->
+    <div class="grp">⚪ P2 · 待接入（3个）</div>
+    <table class="ttbl">
+      <colgroup>
+        <col style="width:140px">
+        <col style="width:70px">
+        <col style="width:240px">
+        <col>
+        <col style="width:220px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>工具名称</th>
+          <th class="center">优先级</th>
+          <th>入参</th>
+          <th>出参</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="tname">分享笔记</div><div class="tfn">share_note</div></td>
+          <td class="center"><span class="tag p2">P2</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">笔记 ID</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">分享渠道</span><span class="popt">链接 / 微信 / 剪贴板</span></div>
+            </div>
+          </td>
+          <td class="out-text">分享链接、过期时间、状态</td>
+          <td class="remark">多端分发，分享纪要给团队</td>
+        </tr>
+        <tr>
+          <td><div class="tname">知识库搜索</div><div class="tfn">search_knowledge</div></td>
+          <td class="center"><span class="tag p2">P2</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">检索问题</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">检索范围</span><span class="popt">笔记 / 全部</span></div>
+            </div>
+          </td>
+          <td class="out-text">相关片段、来源笔记 ID、相关性评分</td>
+          <td class="remark">全局记忆索引，需向量化支持</td>
+        </tr>
+        <tr>
+          <td><div class="tname">关联笔记推荐</div><div class="tfn">get_related_notes</div></td>
+          <td class="center"><span class="tag p2">P2</span></td>
+          <td>
+            <div class="params">
+              <div class="pi"><span class="pname">当前笔记 ID</span><span class="preq">必填</span></div>
+              <div class="pi"><span class="pname">返回条数</span><span class="popt">默认 5</span></div>
+            </div>
+          </td>
+          <td class="out-text">推荐笔记列表（标题、相似度、关联原因）</td>
+          <td class="remark">知识图谱，打通碎片记录关联</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════ SKILLS ══════════ -->
+  <div class="section">
+    <div class="sec-hd"><div class="sec-num n-purple">S</div>Skills · 场景能力（共 7 个）</div>
+    <p class="sec-sub">每个 Skill 解决一个明确的小任务，包含完整流程，可复用。Prompt 见单独文档。</p>
+
+    <!-- Skill 1 -->
+    <div class="sk-card">
+      <div class="sk-card-hd">
+        <span class="sk-num">1</span>
+        <span class="sk-row-name">会议纪要生成</span>
+        <span class="feat-tag">录音→笔记</span>
+        <span class="sk-row-desc">把录音或转写文本，整理成结构化纪要</span>
+      </div>
+      <div class="sk-card-body">
+        <div class="sk-col-io">
+          <div class="io-group">
+            <div class="io-group-hd">输入</div>
+            <div class="io-row">录音文件 / 转写文本</div>
+            <div class="io-row">会议时间、时长</div>
+          </div>
+          <div class="io-group">
+            <div class="io-group-hd">输出</div>
+            <div class="io-row">会议概要 / 参会人 / 关键讨论</div>
+            <div class="io-row">决策事项 / 待办（含负责人）</div>
+          </div>
+        </div>
+        <div class="sk-col-tr">
+          <div class="tr-group-hd">触发场景</div>
+          <span class="tr-item">帮我整理这段会议录音</span>
+          <span class="tr-item">把刚才的会议转成纪要</span>
+        </div>
+      </div>
+      <div class="sk-card-ft">
+        <span class="chain-lbl">调用链</span>
+        <div class="chain-flow">
+          <span class="cs">录音转写</span><span class="ca">→</span>
+          <span class="cs sk">Skill 1</span><span class="ca">→</span>
+          <span class="cs">创建笔记</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill 2 -->
+    <div class="sk-card">
+      <div class="sk-card-hd">
+        <span class="sk-num">2</span>
+        <span class="sk-row-name">网页内容整理</span>
+        <span class="feat-tag">信息整理→笔记</span>
+        <span class="sk-row-desc">抓取网页正文，提炼核心观点写入笔记</span>
+      </div>
+      <div class="sk-card-body">
+        <div class="sk-col-io">
+          <div class="io-group">
+            <div class="io-group-hd">输入</div>
+            <div class="io-row">网页链接</div>
+            <div class="io-row">网页正文（抓取后）</div>
+          </div>
+          <div class="io-group">
+            <div class="io-group-hd">输出</div>
+            <div class="io-row">核心观点（1-3条）、关键信息</div>
+            <div class="io-row">一句话总结</div>
+          </div>
+        </div>
+        <div class="sk-col-tr">
+          <div class="tr-group-hd">触发场景</div>
+          <span class="tr-item">帮我总结一下这篇文章</span>
+          <span class="tr-item">把这个链接存进笔记</span>
+        </div>
+      </div>
+      <div class="sk-card-ft">
+        <span class="chain-lbl">调用链</span>
+        <div class="chain-flow">
+          <span class="cs">网页内容抓取</span><span class="ca">→</span>
+          <span class="cs sk">Skill 2</span><span class="ca">→</span>
+          <span class="cs">创建笔记</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill 3 -->
+    <div class="sk-card">
+      <div class="sk-card-hd">
+        <span class="sk-num">3</span>
+        <span class="sk-row-name">截图/聊天整合</span>
+        <span class="feat-tag">信息整理→笔记</span>
+        <span class="sk-row-desc">识别截图或聊天文字，提取关键信息和待办</span>
+      </div>
+      <div class="sk-card-body">
+        <div class="sk-col-io">
+          <div class="io-group">
+            <div class="io-group-hd">输入</div>
+            <div class="io-row">截图 / 聊天记录 / 剪贴板文字</div>
+            <div class="io-row">内容来源时间</div>
+          </div>
+          <div class="io-group">
+            <div class="io-group-hd">输出</div>
+            <div class="io-row">信息摘要（分条列出）</div>
+            <div class="io-row">待办事项（如有）</div>
+          </div>
+        </div>
+        <div class="sk-col-tr">
+          <div class="tr-group-hd">触发场景</div>
+          <span class="tr-item">把这张截图存进笔记</span>
+          <span class="tr-item">整理一下这段聊天记录</span>
+        </div>
+      </div>
+      <div class="sk-card-ft">
+        <span class="chain-lbl">调用链</span>
+        <div class="chain-flow">
+          <span class="cs">图片文字识别</span><span class="ca">→</span>
+          <span class="cs sk">Skill 3</span><span class="ca">→</span>
+          <span class="cs">创建笔记</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill 4 -->
+    <div class="sk-card">
+      <div class="sk-card-hd">
+        <span class="sk-num">4</span>
+        <span class="sk-row-name">对话指令编辑</span>
+        <span class="feat-tag">对话→编辑笔记</span>
+        <span class="sk-row-desc">理解自然语言指令，定位并执行修改或追加</span>
+      </div>
+      <div class="sk-card-body">
+        <div class="sk-col-io">
+          <div class="io-group">
+            <div class="io-group-hd">输入</div>
+            <div class="io-row">目标笔记内容</div>
+            <div class="io-row">编辑指令（文字 / 语音）</div>
+          </div>
+          <div class="io-group">
+            <div class="io-group-hd">输出</div>
+            <div class="io-row">编辑操作（位置 + 内容）</div>
+            <div class="io-row">更新后的笔记正文</div>
+          </div>
+        </div>
+        <div class="sk-col-tr">
+          <div class="tr-group-hd">触发场景</div>
+          <span class="tr-item">在第二段后面加一句…</span>
+          <span class="tr-item">把第三条改成…</span>
+        </div>
+      </div>
+      <div class="sk-card-ft">
+        <span class="chain-lbl">调用链</span>
+        <div class="chain-flow">
+          <span class="cs">读取笔记</span><span class="ca">→</span>
+          <span class="cs sk">Skill 4</span><span class="ca">→</span>
+          <span class="cs">更新 / 追加笔记</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill 5 -->
+    <div class="sk-card">
+      <div class="sk-card-hd">
+        <span class="sk-num">5</span>
+        <span class="sk-row-name">智能搜索整理</span>
+        <span class="feat-tag">搜索→找笔记</span>
+        <span class="sk-row-desc">理解搜索意图，对结果排序和结构化展示</span>
+      </div>
+      <div class="sk-card-body">
+        <div class="sk-col-io">
+          <div class="io-group">
+            <div class="io-group-hd">输入</div>
+            <div class="io-row">用户自然语言问题</div>
+            <div class="io-row">搜索结果原始列表</div>
+          </div>
+          <div class="io-group">
+            <div class="io-group-hd">输出</div>
+            <div class="io-row">结构化结果（排序 + 摘要）</div>
+            <div class="io-row">相关笔记推荐</div>
+          </div>
+        </div>
+        <div class="sk-col-tr">
+          <div class="tr-group-hd">触发场景</div>
+          <span class="tr-item">找上次关于 XX 的记录</span>
+          <span class="tr-item">我之前记过什么跟 XX 有关</span>
+        </div>
+      </div>
+      <div class="sk-card-ft">
+        <span class="chain-lbl">调用链</span>
+        <div class="chain-flow">
+          <span class="cs">搜索笔记</span><span class="ca">→</span>
+          <span class="cs sk">Skill 5</span><span class="ca">→</span>
+          <span class="cs">读取笔记</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill 6 -->
+    <div class="sk-card">
+      <div class="sk-card-hd">
+        <span class="sk-num">6</span>
+        <span class="sk-row-name">周报/总结生成</span>
+        <span class="feat-tag">聚合→周报总结</span>
+        <span class="sk-row-desc">读取一段时间笔记，归纳进展和下期计划</span>
+      </div>
+      <div class="sk-card-body">
+        <div class="sk-col-io">
+          <div class="io-group">
+            <div class="io-group-hd">输入</div>
+            <div class="io-row">时间范围（起止日期）</div>
+            <div class="io-row">报告类型（周报 / 月报 / 总结）</div>
+          </div>
+          <div class="io-group">
+            <div class="io-group-hd">输出</div>
+            <div class="io-row">本期概要 / 主要进展 / 决策</div>
+            <div class="io-row">下期计划</div>
+          </div>
+        </div>
+        <div class="sk-col-tr">
+          <div class="tr-group-hd">触发场景</div>
+          <span class="tr-item">帮我生成本周工作周报</span>
+          <span class="tr-item">总结一下这个月的笔记</span>
+        </div>
+      </div>
+      <div class="sk-card-ft">
+        <span class="chain-lbl">调用链</span>
+        <div class="chain-flow">
+          <span class="cs">读取笔记</span><span class="ca">→</span>
+          <span class="cs">合并笔记</span><span class="ca">→</span>
+          <span class="cs sk">Skill 6</span><span class="ca">→</span>
+          <span class="cs">创建笔记</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill 7 -->
+    <div class="sk-card">
+      <div class="sk-card-hd">
+        <span class="sk-num">7</span>
+        <span class="sk-row-name">待办识别提取</span>
+        <span class="feat-tag">待办→提醒跟进</span>
+        <span class="sk-row-desc">从笔记中识别待办，标注负责人和截止时间</span>
+      </div>
+      <div class="sk-card-body">
+        <div class="sk-col-io">
+          <div class="io-group">
+            <div class="io-group-hd">输入</div>
+            <div class="io-row">笔记正文 / 会议内容</div>
+            <div class="io-row">笔记日期</div>
+          </div>
+          <div class="io-group">
+            <div class="io-group-hd">输出</div>
+            <div class="io-row">任务列表（含负责人 + 截止时间）</div>
+          </div>
+        </div>
+        <div class="sk-col-tr">
+          <div class="tr-group-hd">触发场景</div>
+          <span class="tr-item">提取一下这段内容的待办</span>
+          <span class="tr-item">把行动项同步到提醒</span>
+        </div>
+      </div>
+      <div class="sk-card-ft">
+        <span class="chain-lbl">调用链</span>
+        <div class="chain-flow">
+          <span class="cs">读取笔记</span><span class="ca">→</span>
+          <span class="cs sk">Skill 7</span><span class="ca">→</span>
+          <span class="cs">写入日历 / 提醒</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function shareDoc(){
+  navigator.clipboard.writeText(window.location.href)
+    .then(()=>showToast('✅ 链接已复制'))
+    .catch(()=>showToast('请下载后分享'));
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+</script>
+</body>
+</html>

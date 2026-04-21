@@ -1,0 +1,889 @@
+ji<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Claw · v2 笔记三层重构</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F2F2F7;--bg2:#E8E8ED;
+  --card:#FFFFFF;--card2:#F8F8FA;--card3:#F0F0F5;
+  --bd:rgba(60,60,67,.08);--bd2:rgba(60,60,67,.14);
+  --tx:#1C1C1E;--su:#48484A;--mu:#8E8E93;--dm:rgba(60,60,67,.2);
+  --bl:#0A84FF;--am:#FF9F0A;--pu:#BF5AF2;--gn:#30D158;--rd:#FF453A;
+  --bl-bg:rgba(10,132,255,.07);--am-bg:rgba(255,159,10,.07);
+  --pu-bg:rgba(191,90,242,.07);--gn-bg:rgba(48,209,88,.07);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,.08),0 1px 4px rgba(0,0,0,.05);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.12),0 4px 12px rgba(0,0,0,.06);
+  --r-sm:10px;--r-md:16px;--r-lg:22px;--r-full:999px;
+}
+html,body{background:var(--bg);color:var(--tx);font-family:-apple-system,'Noto Sans SC',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;align-items:center;padding:32px 12px 56px}
+.hd{text-align:center;margin-bottom:24px}
+.hd-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(10,132,255,.08);border-radius:var(--r-full);padding:5px 14px;font-size:10px;letter-spacing:.06em;color:var(--bl);font-weight:600;margin-bottom:10px;border:1px solid rgba(10,132,255,.12)}
+.hd-title{font-size:24px;font-weight:800;letter-spacing:-.04em;margin-bottom:5px}
+.hd-sub{font-size:12.5px;color:var(--mu);font-weight:400}
+.tabs{display:flex;gap:7px;margin-bottom:22px;flex-wrap:wrap;justify-content:center}
+.tab{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--bd);border-radius:var(--r-md);padding:8px 16px;cursor:pointer;transition:all .22s;box-shadow:var(--shadow-sm)}
+.tab:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.tab .tn{font-weight:700;font-size:12px;color:var(--su)}.tab .ts{font-size:9px;color:var(--mu);margin-top:1px}
+.tab.on-bl{border-color:rgba(10,132,255,.25);background:var(--bl-bg)}.tab.on-bl .tn{color:var(--bl)}
+.tab.on-am{border-color:rgba(255,159,10,.25);background:var(--am-bg)}.tab.on-am .tn{color:var(--am)}
+.tab.on-pu{border-color:rgba(191,90,242,.25);background:var(--pu-bg)}.tab.on-pu .tn{color:var(--pu)}
+.tab.on-gn{border-color:rgba(48,209,88,.25);background:var(--gn-bg)}.tab.on-gn .tn{color:var(--gn)}
+.tab.on-rd{border-color:rgba(255,69,58,.25);background:rgba(255,69,58,.07)}.tab.on-rd .tn{color:var(--rd)}
+.tab.on-cy{border-color:rgba(0,199,190,.25);background:rgba(0,199,190,.07)}.tab.on-cy .tn{color:#00C7BE}
+.tab.on-in{border-color:rgba(88,86,214,.25);background:rgba(88,86,214,.07)}.tab.on-in .tn{color:#5856D6}
+.tab.on-pk{border-color:rgba(255,45,85,.25);background:rgba(255,45,85,.07)}.tab.on-pk .tn{color:#FF2D55}
+.stage{display:flex;gap:20px;align-items:flex-start;justify-content:center;width:100%;max-width:1200px}
+.panel{width:290px;flex-shrink:0;display:flex;flex-direction:column;gap:8px}
+@media(max-width:800px){.panel{display:none}}
+.pc{background:var(--card);border:1px solid var(--bd);border-radius:var(--r-lg);padding:14px;font-size:11px;box-shadow:var(--shadow-sm)}
+.pl{font-size:10px;font-weight:700;color:var(--su);letter-spacing:.03em;margin-bottom:10px;display:flex;align-items:center;gap:5px}
+/* ── PHONE ── */
+.phone{width:300px;height:628px;background:var(--card);border-radius:52px;border:1px solid rgba(0,0,0,.07);position:relative;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.16),0 8px 24px rgba(0,0,0,.08),inset 0 0 0 1.5px rgba(255,255,255,.95);flex-shrink:0}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:88px;height:26px;background:#1C1C1E;border-radius:0 0 20px 20px;z-index:30}
+.notch::after{content:'';width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.15);position:absolute;right:20px;top:9px}
+.sbar{position:absolute;top:30px;left:0;right:0;padding:0 22px;display:flex;justify-content:space-between;align-items:center;z-index:20;pointer-events:none}
+.sbar-l{font-size:11px;font-weight:700;color:var(--tx)}.sbar-r{display:flex;gap:4px;align-items:center}
+.sd{width:5px;height:5px;border-radius:50%;background:var(--bl)}
+.screen{position:absolute;inset:0;top:50px;overflow:hidden;background:var(--card2)}
+</style>
+</head>
+<style>
+/* ═══ CLAW LINE ═══ */
+.claw-line{position:absolute;bottom:0;left:0;right:0;height:4px;z-index:50;cursor:pointer;overflow:visible;animation:claw-breathe 3s ease-in-out infinite}
+.claw-line::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#4F46E5,#7C3AED,#A855F7,#6366F1,#3B82F6,#06B6D4,#7C3AED,#4F46E5);background-size:300% 100%;animation:cf 6s linear infinite;border-radius:2px}
+.claw-line::after{content:'';position:absolute;top:-6px;bottom:-6px;left:0;right:0;background:linear-gradient(90deg,rgba(79,70,229,.3),rgba(124,58,237,.4),rgba(168,85,247,.3),rgba(99,102,241,.3),rgba(59,130,246,.3));background-size:300% 100%;animation:cf 6s linear infinite;filter:blur(10px);pointer-events:none}
+@keyframes cf{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+@keyframes claw-breathe{0%,100%{opacity:.65}50%{opacity:1}}
+.claw-line.recording{height:6px;animation:none;opacity:1}
+.claw-line.recording::before{animation:cf 1.5s linear infinite;background:linear-gradient(90deg,#FF2200,#FF6600,#FF9900,#FFCC00,#FF6600,#FF2200);background-size:300% 100%}
+.claw-line.recording::after{top:-10px;bottom:-10px;filter:blur(14px);animation:cf 1.5s linear infinite,cp 1s ease-in-out infinite;background:linear-gradient(90deg,rgba(255,34,0,.4),rgba(255,102,0,.4),rgba(255,153,0,.4),rgba(255,204,0,.4));background-size:300% 100%}
+@keyframes cp{0%,100%{opacity:.4}50%{opacity:.9}}
+.claw-line.processing{height:5px;animation:none;opacity:1}
+.claw-line.processing::before{animation:cf .8s linear infinite;background:linear-gradient(90deg,#00ccff,#00ff88,#00ccff,#0088ff,#00ff88);background-size:300% 100%}
+.claw-line.processing::after{top:-8px;bottom:-8px;filter:blur(12px);animation:cf .8s linear infinite;background:linear-gradient(90deg,rgba(0,204,255,.3),rgba(0,255,136,.3),rgba(0,136,255,.3));background-size:300% 100%}
+/* ── PAGES ── */
+.pg{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .3s ease,transform .3s ease;overflow:hidden;background:var(--card2)}
+.pg.show{opacity:1;transform:none}.pg.hide{opacity:0;transform:translateY(16px);pointer-events:none}
+.pg-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:16px}
+.pg-scroll::-webkit-scrollbar{width:2px}.pg-scroll::-webkit-scrollbar-thumb{background:var(--dm)}
+/* ═══ DESKTOP HOME ═══ */
+.desk-wallpaper{position:absolute;inset:0;background:linear-gradient(160deg,#C9D6FF,#E2E2E2)}
+.desk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 10px;padding:16px 18px 10px;position:relative;z-index:1}
+.desk-app{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:default}
+.desk-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.desk-label{font-size:9px;color:#333;font-weight:500;text-shadow:0 0.5px 1px rgba(255,255,255,.6)}
+.desk-dock{position:absolute;bottom:10px;left:16px;right:16px;z-index:2;background:rgba(255,255,255,.45);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:22px;padding:8px 12px;display:flex;justify-content:space-around;align-items:center}
+.desk-dock-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.desk-hint{position:absolute;bottom:68px;left:0;right:0;text-align:center;z-index:3;pointer-events:none}
+.desk-hint-inner{display:inline-block;background:rgba(0,0,0,.55);backdrop-filter:blur(10px);color:white;font-size:9px;font-weight:500;padding:4px 12px;border-radius:12px}
+/* 跳转过渡 */
+.jump-overlay{position:absolute;inset:0;z-index:55;background:rgba(255,255,255,.96);backdrop-filter:blur(20px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.jump-overlay.show{display:flex}
+.jump-icon{font-size:32px;animation:jumpPulse 1s ease-in-out infinite}
+@keyframes jumpPulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.1);opacity:1}}
+.jump-text{font-size:13px;font-weight:600;color:var(--su)}.jump-sub{font-size:10px;color:var(--mu)}
+/* ═══ REC / PROC PANELS ═══ */
+.rec-panel{position:absolute;bottom:14px;left:12px;right:12px;z-index:42;background:rgba(255,255,255,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;border:1px solid rgba(255,255,255,.8);box-shadow:0 12px 40px rgba(0,0,0,.16),0 4px 12px rgba(0,0,0,.08),0 0 0 .5px rgba(0,0,0,.06);padding:16px;display:none;flex-direction:column;align-items:center;gap:12px;animation:rec-up .32s cubic-bezier(.25,.46,.45,.94) both}
+.rec-panel.show{display:flex}
+@keyframes rec-up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.rec-panel-label{font-size:11px;font-weight:600;color:var(--su)}.rec-panel-time{font-size:24px;font-weight:300;color:var(--rd);font-variant-numeric:tabular-nums}
+.rec-panel-wave{display:flex;align-items:center;gap:2.5px;height:28px}
+.rec-panel-wave .wvb{width:2.5px;border-radius:2px;background:var(--rd);transition:height .1s}
+.rec-panel-stop{width:48px;height:48px;border-radius:50%;background:linear-gradient(145deg,#FF5A50,#FF453A);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(255,69,58,.35);transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+.rec-panel-stop:active{transform:scale(.92)}.rec-panel-stop::after{content:'';width:16px;height:16px;border-radius:4px;background:white}
+.proc-panel{position:absolute;bottom:14px;left:12px;right:12px;z-index:42;background:rgba(255,255,255,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;border:1px solid rgba(255,255,255,.8);box-shadow:0 12px 40px rgba(0,0,0,.16),0 4px 12px rgba(0,0,0,.08);padding:18px;display:none;flex-direction:column;align-items:center;gap:10px;animation:rec-up .32s cubic-bezier(.25,.46,.45,.94) both}
+.proc-panel.show{display:flex}
+.proc-dots{display:flex;gap:6px}.proc-dot{width:7px;height:7px;border-radius:50%;background:var(--bl);animation:pd 1.2s ease-in-out infinite}.proc-dot:nth-child(2){animation-delay:.2s}.proc-dot:nth-child(3){animation-delay:.4s}
+@keyframes pd{0%,100%{opacity:.15;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+.proc-label{font-size:11px;font-weight:600;color:var(--su)}
+</style>
+<style>
+/* ── NOTE PAGE ── */
+.note-hd{padding:10px 16px 11px;background:var(--card);border-bottom:1px solid var(--bd)}
+.note-hd-row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.note-back{font-size:11px;color:var(--bl);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.note-acts{display:flex;gap:5px}
+.note-act{background:var(--card3);border-radius:8px;padding:4px 8px;font-size:9.5px;font-weight:600;color:var(--su);cursor:pointer;transition:all .15s}
+.note-act:hover{background:var(--bd2);color:var(--tx)}
+.note-type{font-size:9px;font-weight:700;letter-spacing:.04em;padding:2px 9px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;margin-bottom:6px}
+.note-title{font-size:15px;font-weight:700;line-height:1.3;margin-bottom:4px;letter-spacing:-.02em}
+.note-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.note-tag{font-size:9.5px;font-weight:600;padding:2px 9px;border-radius:7px;background:var(--card3);color:var(--su)}
+.nbody{padding:13px 16px}
+.nh1{font-size:14px;font-weight:800;margin-bottom:8px}
+.nh2{font-size:11.5px;font-weight:700;margin:12px 0 5px;display:flex;align-items:center;gap:5px}
+.nbd{font-size:11px;color:var(--su);line-height:1.8;white-space:pre-line;padding-left:12px}
+/* ═══ SOURCE PANEL (IDE Terminal style — bottom drawer) ═══ */
+.src-panel{position:absolute;bottom:52px;left:0;right:0;z-index:44;background:rgba(255,255,255,.98);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--bd2);max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.4,0,.2,1)}
+.src-panel.open{max-height:45%}
+.src-panel-hd{display:flex;align-items:center;gap:6px;padding:7px 14px;border-bottom:1px solid var(--bd);cursor:pointer;user-select:none}
+.src-panel-tab{font-size:9px;font-weight:700;letter-spacing:.04em;padding:3px 10px;border-radius:6px;cursor:pointer;transition:all .15s}
+.src-panel-tab.active{background:rgba(10,132,255,.08);color:var(--bl)}
+.src-panel-tab:not(.active){color:var(--mu)}
+.src-panel-close{margin-left:auto;font-size:11px;color:var(--mu);cursor:pointer;padding:2px 6px;border-radius:4px}
+.src-panel-close:hover{background:var(--card3)}
+.src-panel-body{overflow-y:auto;padding:10px 14px;max-height:calc(45vh - 40px)}
+.src-panel-body::-webkit-scrollbar{width:2px}.src-panel-body::-webkit-scrollbar-thumb{background:var(--dm)}
+.src-panel-quote{font-size:10.5px;color:var(--tx);line-height:1.8;border-left:2px solid rgba(10,132,255,.2);padding:6px 10px;background:rgba(10,132,255,.03);border-radius:0 8px 8px 0;margin-bottom:8px}
+.src-panel-cmd{margin-bottom:5px;padding:4px 9px;background:rgba(191,90,242,.04);border-left:2px solid rgba(191,90,242,.2);border-radius:0 8px 8px 0;font-size:10.5px;color:var(--su);line-height:1.6}
+.src-panel-cmd .cmd-label{font-size:9px;font-weight:700;color:var(--pu);margin-right:4px}
+/* ═══ INPUT BAR (IDE command line — always visible at bottom) ═══ */
+.input-bar{position:absolute;bottom:0;left:0;right:0;z-index:46;display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--bd);min-height:48px}
+.input-bar-src{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;background:rgba(10,132,255,.06);border:1px solid rgba(10,132,255,.1);cursor:pointer;flex-shrink:0;transition:all .2s}
+.input-bar-src:hover{background:rgba(10,132,255,.1)}
+.input-bar-src .ib-icon{font-size:10px}.input-bar-src .ib-label{font-size:9px;font-weight:600;color:var(--bl)}
+.input-bar-field{flex:1;display:flex;align-items:center;gap:6px;padding:7px 12px;background:var(--card3);border:1px solid var(--bd);border-radius:12px;cursor:pointer;transition:all .2s;min-height:34px}
+.input-bar-field:hover{border-color:rgba(10,132,255,.2);background:var(--card)}
+.input-bar-placeholder{font-size:10.5px;color:var(--mu);flex:1}
+.input-bar-mic{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:12px;color:white;flex-shrink:0;cursor:pointer;box-shadow:0 2px 8px rgba(124,58,237,.3);transition:all .2s}
+.input-bar-mic:hover{transform:scale(1.08);box-shadow:0 4px 14px rgba(124,58,237,.4)}
+.input-bar-mic.recording{background:linear-gradient(135deg,#FF453A,#FF6B6B);box-shadow:0 2px 12px rgba(255,69,58,.4);animation:micPulse 1s ease-in-out infinite}
+@keyframes micPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+/* old src-banner kept for compat but hidden */
+.src-banner{display:none}
+/* ═══ EDIT BAR ═══ */
+.edit-bar{position:absolute;bottom:52px;left:10px;right:10px;z-index:45;background:rgba(255,255,255,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:18px;border:1px solid rgba(0,0,0,.06);box-shadow:0 8px 32px rgba(0,0,0,.14),0 2px 8px rgba(0,0,0,.06);padding:12px;display:none;flex-direction:column;gap:8px}
+.edit-bar.show{display:flex}
+.edit-bar-cmd{font-size:10px;color:var(--bl);font-weight:600}
+.edit-bar-diff{display:flex;border-radius:10px;overflow:hidden;border:1px solid var(--bd);font-size:10px}
+.edit-bar-before{flex:1;padding:6px 8px;background:#FFF1F0;border-right:1px solid var(--bd)}
+.edit-bar-after{flex:1;padding:6px 8px;background:#F0FDF4}
+.edit-bar-lbl{font-size:7.5px;font-weight:700;letter-spacing:.07em;margin-bottom:2px}
+.edit-bar-before .edit-bar-lbl{color:var(--rd)}.edit-bar-after .edit-bar-lbl{color:var(--gn)}
+.edit-bar-txt{line-height:1.5;color:var(--tx)}
+.edit-bar-btns{display:flex;gap:8px}
+.edit-bar-rej{flex:1;padding:8px;border-radius:10px;font-size:11px;font-weight:600;border:1.5px solid var(--bd2);background:transparent;color:var(--su);cursor:pointer}
+.edit-bar-acc{flex:2;padding:8px;border-radius:10px;font-size:11px;font-weight:700;border:none;background:var(--gn);color:white;cursor:pointer;box-shadow:0 4px 12px rgba(48,209,88,.3)}
+/* ═══ DISCUSS PANEL ═══ */
+.discuss-panel{position:absolute;bottom:52px;left:10px;right:10px;z-index:45;background:rgba(255,255,255,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:18px;border:1px solid rgba(0,0,0,.06);box-shadow:0 8px 32px rgba(0,0,0,.14),0 2px 8px rgba(0,0,0,.06);padding:0;display:none;flex-direction:column;height:55%;overflow:hidden}
+.discuss-panel.show{display:flex}
+.disc-hd{padding:10px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px}
+.disc-hd-icon{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#BF5AF2,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:10px;color:white;flex-shrink:0}
+.disc-hd-txt{font-size:11px;font-weight:700;color:var(--pu);flex:1}
+.disc-hd-close{font-size:12px;color:var(--mu);cursor:pointer;padding:4px}
+.disc-thread{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.disc-thread::-webkit-scrollbar{display:none}
+.disc-user{display:flex;justify-content:flex-end}
+.disc-user-bub{background:linear-gradient(145deg,#BF5AF2,#9333EA);color:white;border-radius:14px 14px 4px 14px;padding:8px 11px;font-size:11px;line-height:1.6;max-width:82%;box-shadow:0 3px 10px rgba(191,90,242,.25)}
+.disc-ai{display:flex;gap:6px;align-items:flex-start}
+.disc-ai-av{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#4F46E5);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:white;flex-shrink:0;margin-top:2px}
+.disc-ai-bub{background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.12);border-radius:4px 14px 14px 14px;padding:8px 11px;font-size:11px;line-height:1.6;color:var(--tx);max-width:85%}
+.disc-typing{display:flex;gap:4px;padding:4px 0}
+.disc-typing-dot{width:5px;height:5px;border-radius:50%;background:var(--pu);animation:pd 1.2s ease-in-out infinite}.disc-typing-dot:nth-child(2){animation-delay:.2s}.disc-typing-dot:nth-child(3){animation-delay:.4s}
+.disc-result{margin:6px 0;padding:10px;background:rgba(48,209,88,.05);border:1px solid rgba(48,209,88,.15);border-radius:12px}
+.disc-result-lbl{font-size:9px;font-weight:700;color:var(--gn);letter-spacing:.04em;margin-bottom:5px}
+.disc-result-txt{font-size:11px;color:var(--tx);line-height:1.6}
+.disc-btns{padding:10px 12px;border-top:1px solid var(--bd);display:flex;gap:8px}
+.disc-btn-rej{flex:1;padding:8px;border-radius:10px;font-size:11px;font-weight:600;border:1.5px solid var(--bd2);background:transparent;color:var(--su);cursor:pointer}
+.disc-btn-acc{flex:2;padding:8px;border-radius:10px;font-size:11px;font-weight:700;border:none;background:var(--gn);color:white;cursor:pointer;box-shadow:0 4px 12px rgba(48,209,88,.3)}
+/* ── TRUST / BTNS ── */
+/* ═══ CHAT HISTORY PANEL ═══ */
+.chat-history{position:absolute;inset:0;z-index:60;background:var(--card);display:none;flex-direction:column}
+.chat-history.show{display:flex}
+.chat-hist-hd{padding:10px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px}
+.chat-hist-hd-back{font-size:11px;color:var(--bl);cursor:pointer;display:inline-flex;align-items:center;gap:3px;flex-shrink:0}
+.chat-hist-hd-txt{font-size:11px;font-weight:600;color:var(--su);flex:1;text-align:center}
+.chat-hist-hd-placeholder{width:36px;flex-shrink:0}
+.chat-hist-body{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.chat-hist-body::-webkit-scrollbar{width:2px}.chat-hist-body::-webkit-scrollbar-thumb{background:var(--dm)}
+.ch-divider{text-align:center;padding:6px 0;font-size:9px;font-weight:700;color:var(--mu);letter-spacing:.05em}
+.ch-user{display:flex;justify-content:flex-end}
+.ch-user-bub{background:linear-gradient(145deg,#007AFF,#0A84FF);color:white;border-radius:14px 14px 4px 14px;padding:8px 12px;font-size:11px;line-height:1.6;max-width:82%;box-shadow:0 2px 8px rgba(10,132,255,.2)}
+.ch-ai{display:flex;gap:6px;align-items:flex-start}
+.ch-ai-av{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#4F46E5);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:white;flex-shrink:0;margin-top:2px}
+.ch-ai-bub{background:var(--card2);border:1px solid var(--bd);border-radius:4px 14px 14px 14px;padding:8px 12px;font-size:11px;line-height:1.6;color:var(--tx);max-width:85%}
+.ch-action{margin:2px 0;padding:6px 10px;background:rgba(48,209,88,.05);border:1px solid rgba(48,209,88,.12);border-radius:10px;font-size:10px;color:var(--gn);font-weight:600;display:flex;align-items:center;gap:5px}
+.trust-switch{display:flex;gap:0;background:var(--card3);border-radius:var(--r-md);padding:3px;border:1px solid var(--bd)}
+.ts-opt{font-size:10.5px;font-weight:700;padding:6px 14px;border-radius:var(--r-sm);cursor:pointer;color:var(--mu);transition:all .25s;white-space:nowrap}
+.ts-opt.on{background:var(--card);color:var(--tx);box-shadow:var(--shadow-sm)}.ts-opt.on-a{color:var(--bl)}.ts-opt.on-b{color:var(--am)}
+.bnav{display:flex;gap:9px;margin-top:24px;flex-wrap:wrap;justify-content:center}
+.btn{border-radius:var(--r-md);padding:10px 20px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .22s;border:none;font-family:inherit}
+.btn-g{background:var(--card);border:1px solid var(--bd);color:var(--su);box-shadow:var(--shadow-sm)}
+.btn-p{background:linear-gradient(145deg,#1A8FFF,#0A84FF);color:white;box-shadow:0 4px 14px rgba(10,132,255,.3)}
+.btn-r{background:rgba(255,69,58,.06);border:1px solid rgba(255,69,58,.14);color:var(--rd)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.anim-in{animation:fadeIn .35s ease both}
+/* ── RIGHT PANEL FLOW ── */
+.rp-step{padding:7px 9px;border-radius:10px;border:1px solid var(--bd);margin-bottom:6px;transition:all .3s;cursor:pointer}
+.rp-step:hover{border-color:rgba(10,132,255,.25);background:rgba(10,132,255,.03);transform:translateX(2px)}
+.rp-step.active{border-color:rgba(10,132,255,.3);background:rgba(10,132,255,.04)}
+.rp-step.done{border-color:rgba(48,209,88,.2);background:rgba(48,209,88,.03)}
+.rp-step-num{font-size:8px;font-weight:800;width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-right:5px}
+.rp-step-title{font-size:10px;font-weight:700;color:var(--su)}
+.rp-step-script{font-size:9.5px;color:var(--mu);line-height:1.5;margin-top:3px;padding-left:21px}
+.rp-step-script em{font-style:normal;color:var(--bl);font-weight:600}
+</style>
+<body>
+<div class="hd">
+  <div class="hd-badge">✦ Claw · v2 笔记三层重构</div>
+  <div class="hd-title">记录是主角，原文是脚注，输入是工具栏</div>
+  <div class="hd-sub">IDE 思路：代码区 + Terminal + 命令行 → 记录 + 原文 + 输入</div>
+</div>
+<div class="tabs" id="TABS"></div>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;justify-content:center">
+  <div class="trust-switch" id="TRUST_SW">
+    <div class="ts-opt on on-a" id="TS_A" onclick="App.setTrustMode('A')">⭐ Trust A · 确认</div>
+    <div class="ts-opt" id="TS_B" onclick="App.setTrustMode('B')">Trust B · 直接应用</div>
+  </div>
+  <div id="TRUST_DESC" style="font-size:10px;color:var(--mu)">编辑指令 → Before/After 确认后应用</div>
+</div>
+<div class="stage">
+  <div class="panel" id="LEFT"></div>
+  <div class="phone" id="PHONE">
+    <div class="notch"></div>
+    <div class="sbar"><span class="sbar-l" id="SBAR">9:41</span><div class="sbar-r"><div class="sd"></div><div class="sd"></div><div class="sd"></div></div></div>
+    <div class="screen" id="SCR"></div>
+  </div>
+  <div class="panel" id="RIGHT"></div>
+</div>
+<div class="bnav">
+  <button class="btn btn-r" onclick="App.reset()">↺ 重置</button>
+  <button class="btn btn-p" id="AUTO_BTN" onclick="App.autoDemo()">▶ 自动演示完整流程</button>
+</div>
+<script>
+// ═══ DATA — 8 SCENARIOS ═══
+function mk(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html)e.innerHTML=html;return e}
+function qs(sel,ctx){return(ctx||document).querySelector(sel)}
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+const SC={
+research:{id:'research',icon:'📊',name:'研究简报',color:'#007AFF',cls:'bl',label:'深度研究',
+  src:'帮我研究一下伊拉克近期局势，梳理成一份简报。',
+  flow:[{step:'桌面唤起',who:'用户',say:'（点击底部光线）',ai:''},{step:'语音输入',who:'用户',say:'"帮我研究一下伊拉克近期局势，梳理成一份简报"',ai:''},{step:'AI 处理',who:'AI',say:'',ai:'识别意图：深度研究 → 生成结构化简报 → 落地为笔记'},{step:'笔记生成',who:'系统',say:'',ai:'自动跳转到笔记 App，展示 AI 结构化结果'},{step:'编辑指令',who:'用户',say:'"把标题改成 2025 Q1 情报简报"',ai:'明确指令 → 展示 diff → 确认应用'},{step:'讨论指令',who:'用户',say:'"安全形势这部分感觉不够全面"',ai:'模糊意图 → 发起讨论 → 达成共识 → 应用'},{step:'追加指令',who:'用户',say:'"加一个结论与建议部分"',ai:'结构化追加 → 确认应用'}],
+  doc:[{t:'h1',v:'伊拉克局势简报'},{t:'h2',v:'1. 政治动向'},{t:'bd',v:'1.1 总理苏达尼推进重建议程，与伊朗、美国维持双轨外交\n1.2 议会联合政府博弈加剧，预算案僵局\n1.3 库尔德自治区与巴格达石油分成争议持续'},{t:'h2',v:'2. 安全形势'},{t:'bd',v:'2.1 ISIS 在西部沙漠零星活动有所抬头\n2.2 亲伊朗武装（PMF）仍是关键变量\n2.3 美军基地持续遭受火箭弹袭击'},{t:'h2',v:'3. 核心风险'},{t:'bd',v:'3.1 以巴冲突溢出风险\n3.2 油价波动影响政府财政'}],
+  edits:[
+    {type:'confirm',cmd:'把标题改成"伊拉克 2025 Q1 情报简报"',before:'伊拉克局势简报',after:'伊拉克 2025 Q1 情报简报',fn(nb){const sc=nb.closest('.pg-scroll')||nb.parentElement;const t=sc.querySelector('.nh1');if(t)t.textContent='伊拉克 2025 Q1 情报简报'}},
+    {type:'discuss',cmd:'安全形势这部分感觉不够全面',
+      dialog:[{role:'user',text:'安全形势这部分感觉不够全面，你觉得还缺什么？'},{role:'ai',text:'目前覆盖了 ISIS、PMF 和美军基地三个维度。建议补充：\n1. 土耳其在北部的军事行动\n2. 伊拉克自身安全部队重建进展\n\n您觉得这两个方向合适吗？'},{role:'user',text:'土耳其那个加上，安全部队重建先不加'},{role:'ai',text:'明白，我来加上土耳其在北部的军事行动这一条。'}],
+      result:'安全形势新增：2.4 土耳其持续在北部库尔德地区开展军事行动',
+      fn(nb){const h2s=nb.querySelectorAll('.nh2');if(h2s.length>=2){const n=mk('div','nbd anim-in');n.textContent='2.4 土耳其持续在北部库尔德地区开展军事行动';h2s[2]?h2s[2].before(n):nb.append(n)}}},
+    {type:'confirm',cmd:'加一个"结论与建议"部分',before:'（文档末尾无结论）',after:'+ 结论与建议',fn(nb){const h=mk('div','nh2 anim-in');h.style.color='#007AFF';h.innerHTML='<span style="background:#007AFF;width:3px;height:11px;border-radius:2px;display:inline-block;margin-right:6px"></span>结论与建议';const b=mk('div','nbd anim-in');b.textContent='· 短期内局势维持低烈度不稳定\n· 建议持续监测 PMF 动向';nb.append(h,b)}},
+  ]},
+meeting:{id:'meeting',icon:'📋',name:'会议纪要',color:'#FF9500',cls:'am',label:'会议记录',
+  src:'刚开完产品评审会，参加的有张总、李工、阿雅、小王、小陈和我。',
+  flow:[{step:'桌面唤起',who:'用户',say:'（点击底部光线）',ai:''},{step:'语音输入',who:'用户',say:'"刚开完产品评审会，参加的有张总、李工、阿雅…"',ai:''},{step:'AI 处理',who:'AI',say:'',ai:'识别意图：会议纪要 → 提取决策/行动项/责任人 → 落地为笔记'},{step:'笔记生成',who:'系统',say:'',ai:'跳转笔记 App，展示结构化会议纪要'},{step:'编辑指令',who:'用户',say:'"李工的 deadline 改成本周五"',ai:'精确修改 → diff 确认'},{step:'追加指令',who:'用户',say:'"加上会议时间：今天下午两点"',ai:'元数据补充 → 确认应用'},{step:'讨论指令',who:'用户',say:'"我觉得风险部分需要加一下"',ai:'讨论风险点 → 共识后追加'}],
+  doc:[{t:'h1',v:'产品评审会 · 会议纪要'},{t:'h2',v:'1. 参会人员'},{t:'bd',v:'张总（主持）  李工（研发）  阿雅（设计）\n小王（产品）  小陈（产品）  我（统筹）'},{t:'h2',v:'2. 核心决策'},{t:'bd',v:'2.1 AI 功能提前至五月上线\n2.2 离线模式推迟至 Q3\n2.3 MVP 优先验证'},{t:'h2',v:'3. 行动项'},{t:'bd',v:'3.1 李工 — 技术方案初稿  截止：下周五\n3.2 阿雅 — 设计系统升级  截止：下周三\n3.3 我 — 统筹跟进汇报  截止：下周五'}],
+  edits:[
+    {type:'confirm',cmd:'李工的 deadline 改成本周五',before:'截止：下周五',after:'截止：本周五',fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('李工 — 技术方案初稿  截止：下周五','李工 — 技术方案初稿  截止：本周五')})}},
+    {type:'confirm',cmd:'加上会议时间：今天下午两点',before:'（无会议时间）',after:'+ 📅 今日 14:00',fn(nb){const sc=nb.closest('.pg-scroll')||nb.parentElement;const meta=sc.querySelector('.note-meta');if(meta){const t=mk('span','note-tag anim-in');t.textContent='📅 今日 14:00';meta.prepend(t)}}},
+    {type:'discuss',cmd:'我觉得风险部分需要加一下',
+      dialog:[{role:'user',text:'我觉得应该加个风险提示，你觉得有什么风险？'},{role:'ai',text:'根据会议内容，我看到两个主要风险：\n1. AI 功能提前上线 → 测试周期被压缩\n2. 离线模式推迟 → 可能影响海外用户体验\n\n要都加上还是选一个？'},{role:'user',text:'第一个就行，测试周期压缩这个比较关键'},{role:'ai',text:'好的，我加一个风险提示卡片，突出测试周期压缩的风险。'}],
+      result:'新增风险提示：AI 功能提前上线可能压缩测试周期',
+      fn(nb){const w=mk('div','anim-in');w.style.cssText='background:rgba(255,59,48,.05);border:1px solid rgba(255,59,48,.12);border-radius:10px;padding:9px 11px;margin-top:10px';w.innerHTML='<div style="font-size:10px;font-weight:600;color:var(--rd);margin-bottom:3px">⚠ 风险提示</div><div style="font-size:11px;color:var(--su);line-height:1.6">AI 功能提前上线可能压缩测试周期</div>';nb.append(w)}},
+  ]},
+idea:{id:'idea',icon:'💡',name:'创意想法',color:'#AF52DE',cls:'pu',label:'灵感捕获',
+  src:'我有个想法，笔记软件都太注重存储，用户需要的是执行。',
+  flow:[{step:'桌面唤起',who:'用户',say:'（点击底部光线）',ai:''},{step:'语音输入',who:'用户',say:'"我有个想法，笔记软件都太注重存储，用户需要的是执行"',ai:''},{step:'AI 处理',who:'AI',say:'',ai:'识别意图：创意灵感 → 提炼核心观点 → 结构化为概念文档'},{step:'笔记生成',who:'系统',say:'',ai:'跳转笔记，展示结构化创意概念'},{step:'编辑指令',who:'用户',say:'"产品名叫 ActionMemo"',ai:'标题修改 → 确认应用'},{step:'讨论指令',who:'用户',say:'"下一步这块我不太确定该怎么推进"',ai:'讨论推进策略 → 共识后补充'},{step:'追加指令',who:'用户',say:'"提炼一句话 pitch"',ai:'AI 生成 pitch → 确认应用'}],
+  doc:[{t:'h1',v:'AI 执行层笔记 · 创意概念'},{t:'h2',v:'1. 核心想法'},{t:'bd',v:'1.1 笔记不应只是存储，而应成为执行引擎\n1.2 用户说话 → AI 直接完成任务'},{t:'h2',v:'2. 机会点'},{t:'bd',v:'2.1 现有工具都在"记录"，缺少"执行"\n2.2 AI 时代用户期望降低操作门槛'},{t:'h2',v:'3. 下一步'},{t:'bd',v:'3.1 验证核心假设\n3.2 定义 MVP 功能边界'}],
+  edits:[
+    {type:'confirm',cmd:'产品名叫 ActionMemo',before:'AI 执行层笔记',after:'ActionMemo · 创意概念',fn(nb){const sc=nb.closest('.pg-scroll')||nb.parentElement;const t=sc.querySelector('.nh1');if(t)t.textContent='ActionMemo · 创意概念'}},
+    {type:'discuss',cmd:'下一步这块我不太确定该怎么推进',
+      dialog:[{role:'user',text:'下一步这块我不太确定，你觉得该怎么推进？'},{role:'ai',text:'建议分三步走：\n1. 先做竞品调研（Notion AI、Apple Notes）\n2. 找 5 个目标用户做访谈\n3. 基于反馈定义 MVP\n\n这样比直接定义 MVP 更稳妥，您觉得呢？'},{role:'user',text:'竞品调研可以，用户访谈先不做，直接加到下一步里'},{role:'ai',text:'好的，我把竞品调研加到下一步里。'}],
+      result:'下一步新增：3.3 调研竞品 Notion AI、Apple Notes',
+      fn(nb){const bds=nb.querySelectorAll('.nbd');const last=bds[bds.length-1];if(last)last.textContent+='\n3.3 调研竞品：Notion AI、Apple Notes'}},
+    {type:'confirm',cmd:'提炼一句话 pitch',before:'（无 Pitch）',after:'+ "说一句话，AI 帮你把它做完。"',fn(nb){const p=mk('div','anim-in');p.style.cssText='margin-top:12px;padding:10px;background:rgba(175,82,222,.06);border:1px solid rgba(175,82,222,.12);border-radius:10px';p.innerHTML='<div style="font-size:9px;font-weight:600;color:#AF52DE;margin-bottom:4px">一句话 Pitch</div><div style="font-size:13px;font-style:italic;line-height:1.5">"说一句话，AI 帮你把它做完。"</div>';nb.append(p)}},
+  ]},
+task:{id:'task',icon:'✅',name:'任务清单',color:'#34C759',cls:'gn',label:'待办管理',
+  src:'今天要做的事：给张总发融资材料，对接 UI 设计稿，下午三点产品会。',
+  flow:[{step:'桌面唤起',who:'用户',say:'（点击底部光线）',ai:''},{step:'语音输入',who:'用户',say:'"今天要做的事：给张总发融资材料，对接 UI 设计稿…"',ai:''},{step:'AI 处理',who:'AI',say:'',ai:'识别意图：任务清单 → 拆分待办 → 标注优先级和时间'},{step:'笔记生成',who:'系统',say:'',ai:'跳转笔记，展示结构化任务清单'},{step:'编辑指令',who:'用户',say:'"产品会改成四点半"',ai:'时间修改 → 确认应用'},{step:'编辑指令',who:'用户',say:'"联系王先生标为最高优先级"',ai:'优先级调整 → 确认应用'},{step:'编辑指令',who:'用户',say:'"给妈妈打电话加提醒：晚上八点"',ai:'添加提醒 → 确认应用'}],
+  doc:[{t:'h1',v:'今日任务 · 5 项'},{t:'h2',v:'工作任务'},{t:'bd',v:'☐ 发融资材料给张总 — 中\n☐ 对接 UI 新版设计稿 — 中\n☐ 准备产品会 PPT 📅 15:00 — 高\n☐ 联系王先生确认见面 — 高'},{t:'h2',v:'个人事项'},{t:'bd',v:'☐ 给妈妈打电话 — 低'}],
+  edits:[
+    {type:'confirm',cmd:'产品会改成四点半',before:'📅 15:00',after:'📅 16:30',fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('📅 15:00','📅 16:30')})}},
+    {type:'confirm',cmd:'联系王先生标为最高优先级',before:'联系王先生 — 高',after:'联系王先生 — ⚡最高',fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('联系王先生确认见面 — 高','联系王先生确认见面 — ⚡最高')})}},
+    {type:'confirm',cmd:'给妈妈打电话加提醒：晚上八点',before:'给妈妈打电话（无时间）',after:'给妈妈打电话 🔔 20:00',fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('给妈妈打电话 — 低','给妈妈打电话 🔔 20:00 — 低')})}},
+  ]},
+diary:{id:'diary',icon:'📔',name:'日记',color:'#FF2D55',cls:'pk',label:'每日记录',
+  src:'今天挺充实的，上午见了投资人聊得不错，下午团队磨合有点问题，晚上跑了五公里心情好多了。',
+  flow:[{step:'桌面唤起',who:'用户',say:'（点击底部光线）',ai:''},{step:'语音输入',who:'用户',say:'"今天挺充实的，上午见了投资人聊得不错…"',ai:''},{step:'AI 处理',who:'AI',say:'',ai:'识别意图：日记 → 按时间线整理 → 提取情绪和关键事件'},{step:'笔记生成',who:'系统',say:'',ai:'跳转笔记，展示结构化日记'},{step:'编辑指令',who:'用户',say:'"投资人名字叫陈总，补上"',ai:'信息补充 → 确认应用'},{step:'讨论指令',who:'用户',say:'"团队磨合的问题帮我分析一下"',ai:'讨论问题根因 → 补充分析'}],
+  doc:[{t:'h1',v:'3月15日 · 周六日记'},{t:'h2',v:'☀️ 上午'},{t:'bd',v:'· 见了投资人，聊了 AI 笔记方向\n· 对方对语音交互很感兴趣\n· 初步意向：下周安排正式路演'},{t:'h2',v:'🌤 下午'},{t:'bd',v:'· 团队磨合出现摩擦\n· 设计和研发对优先级有分歧\n· 需要找时间单独沟通'},{t:'h2',v:'🌙 晚上'},{t:'bd',v:'· 跑步 5km，配速 5\'42\"\n· 心情恢复，想通了一些事'}],
+  edits:[
+    {type:'confirm',cmd:'投资人名字叫陈总，补上',before:'见了投资人',after:'见了投资人（陈总）',fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('见了投资人','见了投资人（陈总）')})}},
+    {type:'discuss',cmd:'团队磨合的问题帮我分析一下',
+      dialog:[{role:'user',text:'团队磨合的问题帮我分析一下，你觉得根因是什么？'},{role:'ai',text:'从你描述来看，核心问题是优先级对齐：\n1. 设计想做体验优化\n2. 研发想先还技术债\n\n建议：明天开个 30 分钟对齐会，用 ICE 评分法排优先级。要加到行动项里吗？'},{role:'user',text:'加上，明天上午十点开'},{role:'ai',text:'好的，我加一个行动项。'}],
+      result:'新增行动项：明天 10:00 开优先级对齐会（ICE 评分法）',
+      fn(nb){const w=mk('div','anim-in');w.style.cssText='background:rgba(10,132,255,.05);border:1px solid rgba(10,132,255,.12);border-radius:10px;padding:9px 11px;margin-top:10px';w.innerHTML='<div style="font-size:10px;font-weight:600;color:var(--bl);margin-bottom:3px">📌 行动项</div><div style="font-size:11px;color:var(--su);line-height:1.6">明天 10:00 开优先级对齐会（ICE 评分法）</div>';nb.append(w)}},
+  ]},
+reading:{id:'reading',icon:'📚',name:'读书笔记',color:'#00C7BE',cls:'cy',label:'阅读摘录',
+  src:'刚看完《思考快与慢》第三章，讲的是锚定效应，里面有几个实验特别有意思。',
+  flow:[{step:'桌面唤起',who:'用户',say:'（点击底部光线）',ai:''},{step:'语音输入',who:'用户',say:'"刚看完《思考快与慢》第三章，讲的是锚定效应…"',ai:''},{step:'AI 处理',who:'AI',say:'',ai:'识别意图：读书笔记 → 提取核心概念 → 关联实验案例'},{step:'笔记生成',who:'系统',say:'',ai:'跳转笔记，展示结构化读书笔记'},{step:'编辑指令',who:'用户',say:'"加上我自己的思考"',ai:'追加个人感悟区块 → 确认应用'},{step:'讨论指令',who:'用户',say:'"锚定效应在产品设计里怎么用？"',ai:'讨论应用场景 → 补充实践建议'}],
+  doc:[{t:'h1',v:'《思考快与慢》第三章笔记'},{t:'h2',v:'核心概念：锚定效应'},{t:'bd',v:'· 人的判断会被先接收到的信息"锚定"\n· 即使锚定值完全随机，也会显著影响估值\n· 系统1（快思考）自动产生锚定，系统2（慢思考）调整不足'},{t:'h2',v:'关键实验'},{t:'bd',v:'· 联合国百分比实验：随机数字影响非洲国家占比估计\n· 房产估价实验：标价高低显著影响专业评估师判断\n· 法官量刑实验：掷骰子结果影响量刑建议'}],
+  edits:[
+    {type:'confirm',cmd:'加上我自己的思考',before:'（无个人思考）',after:'+ 个人思考区块',fn(nb){const h=mk('div','nh2 anim-in');h.style.color='#00C7BE';h.innerHTML='<span style="background:#00C7BE;width:3px;height:11px;border-radius:2px;display:inline-block;margin-right:6px"></span>💭 我的思考';const b=mk('div','nbd anim-in');b.textContent='· 定价策略本质就是锚定\n· 产品首屏信息 = 用户的第一个锚点';nb.append(h,b)}},
+    {type:'discuss',cmd:'锚定效应在产品设计里怎么用？',
+      dialog:[{role:'user',text:'锚定效应在产品设计里怎么用？'},{role:'ai',text:'几个常见应用：\n1. 定价页先展示高价套餐（锚定高价）\n2. 数据展示用对比基准（如"比行业平均快 3 倍"）\n3. 引导注册时先展示完整功能再收窄\n\n要把这些加到笔记里吗？'},{role:'user',text:'加上，放在个人思考后面'},{role:'ai',text:'好的，我加一个"产品应用"区块。'}],
+      result:'新增产品应用：定价锚定、数据对比基准、功能展示策略',
+      fn(nb){const w=mk('div','anim-in');w.style.cssText='background:rgba(0,199,190,.05);border:1px solid rgba(0,199,190,.12);border-radius:10px;padding:9px 11px;margin-top:10px';w.innerHTML='<div style="font-size:10px;font-weight:600;color:#00C7BE;margin-bottom:3px">🎯 产品应用</div><div style="font-size:11px;color:var(--su);line-height:1.6">· 定价页先展示高价套餐\n· 数据用对比基准呈现\n· 引导流程先展示完整功能</div>';nb.append(w)}},
+  ]},
+travel:{id:'travel',icon:'✈️',name:'旅行计划',color:'#5856D6',cls:'in',label:'行程规划',
+  src:'下个月想去日本玩一周，东京三天大阪两天京都两天，预算两万左右。',
+  flow:[{step:'桌面唤起',who:'用户',say:'（点击底部光线）',ai:''},{step:'语音输入',who:'用户',say:'"下个月想去日本玩一周，东京三天大阪两天京都两天…"',ai:''},{step:'AI 处理',who:'AI',say:'',ai:'识别意图：旅行计划 → 按城市拆分行程 → 预算分配'},{step:'笔记生成',who:'系统',say:'',ai:'跳转笔记，展示结构化行程'},{step:'编辑指令',who:'用户',say:'"东京加上秋叶原，我想逛电器"',ai:'行程补充 → 确认应用'},{step:'讨论指令',who:'用户',say:'"预算够不够？帮我算算"',ai:'讨论预算分配 → 给出建议'}],
+  doc:[{t:'h1',v:'日本 7 日行程计划'},{t:'h2',v:'🗼 东京（Day 1-3）'},{t:'bd',v:'Day 1：浅草寺 → 晴空塔 → 上野公园\nDay 2：涩谷 → 原宿 → 新宿\nDay 3：筑地市场 → 银座 → 台场'},{t:'h2',v:'🏯 大阪（Day 4-5）'},{t:'bd',v:'Day 4：道顿堀 → 心斋桥 → 大阪城\nDay 5：环球影城（全天）'},{t:'h2',v:'⛩ 京都（Day 6-7）'},{t:'bd',v:'Day 6：伏见稻荷 → 清水寺 → 祇园\nDay 7：金阁寺 → 岚山竹林 → 返程'},{t:'h2',v:'💰 预算概览'},{t:'bd',v:'机票：¥4,000  住宿：¥6,000  交通：¥2,000\n餐饮：¥4,000  门票购物：¥4,000  合计：¥20,000'}],
+  edits:[
+    {type:'confirm',cmd:'东京加上秋叶原，我想逛电器',before:'Day 3：筑地市场 → 银座 → 台场',after:'Day 3：筑地市场 → 秋叶原 → 银座',fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('筑地市场 → 银座 → 台场','筑地市场 → 秋叶原 → 银座')})}},
+    {type:'discuss',cmd:'预算够不够？帮我算算',
+      dialog:[{role:'user',text:'两万预算够不够？帮我算算'},{role:'ai',text:'按当前行程估算：\n· 机票 ¥4,000（经济舱往返）\n· 住宿 ¥6,000（7晚均价 ¥850）\n· 交通 ¥2,000（含 JR Pass）\n· 餐饮 ¥4,000（均价 ¥570/天）\n· 门票购物 ¥4,000\n\n合计 ¥20,000，刚好。但环球影城门票 ¥500+ 可能超支，建议预留 ¥2,000 弹性。'},{role:'user',text:'那总预算调到两万二吧'},{role:'ai',text:'好的，我更新预算为 ¥22,000，多出的 ¥2,000 作为弹性预算。'}],
+      result:'预算调整为 ¥22,000（含 ¥2,000 弹性预算）',
+      fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('合计：¥20,000','合计：¥22,000（含 ¥2,000 弹性）')})}},
+  ]},
+review:{id:'review',icon:'🔄',name:'项目复盘',color:'#FF453A',cls:'rd',label:'经验沉淀',
+  src:'上个季度的 AI 助手项目复盘一下，上线延迟了两周，但用户反馈不错。',
+  flow:[{step:'桌面唤起',who:'用户',say:'（点击底部光线）',ai:''},{step:'语音输入',who:'用户',say:'"上个季度的 AI 助手项目复盘一下，上线延迟了两周…"',ai:''},{step:'AI 处理',who:'AI',say:'',ai:'识别意图：项目复盘 → 提取成果/问题/改进 → 结构化'},{step:'笔记生成',who:'系统',say:'',ai:'跳转笔记，展示结构化复盘文档'},{step:'编辑指令',who:'用户',say:'"延迟原因加上：第三方 API 不稳定"',ai:'原因补充 → 确认应用'},{step:'讨论指令',who:'用户',say:'"下个季度怎么避免这种延迟？"',ai:'讨论改进措施 → 形成行动计划'}],
+  doc:[{t:'h1',v:'Q4 AI 助手项目复盘'},{t:'h2',v:'📈 项目成果'},{t:'bd',v:'· DAU 达到 12,000（目标 10,000）✓\n· 用户满意度 4.6/5.0 ✓\n· 核心功能全部上线 ✓'},{t:'h2',v:'⚠️ 问题与延迟'},{t:'bd',v:'· 上线延迟 2 周\n· 原因：模型调优耗时超预期\n· 影响：错过了营销窗口期'},{t:'h2',v:'💡 经验教训'},{t:'bd',v:'· 模型调优需预留 buffer\n· 提前与市场部对齐时间节点\n· 灰度发布策略有效，值得继续'}],
+  edits:[
+    {type:'confirm',cmd:'延迟原因加上：第三方 API 不稳定',before:'原因：模型调优耗时超预期',after:'原因：模型调优超预期 + 第三方 API 不稳定',fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('原因：模型调优耗时超预期','原因：模型调优超预期 + 第三方 API 不稳定')})}},
+    {type:'discuss',cmd:'下个季度怎么避免这种延迟？',
+      dialog:[{role:'user',text:'下个季度怎么避免这种延迟？'},{role:'ai',text:'建议三个改进措施：\n1. 模型调优阶段预留 1 周 buffer\n2. 第三方依赖做降级方案（本地 fallback）\n3. 里程碑评审从月度改为双周\n\n要加到改进计划里吗？'},{role:'user',text:'都加上，再加一条：提前做压力测试'},{role:'ai',text:'好的，四条改进措施全部加上。'}],
+      result:'新增 Q1 改进计划：4 条具体措施',
+      fn(nb){const w=mk('div','anim-in');w.style.cssText='background:rgba(48,209,88,.05);border:1px solid rgba(48,209,88,.12);border-radius:10px;padding:9px 11px;margin-top:10px';w.innerHTML='<div style="font-size:10px;font-weight:600;color:var(--gn);margin-bottom:3px">🎯 Q1 改进计划</div><div style="font-size:11px;color:var(--su);line-height:1.6">1. 模型调优预留 1 周 buffer\n2. 第三方依赖做降级方案\n3. 里程碑评审改为双周\n4. 提前做压力测试</div>';nb.append(w)}},
+  ]},
+};
+const SCLIST=['research','meeting','idea','task','diary','reading','travel','review'];
+// ═══ LEFT PANEL — 产品定义（Claw vs 笔记边界） ═══
+function buildLeftPanel(){
+  qs('#LEFT').innerHTML=`
+  <div class="pc" style="background:linear-gradient(135deg,rgba(10,132,255,.06),rgba(191,90,242,.04));border:1px solid rgba(10,132,255,.14)">
+    <div style="font-size:9px;font-weight:700;color:var(--bl);letter-spacing:.06em;margin-bottom:8px">✦ v2 · 笔记三层关系</div>
+    <div style="font-size:13px;font-weight:800;line-height:1.5;letter-spacing:-.02em;margin-bottom:10px">记录是主角，原文是脚注，输入是工具栏</div>
+    <div style="font-size:10px;color:var(--su);line-height:1.7;margin-bottom:8px">参考 IDE 思路：<span style="color:var(--bl);font-weight:600">代码区</span> = 记录（主编辑区），<span style="color:var(--pu);font-weight:600">Terminal</span> = 原文（底部抽屉），<span style="color:var(--am);font-weight:600">命令行</span> = 输入（固定工具栏）。</div>
+    <div style="display:flex;flex-direction:column;gap:5px;font-size:9px">
+      <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(10,132,255,.06);border-radius:8px;border-left:3px solid var(--bl)">
+        <span style="font-weight:700;color:var(--bl)">📄 记录</span>
+        <span style="color:var(--su)">终态产物 · 用户真正要的东西 · 占满主体</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(191,90,242,.06);border-radius:8px;border-left:3px solid var(--pu)">
+        <span style="font-weight:700;color:var(--pu)">🎙 原文</span>
+        <span style="color:var(--su)">来源凭证 · 溯源审计 · 底部抽屉可收起</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(255,159,10,.06);border-radius:8px;border-left:3px solid var(--am)">
+        <span style="font-weight:700;color:var(--am)">✏️ 输入</span>
+        <span style="color:var(--su)">持续对话通道 · 底部固定 · 状态明确</span>
+      </div>
+    </div>
+    <div style="font-size:9px;color:var(--mu);line-height:1.6;padding:6px 8px;background:var(--card3);border-radius:8px;margin-top:8px">
+      <span style="font-weight:700;color:var(--su)">vs 旧版问题：</span>三个元素平铺在滚动流里，语音原文在记录上方抢视觉，底部 hint 文案和光线条割裂。
+    </div>
+  </div>`;
+}
+function buildLeftPanel2(){
+  const el=qs('#LEFT');
+  el.innerHTML+=`
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div class="pc" style="border-color:rgba(191,90,242,.12)">
+      <div class="pl"><div style="width:6px;height:6px;border-radius:50%;background:var(--pu)"></div>Claw = 捕获层</div>
+      <div style="display:flex;flex-direction:column;gap:4px;font-size:9px;color:var(--su);line-height:1.5">
+        <div style="padding:4px 7px;background:var(--pu-bg);border-radius:7px"><span style="color:var(--pu);font-weight:700">🎙 语音捕获</span><br/>任何场景下录入</div>
+        <div style="padding:4px 7px;background:var(--pu-bg);border-radius:7px"><span style="color:var(--pu);font-weight:700">🧠 意图识别</span><br/>AI 理解你要做什么</div>
+        <div style="padding:4px 7px;background:var(--pu-bg);border-radius:7px"><span style="color:var(--pu);font-weight:700">🔀 路由分发</span><br/>送到正确的 App</div>
+      </div>
+    </div>
+    <div class="pc" style="border-color:rgba(10,132,255,.12)">
+      <div class="pl"><div style="width:6px;height:6px;border-radius:50%;background:var(--bl)"></div>笔记 = 承载层</div>
+      <div style="display:flex;flex-direction:column;gap:4px;font-size:9px;color:var(--su);line-height:1.5">
+        <div style="padding:4px 7px;background:var(--bl-bg);border-radius:7px"><span style="color:var(--bl);font-weight:700">📄 结构化落地</span><br/>AI 输出变成文档</div>
+        <div style="padding:4px 7px;background:var(--bl-bg);border-radius:7px"><span style="color:var(--bl);font-weight:700">✏️ 编辑 + 讨论</span><br/>语音指令修改内容</div>
+        <div style="padding:4px 7px;background:var(--bl-bg);border-radius:7px"><span style="color:var(--bl);font-weight:700">🔗 关联 + 检索</span><br/>笔记间自动建立联系</div>
+        <div style="padding:4px 7px;background:rgba(88,86,214,.06);border-radius:7px"><span style="color:#5856D6;font-weight:700">🧠 越用越懂你</span><br/>积累 → 可检索可推理</div>
+      </div>
+    </div>
+  </div>`;
+}
+function buildLeftPanel3(){
+  const el=qs('#LEFT');
+  el.innerHTML+=`
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div class="pc">
+      <div class="pl"><div style="width:6px;height:6px;border-radius:50%;background:var(--gn)"></div>什么进笔记？</div>
+      <div style="display:flex;flex-direction:column;gap:3px;font-size:8.5px;color:var(--su);line-height:1.4">
+        <div style="padding:3px 6px;background:var(--gn-bg);border-radius:6px">📋 会议决策 · 行动项</div>
+        <div style="padding:3px 6px;background:var(--gn-bg);border-radius:6px">📊 研究结论 · 分析</div>
+        <div style="padding:3px 6px;background:var(--gn-bg);border-radius:6px">💡 创意灵感 · 概念</div>
+        <div style="padding:3px 6px;background:var(--gn-bg);border-radius:6px">✅ 任务清单 · 待办</div>
+        <div style="padding:3px 6px;background:var(--gn-bg);border-radius:6px">📔 日记 · 每日记录</div>
+        <div style="padding:3px 6px;background:var(--gn-bg);border-radius:6px">📚 读书笔记 · 摘录</div>
+        <div style="padding:3px 6px;background:var(--gn-bg);border-radius:6px">✈️ 旅行计划 · 行程</div>
+        <div style="padding:3px 6px;background:var(--gn-bg);border-radius:6px">🔄 项目复盘 · 经验</div>
+      </div>
+    </div>
+    <div class="pc">
+      <div class="pl"><div style="width:6px;height:6px;border-radius:50%;background:var(--rd)"></div>什么不进？</div>
+      <div style="display:flex;flex-direction:column;gap:3px;font-size:8.5px;color:var(--su);line-height:1.4">
+        <div style="padding:3px 6px;background:rgba(255,69,58,.05);border-radius:6px">💬 闲聊 → 不记</div>
+        <div style="padding:3px 6px;background:rgba(255,69,58,.05);border-radius:6px">🔍 临时查询 → 不记</div>
+        <div style="padding:3px 6px;background:rgba(255,69,58,.05);border-radius:6px">⚡ 简单指令 → 不记</div>
+        <div style="padding:3px 6px;background:rgba(255,69,58,.05);border-radius:6px">📱 App 操作 → 不记</div>
+      </div>
+      <div style="margin-top:6px;padding:5px 7px;background:var(--card3);border-radius:7px;font-size:8px;color:var(--mu);line-height:1.5">判断标准：<span style="font-weight:700;color:var(--su)">未来会用到吗？</span><br/>会 → 进笔记，成为知识节点<br/>不会 → Claw 处理完即走</div>
+    </div>
+  </div>`;
+}
+function buildLeftPanel4(){
+  const el=qs('#LEFT');
+  el.innerHTML+=`
+  <div class="pc">
+    <div class="pl"><div style="width:6px;height:6px;border-radius:50%;background:var(--am)"></div>AI 意图三级</div>
+    <div style="display:flex;gap:6px">
+      <div style="flex:1;padding:5px 7px;background:rgba(48,209,88,.05);border:1px solid rgba(48,209,88,.1);border-radius:8px;text-align:center">
+        <div style="font-size:8.5px;font-weight:700;color:var(--gn)">✅ 直接改</div>
+        <div style="font-size:7.5px;color:var(--su);margin-top:2px">Trust B</div>
+      </div>
+      <div style="flex:1;padding:5px 7px;background:rgba(10,132,255,.05);border:1px solid rgba(10,132,255,.1);border-radius:8px;text-align:center">
+        <div style="font-size:8.5px;font-weight:700;color:var(--bl)">🔍 确认改</div>
+        <div style="font-size:7.5px;color:var(--su);margin-top:2px">Trust A</div>
+      </div>
+      <div style="flex:1;padding:5px 7px;background:rgba(191,90,242,.05);border:1px solid rgba(191,90,242,.1);border-radius:8px;text-align:center">
+        <div style="font-size:8.5px;font-weight:700;color:var(--pu)">💬 讨论改</div>
+        <div style="font-size:7.5px;color:var(--su);margin-top:2px">模糊意图</div>
+      </div>
+    </div>
+  </div>
+  <div class="pc">
+    <div class="pl"><div style="width:6px;height:6px;border-radius:50%;background:#7C3AED"></div>光线三态</div>
+    <div style="display:flex;gap:6px">
+      <div style="flex:1;padding:4px 6px;background:rgba(88,86,214,.06);border:1px solid rgba(88,86,214,.12);border-radius:7px;text-align:center"><div style="font-size:8.5px;font-weight:700;color:#5856D6">✨ 待机</div><div style="font-size:7.5px;color:var(--su)">蓝紫呼吸</div></div>
+      <div style="flex:1;padding:4px 6px;background:rgba(255,69,58,.05);border:1px solid rgba(255,69,58,.1);border-radius:7px;text-align:center"><div style="font-size:8.5px;font-weight:700;color:var(--rd)">🔴 录音</div><div style="font-size:7.5px;color:var(--su)">红橙脉冲</div></div>
+      <div style="flex:1;padding:4px 6px;background:rgba(10,132,255,.05);border:1px solid rgba(10,132,255,.1);border-radius:7px;text-align:center"><div style="font-size:8.5px;font-weight:700;color:var(--bl)">🔵 处理</div><div style="font-size:7.5px;color:var(--su)">青蓝流动</div></div>
+    </div>
+  </div>`;
+}
+// ═══ RIGHT PANEL — 完整流程 + 话术 ═══
+function buildRightPanel(){
+  qs('#RIGHT').innerHTML=`
+  <div class="pc" id="RP_SCENE">
+    <div class="pl"><div id="RP_DOT" style="width:6px;height:6px;border-radius:50%;background:var(--mu)"></div><span id="RP_TITLE">选择场景开始</span></div>
+    <div id="RP_CONTENT"><div style="font-size:10.5px;color:var(--mu);line-height:1.7">← 点击上方场景标签<br/>右侧将展示完整交互流程</div></div>
+  </div>
+  <div class="pc" id="RP_FLOW_CARD">
+    <div class="pl"><div style="width:6px;height:6px;border-radius:50%;background:var(--bl)"></div>完整流程 · 话术</div>
+    <div id="RP_FLOW" style="font-size:10px"></div>
+  </div>`;
+}
+function updateRightPanel(activeStep){
+  if(!App._scId)return;const s=SC[App._scId];
+  const dot=qs('#RP_DOT');if(dot)dot.style.background=s.color;
+  const title=qs('#RP_TITLE');if(title)title.textContent=s.icon+' '+s.name+' · '+s.label;
+  const content=qs('#RP_CONTENT');
+  if(content){
+    const dc=s.edits.filter(e=>e.type==='discuss').length,cc=s.edits.filter(e=>e.type==='confirm').length;
+    content.innerHTML=`<div style="font-size:10.5px;color:var(--su);line-height:1.8;padding:4px 0;border-bottom:1px solid var(--bd)">🎙 "${s.src.slice(0,36)}…"</div><div style="display:flex;gap:8px;padding:6px 0"><div style="padding:3px 8px;background:rgba(10,132,255,.06);border-radius:6px;font-size:9px;font-weight:600;color:var(--bl)">确认 ×${cc}</div><div style="padding:3px 8px;background:rgba(191,90,242,.06);border-radius:6px;font-size:9px;font-weight:600;color:var(--pu)">讨论 ×${dc}</div></div>`}
+  const flow=qs('#RP_FLOW');
+  if(flow&&s.flow){
+    flow.innerHTML=s.flow.map((f,i)=>{
+      const isActive=activeStep!==undefined&&i===activeStep;
+      const isDone=activeStep!==undefined&&i<activeStep;
+      const cls=isActive?'active':isDone?'done':'';
+      const numBg=isActive?s.color:isDone?'var(--gn)':'var(--mu)';
+      const sayHtml=f.say?`<div class="rp-step-script">${f.who==='用户'?'🗣':''}  <em>${f.say}</em></div>`:'';
+      const aiHtml=f.ai?`<div class="rp-step-script">🤖 ${f.ai}</div>`:'';
+      return `<div class="rp-step ${cls}" style="cursor:pointer" onclick="App.jumpToStep(${i})" title="点击跳转到此步骤"><span class="rp-step-num" style="background:${numBg};color:white">${i+1}</span><span class="rp-step-title">${f.step}</span>${sayHtml}${aiHtml}</div>`;
+    }).join('')}
+}
+// ═══ APP ═══
+const App=(()=>{
+  let scId=null,editIdx=0,autoRunning=false,trustMode='A';
+  let timers=[],recTimer=null,recSec=0,flowStep=0;
+  function clearAll(){timers.forEach(t=>clearTimeout(t));timers=[];if(recTimer){clearInterval(recTimer);recTimer=null}}
+  function buildTabs(){
+    const w=qs('#TABS');w.innerHTML='';
+    SCLIST.forEach(id=>{const s=SC[id];const t=mk('div','tab');t.id='TAB_'+id;
+      t.innerHTML=`<span style="font-size:14px">${s.icon}</span><div><div class="tn">${s.name}</div><div class="ts">${s.label}</div></div>`;
+      t.onclick=()=>select(id);w.appendChild(t)});
+  }
+  function updateTabs(){SCLIST.forEach(id=>{const t=qs('#TAB_'+id);if(t)t.className='tab'+(id===scId?' on-'+SC[id].cls:'')})}
+  function setFlowStep(n){flowStep=n;updateRightPanel(n)}
+  function showPage(renderFn){
+    const scr=qs('#SCR');const old=scr.querySelector('.pg');
+    if(old){old.classList.add('hide');old.classList.remove('show')}
+    setTimeout(()=>{scr.innerHTML='';const pg=mk('div','pg show');renderFn(pg);
+      const cl=mk('div','claw-line');cl.id='CLAW';pg.appendChild(cl);scr.appendChild(pg)},old?280:0);
+  }
+  // ═══ HOME — 手机桌面 ═══
+  function goHome(keepScId){
+    if(!keepScId){scId=null};editIdx=0;clearAll();updateTabs();
+    qs('#SBAR').textContent='9:41';
+    showPage(pg=>{
+      pg.style.background='transparent';
+      const wp=mk('div','desk-wallpaper');pg.appendChild(wp);
+      const grid=mk('div','desk-grid');
+      const apps=[
+        {icon:'💬',label:'信息',bg:'#34C759'},{icon:'📞',label:'电话',bg:'#30D158'},
+        {icon:'📷',label:'相机',bg:'#636366'},{icon:'🖼',label:'照片',bg:'linear-gradient(135deg,#FF6B6B,#FF8E53)'},
+        {icon:'⚙️',label:'设置',bg:'#8E8E93'},{icon:'🗺',label:'地图',bg:'#30D158'},
+        {icon:'🎵',label:'音乐',bg:'#FF2D55'},{icon:'📅',label:'日历',bg:'#FF3B30'},
+        {icon:'🌐',label:'浏览器',bg:'#007AFF'},{icon:'📧',label:'邮件',bg:'#007AFF'},
+        {icon:'📝',label:'笔记',bg:'#FFD60A'},{icon:'🛒',label:'商店',bg:'#5856D6'},
+      ];
+      apps.forEach(a=>{const d=mk('div','desk-app');
+        d.innerHTML=`<div class="desk-icon" style="background:${a.bg}">${a.icon}</div><div class="desk-label">${a.label}</div>`;
+        if(a.label==='笔记')d.style.cursor='pointer';
+        if(a.label==='笔记')d.onclick=(e)=>{e.stopPropagation();openNoteHome()};
+        grid.appendChild(d)});
+      pg.appendChild(grid);
+      const dock=mk('div','desk-dock');
+      [{icon:'📞',bg:'#30D158'},{icon:'💬',bg:'#34C759'},{icon:'🌐',bg:'#007AFF'},{icon:'🎵',bg:'#FF2D55'}].forEach(a=>{
+        const d=mk('div','desk-dock-icon');d.style.background=a.bg;d.textContent=a.icon;dock.appendChild(d)});
+      pg.appendChild(dock);
+      const hint=mk('div','desk-hint');
+      hint.innerHTML='<div class="desk-hint-inner">👇 底部光线 = Claw · 点击📝笔记可进入知识库</div>';
+      pg.appendChild(hint);
+      setTimeout(()=>{const cl=qs('#CLAW');if(cl)cl.onclick=()=>startRec()},350);
+    });
+  }
+  // ═══ NOTE APP HOME — 知识库首页 ═══
+  function openNoteHome(){
+    qs('#SBAR').textContent='📝 笔记';
+    let viewMode='list';let activeTag='全部';
+    const allTags=[{label:'全部',active:true},{label:'📁 工作',c:'#007AFF',scs:['research','meeting','review']},{label:'💡 创意',c:'#AF52DE',scs:['idea','reading']},{label:'🏠 生活',c:'#34C759',scs:['task','diary','travel']},{label:'👤 张总',c:'#FF9500',scs:['research','meeting']},{label:'📚 阅读',c:'#00C7BE',scs:['reading']}];
+    const allNotes=[
+      {sc:'research',time:'3分钟前',summary:'伊拉克局势三大维度分析',tags:['🔗 会议纪要']},
+      {sc:'meeting',time:'2小时前',summary:'AI 功能提前、离线推迟、MVP 优先',tags:['🔗 研究简报']},
+      {sc:'idea',time:'昨天 21:30',summary:'笔记不应只是存储，而应成为执行引擎',tags:[]},
+      {sc:'diary',time:'昨天 23:15',summary:'见投资人、团队磨合、跑步5km',tags:['🔗 会议纪要']},
+      {sc:'task',time:'昨天 09:00',summary:'5项待办，2项高优先级',tags:[]},
+      {sc:'reading',time:'3天前',summary:'锚定效应：判断被先接收信息锚定',tags:['🔗 产品想法']},
+    ];
+    function getFiltered(){
+      if(activeTag==='全部')return allNotes;
+      const t=allTags.find(x=>x.label===activeTag);
+      return t&&t.scs?allNotes.filter(n=>t.scs.includes(n.sc)):allNotes;
+    }
+    function renderList(container){
+      const notes=getFiltered();container.innerHTML='';
+      if(viewMode==='list'){
+        container.style.cssText='padding:10px 16px';
+        notes.forEach(n=>{const s=SC[n.sc];if(!s)return;
+          const card=mk('div','');card.style.cssText='padding:11px 12px;background:var(--card);border-radius:14px;margin-bottom:7px;cursor:pointer;border:1px solid var(--bd)';
+          card.onclick=()=>openScNote(n.sc);
+          let h=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><div style="width:30px;height:30px;border-radius:9px;background:${s.color}12;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">${s.icon}</div><div style="flex:1;min-width:0"><div style="font-size:11.5px;font-weight:700;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.doc[0].v}</div><div style="font-size:8.5px;color:var(--mu);margin-top:1px">${n.time}</div></div></div>`;
+          h+=`<div style="font-size:10px;color:var(--su);line-height:1.5;padding-left:38px;margin-top:-2px">${n.summary}</div>`;
+          if(n.tags.length)h+=`<div style="display:flex;gap:4px;padding-left:38px;margin-top:4px">${n.tags.map(t=>`<span style="font-size:7.5px;padding:2px 6px;background:rgba(10,132,255,.06);border-radius:6px;color:var(--bl)">${t}</span>`).join('')}</div>`;
+          card.innerHTML=h;container.appendChild(card)});
+      } else {
+        container.style.cssText='padding:10px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px';
+        notes.forEach(n=>{const s=SC[n.sc];if(!s)return;
+          const card=mk('div','');card.style.cssText='padding:12px 10px;background:var(--card);border-radius:14px;cursor:pointer;border:1px solid var(--bd);text-align:center';
+          card.onclick=()=>openScNote(n.sc);
+          card.innerHTML=`<div style="width:36px;height:36px;border-radius:10px;background:${s.color}12;display:flex;align-items:center;justify-content:center;font-size:18px;margin:0 auto 6px">${s.icon}</div><div style="font-size:11px;font-weight:700;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.doc[0].v}</div><div style="font-size:9px;color:var(--mu);margin-top:3px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${n.summary}</div><div style="font-size:8px;color:var(--dm);margin-top:4px">${n.time}</div>`;
+          container.appendChild(card)});
+      }
+    }
+    function renderTags(tagsEl){
+      tagsEl.innerHTML='';
+      allTags.forEach(t=>{
+        const chip=mk('span','');const isOn=activeTag===t.label;
+        chip.style.cssText=isOn?'padding:5px 12px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap;background:var(--tx);color:white;cursor:pointer;flex-shrink:0':'padding:5px 12px;border-radius:20px;font-size:10px;font-weight:500;white-space:nowrap;background:var(--card);border:1px solid var(--bd);color:var(--su);cursor:pointer;flex-shrink:0';
+        chip.textContent=t.label;
+        chip.onclick=()=>{activeTag=t.label;renderTags(tagsEl);renderList(listEl)};
+        tagsEl.appendChild(chip)});
+    }
+    let listEl;
+    showPage(pg=>{
+      const scroll=mk('div','pg-scroll');scroll.id='NOTEHOME_SCROLL';scroll.style.background='var(--card2)';
+      // ── 顶部行：搜索 + 视图切换 ──
+      const topRow=mk('div','');topRow.style.cssText='padding:8px 16px 0;display:flex;gap:8px;align-items:center';
+      const searchBar=mk('div','');searchBar.style.cssText='flex:1;display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--card);border:1px solid var(--bd);border-radius:12px';
+      searchBar.innerHTML=`<span style="font-size:11px;opacity:.4">🔍</span><span style="font-size:11px;color:var(--mu);flex:1">搜索，或问 AI…</span><span style="font-size:10px">🎙</span>`;
+      topRow.appendChild(searchBar);
+      const viewBtn=mk('div','');viewBtn.id='NH_VIEW_BTN';viewBtn.style.cssText='width:34px;height:34px;border-radius:10px;background:var(--card);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;flex-shrink:0';
+      viewBtn.textContent='⊞';
+      viewBtn.onclick=()=>{viewMode=viewMode==='list'?'grid':'list';viewBtn.textContent=viewMode==='list'?'⊞':'☰';renderList(listEl)};
+      topRow.appendChild(viewBtn);
+      scroll.appendChild(topRow);
+      // ── 分类胶囊 ──
+      const tagsEl=mk('div','');tagsEl.style.cssText='padding:10px 16px 0;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch';
+      renderTags(tagsEl);
+      scroll.appendChild(tagsEl);
+      // ── 笔记列表 ──
+      listEl=mk('div','');renderList(listEl);
+      scroll.appendChild(listEl);
+      scroll.style.paddingBottom='60px';
+      pg.appendChild(scroll);
+      // ── 底部工具栏（HyperOS 风格） ──
+      const toolbar=mk('div','');
+      toolbar.style.cssText='position:absolute;bottom:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:8px 18px 12px;background:rgba(255,255,255,.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:0.5px solid rgba(60,60,67,.08)';
+      toolbar.innerHTML=`<div style="display:flex;gap:22px;align-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(60,60,67,.45)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 11l2 2 4-4"/></svg><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(60,60,67,.45)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(60,60,67,.45)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></div><div style="width:38px;height:38px;border-radius:50%;background:var(--tx);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.15)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>`;
+      pg.appendChild(toolbar);
+      setTimeout(()=>{const cl=qs('#CLAW');if(cl)cl.onclick=()=>startRec()},350);
+    });
+  }
+  // ── RECORDING ──
+  function startRec(){
+    setFlowStep(0);
+    const cl=qs('#CLAW');if(cl)cl.classList.add('recording');
+    recSec=0;const pg=qs('#SCR .pg');if(!pg)return;
+    let rp=pg.querySelector('.rec-panel');
+    if(!rp){rp=mk('div','rec-panel');
+      rp.innerHTML=`<div class="rec-panel-label">正在录音…</div><div class="rec-panel-time" id="REC_TIME">0:00</div><div class="rec-panel-wave" id="REC_WAVE">${Array.from({length:24},()=>'<div class="wvb" style="height:4px"></div>').join('')}</div><button class="rec-panel-stop" id="REC_STOP"></button>`;
+      pg.insertBefore(rp,pg.querySelector('.claw-line'))}
+    rp.querySelector('.rec-panel-label').textContent='正在录音…';
+    setTimeout(()=>{rp.classList.add('show');setFlowStep(1)},10);
+    recTimer=setInterval(()=>{recSec++;const m=Math.floor(recSec/60),s=recSec%60;
+      const rt=rp.querySelector('#REC_TIME');if(rt)rt.textContent=m+':'+(s<10?'0':'')+s;
+      rp.querySelectorAll('.wvb').forEach(b=>{b.style.height=(4+Math.random()*22)+'px'})},200);
+    rp.querySelector('#REC_STOP').onclick=()=>stopRec();
+  }
+  function stopRec(){
+    if(recTimer){clearInterval(recTimer);recTimer=null}
+    const cl=qs('#CLAW');if(cl){cl.classList.remove('recording');cl.classList.add('processing')}
+    const pg=qs('#SCR .pg');if(!pg)return;
+    const rp=pg.querySelector('.rec-panel');if(rp)rp.classList.remove('show');
+    setFlowStep(2);
+    let pp=pg.querySelector('.proc-panel');
+    if(!pp){pp=mk('div','proc-panel');pp.innerHTML='<div class="proc-dots"><div class="proc-dot"></div><div class="proc-dot"></div><div class="proc-dot"></div></div><div class="proc-label">AI 正在整理…</div>';
+      pg.insertBefore(pp,pg.querySelector('.claw-line'))}
+    setTimeout(()=>pp.classList.add('show'),100);
+    const t=setTimeout(()=>{if(cl)cl.classList.remove('processing');pp.classList.remove('show');
+      setFlowStep(3);
+      showJumpTransition(pg,()=>{if(!scId)scId='research';updateTabs();updateRightPanel(3);openNote()})},1200);
+    timers.push(t);
+  }
+  function showJumpTransition(pg,cb){
+    let ov=pg.querySelector('.jump-overlay');
+    if(!ov){ov=mk('div','jump-overlay');ov.innerHTML='<div class="jump-icon">📝</div><div class="jump-text">正在跳转到笔记…</div><div class="jump-sub">Claw → Notes App</div>';pg.appendChild(ov)}
+    ov.classList.add('show');const t=setTimeout(()=>{ov.classList.remove('show');cb()},800);timers.push(t);
+  }
+  // ═══ NOTE PAGE ═══
+  function openNote(){
+    if(!scId)return;const s=SC[scId];editIdx=0;
+    qs('#SBAR').textContent=s.icon+' '+s.name;
+    showPage(pg=>{
+      // ── SCROLL: 记录 = 主角，占满中间 ──
+      const scroll=mk('div','pg-scroll');scroll.id='NOTE_SCROLL';scroll.style.paddingBottom='60px';
+      const hd=mk('div','note-hd');
+      hd.innerHTML=`<div class="note-hd-row1"><div class="note-back" id="NOTE_BACK">‹ 返回</div><div class="note-acts"><div class="note-act" id="CHAT_HIST_BTN">💬 对话记录</div><div class="note-act">导出</div><div class="note-act">···</div></div></div><div class="note-type" style="background:${s.color}15;color:${s.color}">${s.icon} ${s.name}</div><div class="note-title nh1">${s.doc[0].v}</div><div class="note-meta" id="NMETA"><span class="note-tag" style="background:${s.color}15;color:${s.color}">${s.icon} ${s.name}</span><span class="note-tag" style="font-size:9px;color:var(--mu)">AI 生成 · 刚刚</span></div>`;
+      hd.querySelector('#NOTE_BACK').onclick=()=>goHome();
+      scroll.appendChild(hd);
+      // 记录正文直接跟在标题后面，不被原文打断
+      const body=mk('div','nbody');body.id='NBODY';
+      s.doc.forEach((d,i)=>{if(i===0)return;
+        if(d.t==='h2'){const h=mk('div','nh2');h.style.color=s.color;h.innerHTML=`<span style="background:${s.color};width:3px;height:11px;border-radius:2px;display:inline-block"></span>${d.v}`;body.appendChild(h)}
+        else if(d.t==='bd'){const b=mk('div','nbd');b.textContent=d.v;body.appendChild(b)}
+      });
+      scroll.appendChild(body);
+      pg.appendChild(scroll);
+
+      // ── SOURCE PANEL: 原文 = 脚注，底部抽屉（像 IDE Terminal） ──
+      const srcPanel=mk('div','src-panel');srcPanel.id='SRC_PANEL';
+      const cmdLines=s.edits.map((e,i)=>`<div class="src-panel-cmd"><span class="cmd-label">指令${i+1}</span>${e.cmd}</div>`).join('');
+      srcPanel.innerHTML=`<div class="src-panel-hd"><div class="src-panel-tab active">🎙 语音原文</div><div class="src-panel-tab">📋 指令记录</div><div class="src-panel-close" id="SRC_CLOSE">✕</div></div><div class="src-panel-body"><div class="src-panel-quote">${s.src}</div>${cmdLines}<div style="font-size:9px;color:var(--mu);display:flex;align-items:center;gap:4px;margin-top:6px"><span style="color:var(--bl);opacity:.7">🎙</span> 原始录音已保存，可追溯回听</div></div>`;
+      pg.appendChild(srcPanel);
+
+      // ── INPUT BAR: 输入 = 工具栏，始终固定在底部 ──
+      const inputBar=mk('div','input-bar');inputBar.id='INPUT_BAR';
+      inputBar.innerHTML=`<div class="input-bar-src" id="IB_SRC"><span class="ib-icon">🎙</span><span class="ib-label">原文</span></div><div class="input-bar-field" id="IB_FIELD"><span class="input-bar-placeholder">说出想法，AI 帮你改…</span></div><div class="input-bar-mic" id="IB_MIC">🎤</div>`;
+      pg.appendChild(inputBar);
+
+      // ── 浮层组件 ──
+      const eb=mk('div','edit-bar');eb.id='EDIT_BAR';pg.appendChild(eb);
+      const dp=mk('div','discuss-panel');dp.id='DISC_PANEL';pg.appendChild(dp);
+      const chp=mk('div','chat-history');chp.id='CHAT_HIST';pg.appendChild(chp);
+
+      setTimeout(()=>{
+        // 原文按钮 → 切换底部原文面板
+        const srcBtn=qs('#IB_SRC');if(srcBtn)srcBtn.onclick=()=>{const sp=qs('#SRC_PANEL');if(sp)sp.classList.toggle('open')};
+        const srcClose=qs('#SRC_CLOSE');if(srcClose)srcClose.onclick=(e)=>{e.stopPropagation();const sp=qs('#SRC_PANEL');if(sp)sp.classList.remove('open')};
+        // 麦克风按钮 + 输入区 → 开始编辑录音
+        const mic=qs('#IB_MIC');if(mic)mic.onclick=()=>startEdit();
+        const field=qs('#IB_FIELD');if(field)field.onclick=()=>startEdit();
+        // claw line 也保留点击
+        const cl=qs('#CLAW');if(cl)cl.onclick=()=>startEdit();
+        const chBtn=qs('#CHAT_HIST_BTN');if(chBtn)chBtn.onclick=(e)=>{e.stopPropagation();showChatHistory()};
+      },350);
+    });
+  }
+  // ── EDIT RECORDING ──
+  function startEdit(){
+    if(!scId||editIdx>=SC[scId].edits.length)return;
+    setFlowStep(4+editIdx);
+    const cl=qs('#CLAW');if(cl)cl.classList.add('recording');
+    // update input bar to recording state
+    const mic=qs('#IB_MIC');if(mic){mic.classList.add('recording');mic.textContent='⏹'}
+    const field=qs('#IB_FIELD');if(field)field.innerHTML=`<span style="font-size:10.5px;color:var(--rd);font-weight:600;flex:1">录入编辑指令…</span><span id="IB_TIME" style="font-size:10px;color:var(--rd);font-variant-numeric:tabular-nums">0:00</span>`;
+    // close source panel if open
+    const sp=qs('#SRC_PANEL');if(sp)sp.classList.remove('open');
+    recSec=0;const pg=qs('#SCR .pg');if(!pg)return;
+    let rp=pg.querySelector('.rec-panel');
+    if(!rp){rp=mk('div','rec-panel');
+      rp.innerHTML=`<div class="rec-panel-label">录入编辑指令…</div><div class="rec-panel-time" id="REC_TIME">0:00</div><div class="rec-panel-wave" id="REC_WAVE">${Array.from({length:24},()=>'<div class="wvb" style="height:4px"></div>').join('')}</div><button class="rec-panel-stop" id="REC_STOP"></button>`;
+      pg.insertBefore(rp,pg.querySelector('.claw-line'))}
+    rp.querySelector('.rec-panel-label').textContent='录入编辑指令…';
+    setTimeout(()=>rp.classList.add('show'),10);
+    recTimer=setInterval(()=>{recSec++;const m=Math.floor(recSec/60),s=recSec%60;
+      const timeStr=m+':'+(s<10?'0':'')+s;
+      const rt=rp.querySelector('#REC_TIME');if(rt)rt.textContent=timeStr;
+      const ibt=qs('#IB_TIME');if(ibt)ibt.textContent=timeStr;
+      rp.querySelectorAll('.wvb').forEach(b=>{b.style.height=(4+Math.random()*22)+'px'})},200);
+    rp.querySelector('#REC_STOP').onclick=()=>stopEdit();
+  }
+  function stopEdit(){
+    if(recTimer){clearInterval(recTimer);recTimer=null}
+    const cl=qs('#CLAW');if(cl){cl.classList.remove('recording');cl.classList.add('processing')}
+    // reset input bar
+    const mic=qs('#IB_MIC');if(mic){mic.classList.remove('recording');mic.textContent='🎤'}
+    const field=qs('#IB_FIELD');if(field)field.innerHTML='<span class="input-bar-placeholder">说出想法，AI 帮你改…</span>';
+    const pg=qs('#SCR .pg');if(!pg)return;
+    const rp=pg.querySelector('.rec-panel');if(rp)rp.classList.remove('show');
+    const t=setTimeout(()=>{if(cl)cl.classList.remove('processing');doApplyFlow()},700);timers.push(t);
+  }
+  // ═══ APPLY FLOW ═══
+  function doApplyFlow(){
+    if(!scId)return;const s=SC[scId];if(editIdx>=s.edits.length)return;
+    const edit=s.edits[editIdx];
+    if(edit.type==='discuss'){showDiscuss(edit)}
+    else if(trustMode==='A'){showConfirmBar(edit)}
+    else{const nb=qs('#NBODY');if(nb)edit.fn(nb);editIdx++;
+      const cl2=qs('#CLAW');if(cl2){cl2.classList.add('processing');setTimeout(()=>cl2.classList.remove('processing'),600)}}
+  }
+  function showConfirmBar(edit){
+    const eb=qs('#EDIT_BAR');if(!eb)return;
+    eb.innerHTML=`<div class="edit-bar-cmd">🎙 "${edit.cmd}"</div><div class="edit-bar-diff"><div class="edit-bar-before"><div class="edit-bar-lbl">BEFORE</div><div class="edit-bar-txt">${edit.before}</div></div><div class="edit-bar-after"><div class="edit-bar-lbl">AFTER</div><div class="edit-bar-txt">${edit.after}</div></div></div><div class="edit-bar-btns"><button class="edit-bar-rej" onclick="App.rejectEdit()">放弃</button><button class="edit-bar-acc" onclick="App.acceptEdit()">✓ 应用修改</button></div>`;
+    eb.classList.add('show');
+  }
+  function acceptEdit(){const s=SC[scId];if(!s)return;const edit=s.edits[editIdx];
+    const nb=qs('#NBODY');if(nb)edit.fn(nb);const eb=qs('#EDIT_BAR');if(eb)eb.classList.remove('show');editIdx++}
+  function rejectEdit(){const eb=qs('#EDIT_BAR');if(eb)eb.classList.remove('show');editIdx++}
+  // ═══ DISCUSS FLOW ═══
+  function showDiscuss(edit){
+    const dp=qs('#DISC_PANEL');if(!dp)return;
+    dp.innerHTML=`<div class="disc-hd"><div class="disc-hd-icon">💬</div><div class="disc-hd-txt">深入讨论</div><div class="disc-hd-close" onclick="App.cancelDiscuss()">✕</div></div><div class="disc-thread" id="DISC_THREAD"></div><div class="disc-btns" id="DISC_BTNS" style="display:none"><button class="disc-btn-rej" onclick="App.cancelDiscuss()">放弃</button><button class="disc-btn-acc" onclick="App.acceptDiscuss()">✓ 应用方案</button></div>`;
+    dp.classList.add('show');
+    const thread=dp.querySelector('#DISC_THREAD');const dialog=edit.dialog;let idx=0;
+    function showNext(){
+      if(idx>=dialog.length){setTimeout(()=>{
+        const res=mk('div','disc-result anim-in');res.innerHTML=`<div class="disc-result-lbl">✓ 达成共识</div><div class="disc-result-txt">${edit.result}</div>`;
+        thread.appendChild(res);thread.scrollTop=thread.scrollHeight;
+        const btns=dp.querySelector('#DISC_BTNS');if(btns)btns.style.display='flex'},400);return}
+      const msg=dialog[idx];
+      if(msg.role==='ai'){
+        const typing=mk('div','disc-ai anim-in');typing.innerHTML='<div class="disc-ai-av">AI</div><div class="disc-typing"><div class="disc-typing-dot"></div><div class="disc-typing-dot"></div><div class="disc-typing-dot"></div></div>';
+        thread.appendChild(typing);thread.scrollTop=thread.scrollHeight;
+        const t2=setTimeout(()=>{typing.remove();
+          const row=mk('div','disc-ai anim-in');row.innerHTML=`<div class="disc-ai-av">AI</div><div class="disc-ai-bub">${msg.text.replace(/\n/g,'<br>')}</div>`;
+          thread.appendChild(row);thread.scrollTop=thread.scrollHeight;idx++;
+          const t3=setTimeout(showNext,800);timers.push(t3)},1000);timers.push(t2);
+      } else {const row=mk('div','disc-user anim-in');row.innerHTML=`<div class="disc-user-bub">${msg.text}</div>`;
+        thread.appendChild(row);thread.scrollTop=thread.scrollHeight;idx++;
+        const t4=setTimeout(showNext,600);timers.push(t4)}
+    }
+    const cmdRow=mk('div','disc-user anim-in');cmdRow.innerHTML=`<div class="disc-user-bub">🎙 ${edit.cmd}</div>`;thread.appendChild(cmdRow);
+    const t5=setTimeout(()=>{const aiJ=mk('div','disc-ai anim-in');aiJ.innerHTML='<div class="disc-ai-av">AI</div><div class="disc-ai-bub" style="color:var(--pu);font-weight:500;font-size:10px">这个指令比较模糊，我们先讨论一下？</div>';
+      thread.appendChild(aiJ);thread.scrollTop=thread.scrollHeight;
+      const t6=setTimeout(showNext,800);timers.push(t6)},600);timers.push(t5);
+  }
+  function acceptDiscuss(){const s=SC[scId];if(!s)return;const edit=s.edits[editIdx];
+    const nb=qs('#NBODY');if(nb)edit.fn(nb);const dp=qs('#DISC_PANEL');if(dp)dp.classList.remove('show');editIdx++}
+  function cancelDiscuss(){const dp=qs('#DISC_PANEL');if(dp)dp.classList.remove('show');editIdx++}
+  // ── CHAT HISTORY PANEL ──
+  function showChatHistory(){
+    if(!scId)return;const s=SC[scId];
+    const ch=qs('#CHAT_HIST');if(!ch)return;
+    let html=`<div class="chat-hist-hd"><div class="chat-hist-hd-back" id="CH_CLOSE">‹ 返回</div><div class="chat-hist-hd-txt">对话记录</div><div class="chat-hist-hd-placeholder"></div></div><div class="chat-hist-body">`;
+    // 1. initial voice input
+    html+=`<div class="ch-divider">── 语音录入 ──</div>`;
+    html+=`<div class="ch-user"><div class="ch-user-bub">🎙 ${s.src}</div></div>`;
+    html+=`<div class="ch-ai"><div class="ch-ai-av">AI</div><div class="ch-ai-bub">已识别意图：<strong>${s.label}</strong><br/>正在生成结构化${s.name}…</div></div>`;
+    html+=`<div class="ch-action">✓ 笔记已生成 · ${s.doc[0].v}</div>`;
+    // 2. each edit interaction
+    s.edits.forEach((edit,i)=>{
+      html+=`<div class="ch-divider">── 编辑指令 ${i+1} ──</div>`;
+      html+=`<div class="ch-user"><div class="ch-user-bub">🎙 ${edit.cmd}</div></div>`;
+      if(edit.type==='discuss'){
+        html+=`<div class="ch-ai"><div class="ch-ai-av">AI</div><div class="ch-ai-bub" style="color:var(--pu);font-weight:500">意图较模糊，发起讨论…</div></div>`;
+        edit.dialog.forEach(msg=>{
+          if(msg.role==='user'){
+            html+=`<div class="ch-user"><div class="ch-user-bub">${msg.text}</div></div>`;
+          } else {
+            html+=`<div class="ch-ai"><div class="ch-ai-av">AI</div><div class="ch-ai-bub">${msg.text.replace(/\n/g,'<br>')}</div></div>`;
+          }
+        });
+        html+=`<div class="ch-action">✓ 达成共识 · ${edit.result}</div>`;
+      } else {
+        html+=`<div class="ch-ai"><div class="ch-ai-av">AI</div><div class="ch-ai-bub">识别为明确指令：<br/><span style="text-decoration:line-through;color:var(--rd)">${edit.before}</span> → <span style="color:var(--gn);font-weight:600">${edit.after}</span></div></div>`;
+        html+=`<div class="ch-action">✓ 已应用修改</div>`;
+      }
+    });
+    html+=`</div>`;
+    ch.innerHTML=html;
+    ch.classList.add('show');
+    setTimeout(()=>{const closeBtn=qs('#CH_CLOSE');if(closeBtn)closeBtn.onclick=()=>ch.classList.remove('show')},50);
+  }
+  // ── JUMP TO STEP (clickable right panel) ──
+  function jumpToStep(stepIdx){
+    if(!scId)return;clearAll();
+    const s=SC[scId];
+    if(stepIdx<=1){
+      // steps 0-1: go home → auto record
+      editIdx=0;goHome(true);setTimeout(()=>{startRec();if(stepIdx===0)return;setTimeout(()=>stopRec(),1200)},600);
+    } else if(stepIdx===2){
+      // step 2: show processing
+      editIdx=0;goHome(true);setTimeout(()=>{
+        setFlowStep(2);
+        const pg=qs('#SCR .pg');if(!pg)return;
+        const cl=qs('#CLAW');if(cl){cl.classList.add('processing')}
+        let pp=pg.querySelector('.proc-panel');
+        if(!pp){pp=mk('div','proc-panel');pp.innerHTML='<div class="proc-dots"><div class="proc-dot"></div><div class="proc-dot"></div><div class="proc-dot"></div></div><div class="proc-label">AI 正在整理…</div>';pg.insertBefore(pp,pg.querySelector('.claw-line'))}
+        setTimeout(()=>pp.classList.add('show'),100);
+        const t=setTimeout(()=>{if(cl)cl.classList.remove('processing');pp.classList.remove('show');setFlowStep(3);showJumpTransition(pg,()=>{updateRightPanel(3);openNote()})},1200);timers.push(t);
+      },600);
+    } else if(stepIdx===3){
+      // step 3: directly open note
+      editIdx=0;setFlowStep(3);openNote();
+    } else {
+      // step 4+: open note → auto trigger edit at correct editIdx
+      const eIdx=stepIdx-4;
+      if(eIdx>=s.edits.length)return;
+      editIdx=0;openNote();
+      setTimeout(()=>{editIdx=eIdx;setFlowStep(stepIdx);startEdit();setTimeout(()=>stopEdit(),1200)},600);
+    }
+  }
+  // ── AUTO CHAIN: after note opens, auto-play all edit steps ──
+  async function autoChainEdits(){
+    if(!scId)return;const s=SC[scId];
+    for(let i=0;i<s.edits.length;i++){
+      editIdx=i;setFlowStep(4+i);startEdit();await delay(1000);stopEdit();await delay(900);
+      const edit=s.edits[i];
+      if(edit.type==='discuss'){await delay(edit.dialog.length*1200+1800);acceptDiscuss();await delay(300)}
+      else if(trustMode==='A'){await delay(500);acceptEdit();await delay(300)}
+      else{await delay(300)}
+    }
+  }
+  // ── SELECT / TRUST / AUTO / RESET ──
+  function select(id){clearAll();scId=id;editIdx=0;updateTabs();updateRightPanel(undefined);goHome(true);
+    setTimeout(()=>{startRec();setTimeout(()=>{stopRec();
+      // after note opens, auto-chain all edit steps
+      const waitForNote=setTimeout(()=>autoChainEdits(),3200);timers.push(waitForNote);
+    },1200)},600)}
+  function selectEdit(){if(!scId)scId='research';clearAll();editIdx=0;updateTabs();updateRightPanel(4);openNote()}
+  function selectDiscuss(){if(!scId)scId='research';clearAll();const s=SC[scId];editIdx=s.edits.findIndex(e=>e.type==='discuss');if(editIdx<0)editIdx=0;updateTabs();updateRightPanel(4+editIdx);openNote();setTimeout(()=>startEdit(),800)}
+  function setTrustMode(m){trustMode=m;qs('#TS_A').className='ts-opt'+(m==='A'?' on on-a':'');qs('#TS_B').className='ts-opt'+(m==='B'?' on on-b':'');qs('#TRUST_DESC').textContent=m==='A'?'编辑指令 → Before/After 确认后应用':'编辑指令 → AI 直接应用，无需确认'}
+  function autoDemo(){
+    if(autoRunning)return;autoRunning=true;
+    const btn=qs('#AUTO_BTN');if(btn)btn.textContent='⏳ 演示中…';
+    (async()=>{
+      for(const id of ['research','meeting']){
+        scId=id;editIdx=0;updateTabs();updateRightPanel(0);
+        goHome();await delay(500);startRec();await delay(1200);stopRec();await delay(3200);
+        for(let i=0;i<SC[id].edits.length;i++){editIdx=i;setFlowStep(4+i);startEdit();await delay(800);stopEdit();await delay(1200);
+          const edit=SC[id].edits[i];
+          if(edit.type==='discuss'){await delay(edit.dialog.length*1400+2000);acceptDiscuss();await delay(400)}
+          else if(trustMode==='A'){await delay(600);acceptEdit();await delay(400)}}
+        await delay(600)}
+      autoRunning=false;if(btn)btn.textContent='▶ 自动演示完整流程';goHome()})();
+  }
+  function reset(){clearAll();autoRunning=false;scId=null;editIdx=0;qs('#AUTO_BTN').textContent='▶ 自动演示完整流程';buildTabs();goHome();updateRightPanel(undefined)}
+
+  // ── openScNote: open a specific scenario note from note home ──
+  function openScNote(id){scId=id;editIdx=0;updateTabs();openNote()}
+
+  document.addEventListener('DOMContentLoaded',()=>{buildLeftPanel();buildLeftPanel2();buildLeftPanel3();buildLeftPanel4();buildRightPanel();buildTabs();goHome()});
+  const pub={select,selectEdit,selectDiscuss,jumpToStep,openScNote,openNoteHome,goHome,startRec,stopRec,startEdit,stopEdit,acceptEdit,rejectEdit,acceptDiscuss,cancelDiscuss,doApplyFlow,autoDemo,reset,setTrustMode};
+  Object.defineProperty(pub,'_scId',{get(){return scId}});
+  return pub;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI Notes · VP Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  /* HyperOS / iOS light palette */
+  --bg:#EEEEF3;
+  --card:#FFFFFF;
+  --card2:#F5F5F7;
+  --bd:rgba(60,60,67,.1);
+  --bd2:rgba(60,60,67,.16);
+  --tx:#1C1C1E;
+  --su:#6C6C70;
+  --mu:#AEAEB2;
+  --dm:rgba(60,60,67,.25);
+  --bl:#007AFF;
+  --am:#FF9500;
+  --pu:#AF52DE;
+  --gn:#34C759;
+  --rd:#FF3B30;
+  --bl-bg:rgba(0,122,255,.08);
+  --am-bg:rgba(255,149,0,.08);
+  --pu-bg:rgba(175,82,222,.08);
+  --gn-bg:rgba(52,199,89,.08);
+}
+html,body{background:var(--bg);color:var(--tx);font-family:-apple-system,'Noto Sans SC',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;align-items:center;padding:28px 12px 48px}
+
+/* ── HEADER ── */
+.hd{text-align:center;margin-bottom:20px}
+.hd-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(0,122,255,.08);border-radius:20px;padding:4px 12px;font-size:10px;letter-spacing:.06em;color:var(--bl);font-weight:500;margin-bottom:8px}
+.hd-title{font-size:22px;font-weight:700;letter-spacing:-.03em;margin-bottom:4px;color:var(--tx)}
+.hd-sub{font-size:12px;color:var(--su);font-weight:400}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;justify-content:center}
+.tab{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:7px 14px;cursor:pointer;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.tab:hover{box-shadow:0 2px 8px rgba(0,0,0,.1);transform:translateY(-1px)}
+.tab .tn{font-weight:600;font-size:12px;color:var(--su)}
+.tab .ts{font-size:9px;color:var(--mu);margin-top:1px}
+.tab.on-bl{border-color:rgba(0,122,255,.3);background:var(--bl-bg);box-shadow:0 2px 8px rgba(0,122,255,.12)} .tab.on-bl .tn{color:var(--bl)}
+.tab.on-am{border-color:rgba(255,149,0,.3);background:var(--am-bg);box-shadow:0 2px 8px rgba(255,149,0,.12)} .tab.on-am .tn{color:var(--am)}
+.tab.on-pu{border-color:rgba(175,82,222,.3);background:var(--pu-bg);box-shadow:0 2px 8px rgba(175,82,222,.12)} .tab.on-pu .tn{color:var(--pu)}
+.tab.on-gn{border-color:rgba(52,199,89,.3);background:var(--gn-bg);box-shadow:0 2px 8px rgba(52,199,89,.12)} .tab.on-gn .tn{color:var(--gn)}
+
+/* ── STAGE ── */
+.stage{display:flex;gap:20px;align-items:flex-start;justify-content:center;width:100%;max-width:1080px}
+
+/* ── PANELS ── */
+.panel{width:192px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+@media(max-width:740px){.panel{display:none}}
+.pc{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:13px;font-size:11px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.pl{font-size:10px;font-weight:600;color:var(--su);letter-spacing:.02em;margin-bottom:10px;display:flex;align-items:center;gap:5px}
+.tr{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--bd)}
+.tr:last-child{border-bottom:none;padding-bottom:0}
+.ti{font-size:15px;flex-shrink:0;margin-top:1px}
+.tn2{font-weight:600;font-size:11px;margin-bottom:2px}
+.tt{font-size:9px;color:var(--su);line-height:1.5}
+.tg{display:inline-block;border-radius:5px;padding:1px 6px;font-size:8px;font-weight:500;margin-top:3px}
+.dr{padding:7px 0;border-bottom:1px solid var(--bd)}
+.dr:last-child{border-bottom:none;padding-bottom:0}
+.dl{font-size:9px;font-weight:600;color:var(--mu);margin-bottom:2px;letter-spacing:.02em}
+.dv{font-size:10.5px;color:var(--su);line-height:1.5}
+
+/* ── PHONE ── */
+.phone{width:296px;height:618px;background:var(--card);border-radius:46px;border:1px solid rgba(0,0,0,.08);position:relative;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.14),0 2px 8px rgba(0,0,0,.06),inset 0 0 0 1px rgba(255,255,255,.9);flex-shrink:0}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:90px;height:28px;background:var(--tx);border-radius:0 0 18px 18px;z-index:30;display:flex;align-items:center;justify-content:center;gap:6px}
+.notch::after{content:'';width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18);position:absolute;right:22px}
+.sbar{position:absolute;top:32px;left:0;right:0;padding:0 22px;display:flex;justify-content:space-between;align-items:center;z-index:20;pointer-events:none}
+.sbar-l{font-size:11px;font-weight:600;color:var(--tx);letter-spacing:-.01em}
+.sbar-r{display:flex;gap:4px;align-items:center}
+.sd{width:5px;height:5px;border-radius:50%;background:var(--bl)}
+.screen{position:absolute;inset:0;top:52px;overflow:hidden;background:var(--card2)}
+
+/* ── PAGES ── */
+.pg{position:absolute;inset:0;display:flex;flex-direction:column;transition:transform .28s cubic-bezier(.25,.46,.45,.94),opacity .22s ease;overflow:hidden;background:var(--card2)}
+.pg.show{transform:none;opacity:1}
+.pg.off-r{transform:translateX(100%);opacity:0;pointer-events:none}
+.pg.off-l{transform:translateX(-100%);opacity:0;pointer-events:none}
+.pg-scroll{flex:1;overflow-y:auto;overflow-x:hidden}
+.pg-scroll::-webkit-scrollbar{width:2px}.pg-scroll::-webkit-scrollbar-thumb{background:var(--dm)}
+
+/* ── HOME ── */
+.lhd{padding:14px 16px 11px;background:var(--card);border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+.lhd-t{font-size:16px;font-weight:700;letter-spacing:-.02em}
+.lhd-btn{width:28px;height:28px;border-radius:50%;background:var(--bl);border:none;cursor:pointer;color:white;font-size:17px;display:flex;align-items:center;justify-content:center}
+.lsearch{margin:10px 12px;background:rgba(118,118,128,.12);border-radius:10px;padding:7px 10px;font-size:12px;color:var(--mu);display:flex;align-items:center;gap:6px}
+.nc{margin:0 12px 8px;background:var(--card);border-radius:14px;padding:11px 12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.nc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:2px 0 0 2px}
+.nc.c-bl::before{background:var(--bl)}.nc.c-am::before{background:var(--am)}.nc.c-pu::before{background:var(--pu)}.nc.c-gn::before{background:var(--gn)}
+.nc:hover{box-shadow:0 3px 10px rgba(0,0,0,.1);transform:translateY(-1px)}
+.nc:active{transform:scale(.98)}
+.nc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px}
+.nc-title{font-size:12px;font-weight:600;line-height:1.4;flex:1;padding-right:6px;color:var(--tx)}
+.nc-badge{font-size:9px;padding:2px 7px;border-radius:5px;flex-shrink:0;margin-top:1px;font-weight:500}
+.nc-prev{font-size:10.5px;color:var(--su);line-height:1.6;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.nc-foot{display:flex;gap:5px;margin-top:6px;align-items:center}
+.nc-tag{font-size:9px;padding:2px 6px;border-radius:5px;background:var(--card2);color:var(--mu);font-weight:500}
+.nc-time{font-size:9px;color:var(--mu);margin-left:auto}
+.fab{position:absolute;bottom:16px;right:16px;width:52px;height:52px;border-radius:16px;background:var(--bl);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,122,255,.35);transition:all .2s}
+.fab:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(0,122,255,.45)}
+
+/* ── RECORD ── */
+.rec-pg{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 28px;position:relative;background:var(--card)}
+.rip{position:absolute;border-radius:50%;pointer-events:none}
+.bmic{width:76px;height:76px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;position:relative}
+.bmic.idle{background:var(--bl);box-shadow:0 0 0 8px rgba(0,122,255,.1),0 8px 24px rgba(0,122,255,.3)}
+.bmic.rec{background:var(--rd);box-shadow:0 0 0 8px rgba(255,59,48,.1),0 8px 24px rgba(255,59,48,.3)}
+.bmic.send{background:var(--gn);box-shadow:0 0 0 10px rgba(52,199,89,.12),0 10px 28px rgba(52,199,89,.3)}
+.wv{display:flex;align-items:center;gap:2px;height:26px}
+.wvb{width:2.5px;border-radius:2px;background:var(--bl)}
+.hint-r{display:flex;gap:28px;font-size:10.5px;color:var(--mu);text-align:center;margin-top:20px;font-weight:400}
+.hint-r span{display:block;font-size:16px;margin-bottom:4px}
+
+/* ── PROCESS ── */
+.tsb{background:rgba(255,255,255,.7);backdrop-filter:blur(8px);border-radius:14px 14px 4px 14px;padding:11px 12px;margin-bottom:11px;box-shadow:0 1px 6px rgba(0,0,0,.05);border:1px solid rgba(255,255,255,.8)}
+.tsb-m{font-size:9px;font-weight:600;color:var(--mu);margin-bottom:5px;letter-spacing:.04em;display:flex;align-items:center;gap:4px}
+.tsb-t{font-size:12px;color:var(--tx);line-height:1.7;opacity:.8}
+.aib{background:rgba(255,255,255,.75);backdrop-filter:blur(8px);border-radius:4px 14px 14px 14px;padding:12px;box-shadow:0 1px 6px rgba(0,0,0,.05);border:1px solid rgba(255,255,255,.8);transition:opacity .4s ease,transform .4s ease}
+.ai-hdr{display:flex;align-items:center;gap:7px;margin-bottom:10px;flex-wrap:wrap}
+.tdots{display:flex;gap:4px}
+.tdot{width:5px;height:5px;border-radius:50%;background:var(--bl);animation:dp 1s ease-in-out infinite}
+.abl{font-size:10px;font-weight:600;color:var(--bl);letter-spacing:.04em}
+.tchip{font-size:9px;font-weight:500;padding:2px 8px;border-radius:5px;margin-left:auto}
+.docout{font-size:11.5px;line-height:1.9;color:var(--su)}
+.docout .dh1{color:var(--tx);font-size:14px;font-weight:700;margin-bottom:4px}
+.docout .dh2{font-size:11px;font-weight:600;margin-top:10px;color:var(--tx)}
+.docout .dbd{font-size:11px;white-space:pre-line;color:var(--su)}
+
+/* ── NOTE ── */
+.nhd{padding:12px 14px 10px;background:var(--card);border-bottom:1px solid var(--bd)}
+.nhd-row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ntype{font-size:9px;font-weight:600;letter-spacing:.04em;padding:2px 8px;border-radius:5px;display:flex;align-items:center;gap:4px}
+.nacts{display:flex;gap:5px}
+.nact{background:var(--card2);border-radius:7px;padding:3px 9px;font-size:10px;font-weight:500;color:var(--su);cursor:pointer;transition:all .15s}
+.nact:hover{background:var(--bd);color:var(--tx)}
+.ntitle{font-size:16px;font-weight:700;line-height:1.3;margin-bottom:5px;letter-spacing:-.02em;color:var(--tx)}
+.nmeta{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.ntag{font-size:9.5px;font-weight:500;padding:2px 8px;border-radius:6px;background:var(--card2);color:var(--su)}
+.ndate{font-size:9.5px;color:var(--mu)}
+.nbody{padding:12px 14px}
+
+/* ── RESEARCH ── */
+.rh2{font-size:11px;font-weight:600;margin:10px 0 4px;display:flex;align-items:center;gap:5px;color:var(--tx)}
+.rh2::before{content:'';width:3px;height:11px;border-radius:2px;display:inline-block}
+.rit{font-size:11.5px;color:var(--su);padding-left:12px;position:relative;margin-bottom:2px;line-height:1.75}
+.rit::before{content:'—';position:absolute;left:0;color:var(--dm)}
+
+/* ── MEETING ── */
+.avrow{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.msec{margin-bottom:10px}
+.msec-l{font-size:10px;font-weight:600;color:var(--mu);margin-bottom:5px;letter-spacing:.02em}
+.dec{background:rgba(255,149,0,.06);border:1px solid rgba(255,149,0,.15);border-radius:9px;padding:7px 10px;margin-bottom:5px;font-size:11.5px;color:var(--tx);line-height:1.6}
+.aci{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--bd)}
+.aci:last-child{border-bottom:none}
+.aow{font-size:9.5px;font-weight:600;padding:2px 8px;border-radius:8px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.adt{font-size:11.5px;color:var(--tx);line-height:1.6}
+.adl{font-size:9.5px;color:var(--su);margin-top:1px}
+
+/* ── IDEA ── */
+.ihero{background:linear-gradient(135deg,rgba(175,82,222,.07),rgba(99,102,241,.04));border:1px solid rgba(175,82,222,.15);border-radius:14px;padding:14px;margin-bottom:12px;text-align:center}
+.ione{font-size:13.5px;font-weight:700;color:var(--tx);line-height:1.5;margin-bottom:5px}
+.isub{font-size:11px;color:var(--su);line-height:1.7}
+.itags{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.itag{font-size:9px;font-weight:500;padding:3px 8px;border-radius:8px;background:rgba(175,82,222,.08);color:var(--pu)}
+.isec{margin-bottom:10px}
+.isec-h{font-size:10px;font-weight:600;color:var(--mu);margin-bottom:5px;letter-spacing:.02em}
+.ibul{font-size:11.5px;color:var(--su);padding-left:11px;position:relative;line-height:1.75;margin-bottom:3px}
+.ibul::before{content:'·';position:absolute;left:0;color:var(--pu);font-size:14px;line-height:1.4}
+
+/* ── TASK ── */
+.tprog{background:var(--card);border-radius:10px;padding:8px 11px;margin-bottom:10px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.tpbw{flex:1;background:var(--bd);border-radius:3px;height:4px;overflow:hidden}
+.tpb{height:4px;border-radius:3px;background:var(--gn);transition:width .5s ease}
+.tptx{font-size:10px;color:var(--mu);white-space:nowrap;font-weight:500}
+.tgrp{margin-bottom:10px}
+.tgl{font-size:10px;font-weight:600;color:var(--mu);margin-bottom:5px;letter-spacing:.02em}
+.tki{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--bd)}
+.tki:last-child{border-bottom:none}
+.tcb{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--bd2);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;background:var(--card)}
+.tcb.ck{background:var(--gn);border-color:var(--gn)}
+.tpri{font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;flex-shrink:0;margin-top:2px;white-space:nowrap}
+.tpri.hi{background:rgba(255,59,48,.08);color:var(--rd)}
+.tpri.md{background:rgba(255,149,0,.08);color:var(--am)}
+.tpri.lo{background:rgba(0,0,0,.05);color:var(--mu)}
+.tkinfo{flex:1}
+.tktx{font-size:12px;color:var(--tx);line-height:1.6}
+.tktx.done{text-decoration:line-through;color:var(--mu)}
+.tktm{font-size:10px;color:var(--su);margin-top:2px}
+
+/* ── FLOATING INPUT ── */
+.float-wrap{position:absolute;bottom:10px;left:10px;right:10px;z-index:40}
+/* Chips row — floats ABOVE the card, separate */
+.float-chips{display:flex;gap:6px;margin-bottom:8px;overflow-x:auto;scrollbar-width:none;padding:2px 4px}
+.float-chips::-webkit-scrollbar{display:none}
+.fc{font-size:10.5px;font-weight:500;padding:5px 13px;border-radius:20px;border:1px solid var(--bd);background:rgba(255,255,255,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--su);cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,.08);transition:transform .15s cubic-bezier(.34,1.56,.64,1),box-shadow .15s,color .15s,border-color .15s;animation:chip-in .3s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes chip-in{from{opacity:0;transform:translateY(8px) scale(.9)}to{opacity:1;transform:none}}
+.fc:hover{border-color:var(--bl);color:var(--bl);box-shadow:0 3px 14px rgba(0,122,255,.15)}
+.fc:active{transform:scale(.93)!important}
+/* Main input card */
+.float-card{background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:20px;box-shadow:0 6px 28px rgba(0,0,0,.12),0 1px 4px rgba(0,0,0,.06);border:1px solid rgba(255,255,255,.8)}
+.float-input-row{display:flex;align-items:center;gap:8px;padding:9px 10px 10px}
+.fi-mic{width:33px;height:33px;border-radius:50%;border:1.5px solid rgba(255,59,48,.25);background:rgba(255,59,48,.07);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.fi-mic.rec{background:rgba(255,59,48,.16);border-color:rgba(255,59,48,.5);transform:scale(1.08)}
+.fi-text{flex:1;font-size:12px;color:var(--mu);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;transition:color .2s}
+.fi-text.active{color:var(--tx);font-style:italic}
+.fi-wave{display:flex;align-items:center;gap:2px;height:16px;flex-shrink:0}
+.fi-wvb{width:2.5px;border-radius:2px;background:var(--rd);transition:height .1s ease}
+.fi-send{width:33px;height:33px;border-radius:50%;background:var(--bl);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 10px rgba(0,122,255,.35);transition:opacity .18s,transform .18s cubic-bezier(.34,1.56,.64,1)}
+.fi-send.hidden{opacity:0;pointer-events:none;transform:scale(.72)}
+
+/* ── ANIMATIONS (enhanced) ── */
+@keyframes fade-out{from{opacity:1;transform:none}to{opacity:0;transform:scale(.97)}}
+@keyframes fade-in-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.fade-out{animation:fade-out .35s cubic-bezier(.4,0,1,1) forwards}
+.fade-in-pg{animation:fade-in-up .38s cubic-bezier(.25,.46,.45,.94) both}
+@keyframes ripple{0%{transform:scale(1);opacity:.28}100%{transform:scale(2.9);opacity:0}}
+@keyframes dp{0%,100%{opacity:.15;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+@keyframes su{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:scale(.88) translateY(4px)}to{opacity:1;transform:none}}
+.asu{animation:su .32s cubic-bezier(.25,.46,.45,.94) both}
+.afi{animation:fi .22s ease both}
+.apo{animation:pop .28s cubic-bezier(.34,1.56,.64,1) both}
+.sum{margin:8px 12px 0;background:var(--card);border-radius:14px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.sum-g{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.sum-i{text-align:center;padding:9px;background:var(--card2);border-radius:10px}
+.sum-v{font-size:18px;font-weight:700;color:var(--tx);margin-bottom:2px}
+.sum-l{font-size:9.5px;color:var(--su)}
+.bk{padding:10px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:7px;cursor:pointer;background:var(--card)}
+.bk span{font-size:12px;color:var(--su);font-weight:500}
+
+.fa{flex:1;padding:6px 4px;border-radius:10px;font-size:10px;font-weight:500;border:1px solid;cursor:pointer;text-align:center;transition:all .18s cubic-bezier(.34,1.56,.64,1);white-space:nowrap}
+.fa:active{transform:scale(.95)}
+/* ── LIBRARY ── */
+.sum{margin:8px 12px 0;background:var(--card);border-radius:14px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.sum-g{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+.sum-i{text-align:center;padding:9px;background:var(--card2);border-radius:10px}
+.sum-v{font-size:18px;font-weight:700;color:var(--tx);margin-bottom:2px}
+.sum-l{font-size:9.5px;color:var(--su)}
+.bk{padding:10px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:7px;cursor:pointer;background:var(--card)}
+.bk span{font-size:12px;color:var(--su);font-weight:500}
+
+/* ── OUTER BUTTONS ── */
+.bnav{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap;justify-content:center}
+.btn{border-radius:10px;padding:9px 18px;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;border:none;font-family:inherit}
+.btn-g{background:var(--card);border:1px solid var(--bd);color:var(--su);box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.btn-g:hover{border-color:var(--bl);color:var(--bl)}
+.btn-p{background:var(--bl);color:white;box-shadow:0 2px 8px rgba(0,122,255,.25)}
+.btn-p:hover{box-shadow:0 4px 12px rgba(0,122,255,.35)}
+.btn-r{background:rgba(255,59,48,.06);border:1px solid rgba(255,59,48,.15);color:var(--rd)}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <div class="hd-badge">AI Notes · 交互演示</div>
+  <div class="hd-title">4 种场景 · AI 自动理解意图</div>
+  <div class="hd-sub">说话 → AI 生成结构化内容 → 语音直接修改</div>
+</div>
+
+<div class="tabs" id="TABS"></div>
+
+<div class="stage">
+  <!-- LEFT PANEL -->
+  <div class="panel" id="LEFT">
+    <div class="pc">
+      <div class="pl"><div style="width:6px;height:6px;border-radius:50%;background:#64748b"></div>输入类型分析</div>
+      <div class="tr"><div class="ti">📊</div><div><div class="tn2" style="color:var(--bl)">研究指令型</div><div class="tt">"帮我研究/整理…"</div><div class="tg" style="background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);color:var(--bl)">→ 结构化简报</div></div></div>
+      <div class="tr"><div class="ti">📋</div><div><div class="tn2" style="color:var(--am)">会议纪要型</div><div class="tt">"刚开完会，有…"</div><div class="tg" style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--am)">→ 决策+行动项</div></div></div>
+      <div class="tr"><div class="ti">💡</div><div><div class="tn2" style="color:var(--pu)">灵感想法型</div><div class="tt">"我突然有个想法…"</div><div class="tg" style="background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);color:var(--pu)">→ 创意概念卡</div></div></div>
+      <div class="tr"><div class="ti">✅</div><div><div class="tn2" style="color:var(--gn)">任务清单型</div><div class="tt">"今天要做的有…"</div><div class="tg" style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);color:var(--gn)">→ 优先级清单</div></div></div>
+    </div>
+    <div class="pc">
+      <div class="pl"><div style="width:6px;height:6px;border-radius:50%;background:var(--bl)"></div>设计原则</div>
+      <div style="font-size:10.5px;color:var(--mu);line-height:1.9">同样语音路径，AI 根据意图自动选最合适输出格式<br><br><span style="color:var(--su)">无需选模板<br>无需打字<br>无需格式化</span></div>
+    </div>
+  </div>
+
+  <!-- PHONE -->
+  <div class="phone" id="PHONE">
+    <div class="notch"></div>
+    <div class="sbar"><span class="sbar-l" id="SBAR">9:41</span><div class="sbar-r"><div class="sd"></div><div class="sd"></div><div class="sd"></div></div></div>
+    <div class="screen" id="SCR"></div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel" id="RIGHT">
+    <div class="pc">
+      <div class="pl"><div id="RP_DOT" style="width:6px;height:6px;border-radius:50%;background:#64748b"></div><span id="RP_TITLE">交互特征差异</span></div>
+      <div id="RP_CONTENT"><div style="font-size:10.5px;color:var(--mu);line-height:1.7">选择上方类型查看该类型专属交互模式</div></div>
+    </div>
+    <div class="pc">
+      <div class="pl"><div style="width:6px;height:6px;border-radius:50%;background:var(--pu)"></div>语音编辑示例</div>
+      <div id="RP_EG" style="font-size:10.5px;color:var(--mu);line-height:1.7">—</div>
+    </div>
+  </div>
+</div>
+
+<div class="bnav">
+  <button class="btn btn-r" onclick="App.reset()">↺ 重置</button>
+  <button class="btn btn-g" onclick="App.goLibrary()">📚 完整笔记库</button>
+  <button class="btn btn-p" id="AUTO_BTN" onclick="App.autoDemo()">▶ 自动演示完整流程</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const SC = {
+  research:{
+    id:'research',icon:'📊',name:'研究简报',color:'#007AFF',cls:'bl',
+    label:'研究简报',
+    src:'帮我研究一下伊拉克近期局势，梳理成一份简报，重点关注政治动向和安全形势。',
+    chips:['加一个章节','改标题','补充内容'],
+    doc:[
+      {t:'h1',v:'伊拉克局势简报'},
+      {t:'h2',v:'政治动向'},{t:'bd',v:'— 总理苏达尼推进重建议程，与伊朗、美国维持双轨外交\n— 议会联合政府博弈加剧，预算案僵局\n— 库尔德自治区与巴格达石油分成争议持续'},
+      {t:'h2',v:'安全形势'},{t:'bd',v:'— ISIS 在西部沙漠零星活动有所抬头\n— 亲伊朗武装（PMF）仍是关键政治-军事变量\n— 美军基地持续遭受火箭弹袭击，但规模有限'},
+      {t:'h2',v:'核心风险'},{t:'bd',v:'— 以巴冲突溢出风险牵动境内武装情绪\n— 油价波动直接影响政府财政稳定性'},
+    ],
+    edits:[
+      {cmd:'把标题改成"伊拉克 2025 Q1 情报简报"',reply:'标题已更新',fn(nb,pg){const t=qs('#NTitle');if(t)t.textContent='伊拉克 2025 Q1 情报简报'}},
+      {cmd:'政治动向加一条：土耳其持续在北部施加影响',reply:'已在政治动向末尾添加',fn(nb){const h2s=nb.querySelectorAll('.rh2');const ref=h2s[1];if(!ref)return;const n=mk('div','rit asu');n.textContent='土耳其持续在北部施加影响，支持库尔德反对武装';ref.before(n)}},
+      {cmd:'帮我加一个"结论与建议"部分',reply:'已添加结论与建议章节',fn(nb){const h=mk('div','rh2 asu');h.style.color='#007AFF';h.innerHTML='<span style="background:#007AFF;width:3px;height:11px;border-radius:2px;display:inline-block;margin-right:6px"></span>结论与建议';const i1=mk('div','rit asu');i1.style.animationDelay='.07s';i1.textContent='短期内局势维持低烈度不稳定，重大冲突风险有限';const i2=mk('div','rit asu');i2.style.animationDelay='.14s';i2.textContent='建议持续监测 PMF 动向及伊美关系变化';nb.append(h,i1,i2)}},
+    ],
+    diff:{input:'明确任务导向型指令',output:'长文档 · 分章节结构',edit:'结构性：加章节、改标题、补内容',unique:'完成后可"发送给团队"或"导出 PDF"'},
+    egs:['加一个章节','改标题','把第二段删掉','补充一条关于 X 的内容'],
+    fins:[{l:'发送给团队',hi:true},{l:'导出 PDF',hi:false},{l:'存为模板',hi:false}],
+  },
+  meeting:{
+    id:'meeting',icon:'📋',name:'会议纪要',color:'#FF9500',cls:'am',
+    label:'会议纪要',
+    src:'刚开完产品评审会，参加的有我、张总、李工和产品组。主要讨论了 Q2 路线图，决定把 AI 功能提前到五月上线。李工负责技术方案，我来跟进设计，下周五汇报进展。',
+    chips:['改截止日期','加风险提示','补充参会人'],
+    doc:[
+      {t:'h1',v:'产品评审会 · 会议纪要'},
+      {t:'h2',v:'参会人员'},{t:'bd',v:'张总  李工  产品组  我'},
+      {t:'h2',v:'核心决策'},{t:'bd',v:'→ AI 功能提前至五月上线\n→ Q2 路线图正式确认'},
+      {t:'h2',v:'行动项'},{t:'bd',v:'● 李工 — 技术方案  截止：下周五\n● 我  — 跟进设计  截止：下周五'},
+    ],
+    edits:[
+      {cmd:'李工的 deadline 改成本周五',reply:'已更新李工截止日期为本周五',fn(nb){const dl=nb.querySelector('#LiDl');if(dl)dl.textContent='截止：本周五'}},
+      {cmd:'加上会议时间：今天下午两点',reply:'已添加会议时间',fn(nb,pg){const meta=qs('#NMETA');if(!meta)return;const t=mk('span','ntag asu');t.textContent='📅 今日 14:00';meta.prepend(t)}},
+      {cmd:'加一个风险提示：提前上线可能影响测试周期',reply:'已添加风险提示',fn(nb){const w=mk('div','asu');w.style.cssText='background:rgba(255,59,48,.05);border:1px solid rgba(255,59,48,.12);border-radius:10px;padding:9px 11px;margin-top:10px';w.innerHTML='<div style="font-size:10px;font-weight:600;color:var(--rd);margin-bottom:3px;letter-spacing:.02em">⚠ 风险提示</div><div style="font-size:11.5px;color:var(--su);line-height:1.6">AI 功能提前上线可能压缩测试周期，建议评估影响范围</div>';nb.append(w)}},
+    ],
+    diff:{input:'叙事性会议回顾',output:'结构化：参与者 + 决策 + 行动项',edit:'角色分配、期限调整、风险补充',unique:'完成后可"发给所有参会人"'},
+    egs:['XX 的 deadline 改到 XX','加一个风险提示','加为参会人','行动项负责人改为 XX'],
+    fins:[{l:'发给参会人',hi:true},{l:'同步日历',hi:false},{l:'归档',hi:false}],
+  },
+  idea:{
+    id:'idea',icon:'💡',name:'创意想法',color:'#AF52DE',cls:'pu',
+    label:'创意想法',
+    src:'我突然有个想法，现在笔记软件都太注重存储，用户真正需要的是处理和执行。如果做一个直接帮用户执行任务的 AI 笔记，不只记录而是真的帮你做事，这可能是个大机会。可以叫 Execution Layer 或者 Action Note 什么的。',
+    chips:['提炼一句话 pitch','加竞品对比','展开成 PRD'],
+    doc:[
+      {t:'h1',v:'AI 执行层笔记 · 创意概念'},
+      {t:'h2',v:'核心想法'},{t:'bd',v:'笔记不应只是存储，而应成为执行引擎\n用户说话 → AI 直接完成任务'},
+      {t:'h2',v:'机会点'},{t:'bd',v:'— 现有工具都在"记录"，缺少"执行"\n— AI 时代用户期望大幅降低操作门槛'},
+      {t:'h2',v:'下一步'},{t:'bd',v:'— 验证核心假设：用户是否愿意用语音替代打字\n— 定义 MVP 功能边界'},
+    ],
+    edits:[
+      {cmd:'产品名叫 ActionMemo，帮我更新',reply:'已将产品名称更新为 ActionMemo',fn(nb){const t=qs('#NTitle');if(t)t.textContent='ActionMemo · 创意概念';const ol=nb.querySelector('#IdeaOne');if(ol)ol.innerHTML='<span style="color:#AF52DE">ActionMemo</span> — 从记录到执行的 AI 笔记'}},
+      {cmd:'下一步加：调研竞品 Notion AI 和 Apple Notes',reply:'已在下一步列表中添加竞品调研',fn(nb){const last=nb.querySelector('#IdeaLast');const n=mk('div','ibul asu');n.textContent='调研竞品：Notion AI、Apple Notes 的执行能力边界';if(last)last.after(n)}},
+      {cmd:'帮我提炼一句话 pitch',reply:'已添加一句话 Pitch',fn(nb){const hero=nb.querySelector('.ihero');if(!hero)return;const p=mk('div','asu');p.style.cssText='margin-top:10px;padding-top:10px;border-top:1px solid rgba(175,82,222,.15)';p.innerHTML='<div style="font-size:9px;font-weight:600;color:#AF52DE;letter-spacing:.06em;margin-bottom:5px">一句话 Pitch</div><div style="font-size:13px;color:var(--tx);line-height:1.5;font-style:italic">"说一句话，AI 帮你把它做完。"</div>';hero.append(p)}},
+    ],
+    diff:{input:'发散型碎片想法',output:'提炼结构：核心概念 + 机会点 + 下一步',edit:'语言打磨、命名迭代、补充连接',unique:'完成后可"展开成 PRD"或"保存灵感库"'},
+    egs:['把说法改得更商业化','加个竞品对比','提炼一句话 pitch','下一步加一条 XX'],
+    fins:[{l:'展开成 PRD',hi:true},{l:'保存灵感库',hi:false},{l:'分享',hi:false}],
+  },
+  task:{
+    id:'task',icon:'✅',name:'任务清单',color:'#34C759',cls:'gn',
+    label:'任务清单',
+    src:'今天要做的事情：一，给张总发融资材料；二，跟 UI 组对接新版设计稿；三，下午三点开产品会要准备 PPT；四，联系投资人王先生确认下周见面时间；还有记得给妈妈打电话。',
+    chips:['调整时间','改优先级','加个提醒'],
+    doc:[
+      {t:'h1',v:'今日任务 · 5 项'},
+      {t:'h2',v:'工作'},{t:'bd',v:'[ ] 发融资材料给张总 — 中\n[ ] 对接 UI 新版设计稿 — 中\n[ ] 准备产品会 PPT  3pm — 高\n[ ] 联系王先生确认见面 — 高'},
+      {t:'h2',v:'个人'},{t:'bd',v:'[ ] 给妈妈打电话 — 低'},
+    ],
+    edits:[
+      {cmd:'下午三点的会改成四点半',reply:'产品会时间已更新为 16:30',fn(nb){nb.querySelectorAll('.tktm').forEach(e=>{if(e.textContent.includes('15:00')||e.textContent.includes('3:00'))e.textContent='📅 今日 16:30'})}},
+      {cmd:'联系王先生标记为最高优先级',reply:'已标记为最高优先级',fn(nb){nb.querySelectorAll('.tki').forEach(row=>{if(row.querySelector('.tktx')?.textContent.includes('王先生')){const p=row.querySelector('.tpri');if(p){p.textContent='最高';p.className='tpri hi';p.style.background='rgba(255,59,48,.12)'}}})}},
+      {cmd:'给妈妈打电话加个提醒：晚上八点',reply:'已添加提醒：今日 20:00',fn(nb){nb.querySelectorAll('.tki').forEach(row=>{if(row.querySelector('.tktx')?.textContent.includes('妈妈')){const info=row.querySelector('.tkinfo');if(info&&!info.querySelector('.tktm')){const t=mk('div','tktm asu');t.textContent='🔔 今日 20:00';info.appendChild(t)}}})}},
+    ],
+    diff:{input:'枚举型任务列表',output:'优先级清单 + 分类 + 时间提示',edit:'时间调整、优先级变更、添加提醒',unique:'可"开始执行第一项"直接跳转'},
+    egs:['这个改到 XX 点','标为最高优先级','加个提醒 XX 点','把 XX 标为完成'],
+    fins:[{l:'开始第一项',hi:true},{l:'日历同步',hi:false},{l:'分享',hi:false}],
+  },
+};
+const SCLIST = ['research','meeting','idea','task'];
+const CLRMAP = {research:'bl',meeting:'am',idea:'pu',task:'gn'};
+const NAMES = {research:'研究简报',meeting:'会议纪要',idea:'创意想法',task:'任务清单'};
+const BCL = {
+  research:{bg:'rgba(0,122,255,.1)',c:'#007AFF'},
+  meeting:{bg:'rgba(255,149,0,.1)',c:'#FF9500'},
+  idea:{bg:'rgba(175,82,222,.1)',c:'#AF52DE'},
+  task:{bg:'rgba(52,199,89,.1)',c:'#34C759'},
+};
+const LIBDATA = [
+  {id:'research',title:'伊拉克 2025 Q1 情报简报',prev:'政治动向、安全形势及核心风险综合研判…',tags:['情报','中东']},
+  {id:'meeting',title:'产品评审会 · 会议纪要',prev:'AI 功能提前至五月上线，李工负责技术方案…',tags:['会议','Q2']},
+  {id:'idea',title:'ActionMemo · 创意概念',prev:'"说一句话，AI 帮你把它做完。" — 执行引擎…',tags:['产品','灵感']},
+  {id:'task',title:'今日任务 · 5 项（含最高优先级）',prev:'联系王先生（最高）· 产品会 16:30 · 妈妈 20:00…',tags:['任务','日程']},
+];
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+function mk(tag,cls='',html=''){const e=document.createElement(tag);if(cls)e.className=cls;if(html)e.innerHTML=html;return e}
+function qs(sel,ctx=document){return ctx.querySelector(sel)}
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+function clearTimers(arr){arr.forEach(t=>{clearTimeout(t);clearInterval(t)})}
+
+// ═══════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════
+const App = (() => {
+  let scId = null;
+  let editIdx = 0;
+  let autoRunning = false;
+  let twTimers = [];
+  let recPhase = 0;
+  let pressTimer = null;
+  let longFired = false;
+  let editCharTimer = null;
+  let editLog = []; // {cmd, reply, color, time}
+
+  // ── BUILD TABS ──
+  function buildTabs() {
+    const wrap = qs('#TABS');
+    wrap.innerHTML = '';
+    SCLIST.forEach(id => {
+      const sc = SC[id];
+      const tab = mk('div','tab');
+      tab.id = 'TAB_'+id;
+      tab.innerHTML = `<span style="font-size:14px">${sc.icon}</span><div><div class="tn">${sc.name}</div><div class="ts">${sc.label}</div></div>`;
+      tab.onclick = () => select(id);
+      wrap.appendChild(tab);
+    });
+  }
+
+  function updateTabs() {
+    SCLIST.forEach(id => {
+      const tab = qs('#TAB_'+id);
+      if(!tab) return;
+      tab.className = 'tab' + (id===scId ? ' on-'+SC[id].cls : '');
+    });
+  }
+
+  // ── RIGHT PANEL ──
+  function updatePanel() {
+    if(!scId){return;}
+    const sc = SC[scId];
+    qs('#RP_DOT').style.background = sc.color;
+    qs('#RP_TITLE').textContent = sc.icon+' '+sc.name+' · 交互特征';
+    const dc = qs('#RP_CONTENT'); dc.innerHTML = '';
+    [['输入模式',sc.diff.input],['输出格式',sc.diff.output],['编辑风格',sc.diff.edit],['专属动作',sc.diff.unique]].forEach(([l,v])=>{
+      const row=mk('div','dr'); row.innerHTML=`<div class="dl">${l}</div><div class="dv">${v}</div>`; dc.appendChild(row);
+    });
+    qs('#RP_EG').innerHTML = sc.egs.map(e=>`<div style="padding:3px 0;border-bottom:1px solid rgba(30,41,59,.5);color:${sc.color}">"${e}"</div>`).join('')+'<div style="padding:3px 0;font-size:9.5px;color:var(--dm)">…全程无需打字</div>';
+  }
+
+  // ── PAGE SYSTEM ──
+  function showPage(render, dir) {
+    const scr = qs('#SCR');
+    scr.innerHTML = '';
+    const pg = mk('div','pg show');
+    render(pg);
+    scr.appendChild(pg);
+  }
+
+  // ── HOME ──
+  function goHome() {
+    qs('#SBAR').textContent = '9:41';
+    showPage(pg => {
+      const scroll = mk('div','pg-scroll');
+      scroll.innerHTML = `<div class="lhd"><div class="lhd-t">我的笔记</div><button class="lhd-btn">＋</button></div>
+        <div class="lsearch"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><span>搜索笔记…</span></div>
+        <div style="padding:0 13px;margin-bottom:5px"><div style="font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.16em;color:var(--dm);padding:4px 0">最近笔记</div></div>`;
+      LIBDATA.forEach((n,i)=>{
+        const bc=BCL[n.id]; const card=mk('div',`nc c-${CLRMAP[n.id]} asu`);
+        card.style.animationDelay=`${i*.06}s`;
+        card.innerHTML=`<div class="nc-top"><div class="nc-title">${n.title}</div><div class="nc-badge" style="background:${bc.bg};color:${bc.c}">${NAMES[n.id]}</div></div>
+          <div class="nc-prev">${n.prev}</div>
+          <div class="nc-foot">${n.tags.map(t=>`<div class="nc-tag">${t}</div>`).join('')}<div class="nc-time" style="margin-left:auto">✦ 3 次语音修改</div></div>`;
+        card.onclick=()=>select(n.id);
+        scroll.appendChild(card);
+      });
+      pg.appendChild(scroll);
+      const fab=mk('button','fab');
+      fab.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill="white"/><path d="M5 10a7 7 0 0 0 14 0" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12" y2="21" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>`;
+      fab.onclick=()=>{ if(scId) goRecord(); };
+      pg.appendChild(fab);
+    });
+  }
+
+  // ── RECORD ──
+  function goRecord() {
+    recPhase = 0; longFired = false;
+    qs('#SBAR').textContent = '点击录音';
+    showPage(pg => {
+      pg.style.background = 'var(--card)';
+      const wrap = mk('div','rec-pg');
+      wrap.style.cssText = 'flex:1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:0 28px';
+      for(let i=0;i<2;i++){const r=mk('div','rip');r.style.cssText=`width:120px;height:120px;border:1px solid rgba(0,122,255,${i===0?.2:.1});animation:ripple 2.2s ease-out infinite;animation-delay:${i*.8}s`;wrap.appendChild(r);}
+      const status = mk('div'); status.id='REC_STATUS'; status.style.cssText='font-size:11px;font-weight:500;color:var(--mu);letter-spacing:.04em;margin-bottom:16px'; status.textContent='点击录音'; wrap.appendChild(status);
+      const ww = mk('div'); ww.id='REC_WAVE'; ww.style.cssText='margin-bottom:18px;height:26px;display:flex;align-items:center'; ww.innerHTML=buildWave(false); wrap.appendChild(ww);
+      const mic = mk('button','bmic idle'); mic.id='REC_MIC';
+      mic.innerHTML=`<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill="white"/><path d="M5 10a7 7 0 0 0 14 0" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12" y2="21" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>`;
+      mic.addEventListener('mousedown', startRec);
+      mic.addEventListener('mouseup', endRec);
+      mic.addEventListener('touchstart', e=>{e.preventDefault();startRec();},{passive:false});
+      mic.addEventListener('touchend', e=>{e.preventDefault();endRec();});
+      wrap.appendChild(mic);
+      const hr = mk('div','hint-r'); hr.innerHTML='<div><span>○</span>点击录音</div><div><span>●</span>长按发送</div>'; wrap.appendChild(hr);
+      pg.appendChild(wrap);
+    });
+  }
+
+  function buildWave(active) {
+    const bars = Array.from({length:24},(_,i)=>{
+      const h=active?(4+Math.abs(Math.sin(i*.85))*18):3;
+      const spd=0.44+(i%5)*.12;
+      return `<div class="wvb" style="height:${h}px;${active?`animation:pulse ${spd}s ease-in-out infinite alternate;animation-delay:${i*.04}s`:''}"></div>`;
+    });
+    return `<div class="wv">${bars.join('')}</div>`;
+  }
+
+  function startRec() {
+    if(recPhase!==0)return;
+    longFired=false;
+    clearTimeout(pressTimer);
+    pressTimer=setTimeout(()=>{longFired=true;doSend();},800);
+    recPhase=1;
+    const mic=qs('#REC_MIC'); if(mic){mic.className='bmic rec';mic.innerHTML='<div style="width:16px;height:16px;border-radius:3px;background:white"></div>';}
+    const st=qs('#REC_STATUS'); if(st){st.textContent='录音中…';st.style.color='var(--rd)';st.style.animation='pulse 1.2s ease-in-out infinite';}
+    const ww=qs('#REC_WAVE'); if(ww){ww.innerHTML=buildWave(true);ww.querySelectorAll('.wvb').forEach(b=>b.style.background='var(--rd)');}
+    qs('#SBAR').textContent='录音中';
+  }
+
+  function endRec() {
+    clearTimeout(pressTimer);
+    if(recPhase!==1)return;
+    if(!longFired) setTimeout(doSend,900);
+  }
+
+  function doSend() {
+    if(recPhase===2)return;
+    recPhase=2;
+    const mic=qs('#REC_MIC');
+    if(mic){mic.className='bmic send';mic.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';}
+    const st=qs('#REC_STATUS'); if(st){st.textContent='发送中…';st.style.color='var(--gn)';st.style.animation='';}
+    qs('#SBAR').textContent='9:41';
+    setTimeout(goProcess,700);
+  }
+
+  // ── PROCESS ──
+  function goProcess() {
+    if(!scId)return;
+    const sc=SC[scId];
+    qs('#SBAR').textContent='9:41';
+    showPage(pg=>{
+      // minimal nav header with back arrow
+      const nav=mk('div'); nav.style.cssText='padding:8px 14px 6px;background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:6px;flex-shrink:0';
+      nav.innerHTML=`<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--mu);cursor:pointer" onclick="App.goHome()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>返回</div>`;
+      const scroll = mk('div','pg-scroll'); scroll.style.cssText='padding:10px 12px 20px;background:linear-gradient(180deg,rgba(0,122,255,.03) 0%,transparent 60%)';
+      const tb=mk('div','tsb asu');
+      tb.innerHTML=`<div class="tsb-m">🎙 语音输入</div><div class="tsb-t">${sc.src}</div>`;
+      scroll.appendChild(tb);
+      const ab=mk('div','aib asu'); ab.style.animationDelay='.12s';
+      const hdr=mk('div','ai-hdr');
+      const dots=mk('div','tdots'); [0,.18,.36].forEach(d=>{const dt=mk('div','tdot');dt.style.animationDelay=d+'s';dots.appendChild(dt);});
+      const albl=mk('span','abl'); albl.textContent='AI 正在整理…';
+      const chip=mk('div','tchip'); chip.style.cssText=`color:${sc.color};background:${sc.color}12;font-weight:600`; chip.textContent=`${sc.icon} ${sc.label}`;
+      hdr.appendChild(dots); hdr.appendChild(albl); hdr.appendChild(chip);
+      ab.appendChild(hdr);
+      const out=mk('div','docout'); ab.appendChild(out);
+      scroll.appendChild(ab);
+      pg.appendChild(nav);
+      pg.appendChild(scroll);
+      let si=0,ci=0,cel=null;
+      function nxt(){
+        if(si>=sc.doc.length){
+          // 1. update status to "done"
+          hdr.innerHTML=`<div style="width:7px;height:7px;border-radius:50%;background:var(--gn);flex-shrink:0"></div><span class="abl" style="color:var(--gn)">整理完成</span>`;
+          // 2. after brief pause, dissolve the AI bubble then transition
+          setTimeout(()=>{
+            ab.style.transition='opacity .4s ease, transform .4s ease';
+            ab.style.opacity='0'; ab.style.transform='scale(.97) translateY(-4px)';
+            setTimeout(()=>{
+              // dissolve whole process page, then show note
+              const procPg=qs('#SCR .pg');
+              if(procPg){procPg.style.transition='opacity .3s ease';procPg.style.opacity='0';}
+              setTimeout(goNote, 300);
+            }, 380);
+          }, 400);
+          return;
+        }
+        const s=sc.doc[si]; cel=mk('div',(s.t==='h1'?'dh1':s.t==='h2'?'dh2':'dbd')+' afi');
+        if(s.t==='h2')cel.style.color=sc.color;
+        out.appendChild(cel); ci=0; stream(s.v, s.t==='bd'?9:20);
+        scroll.scrollTop=scroll.scrollHeight;
+      }
+      function stream(txt,spd){
+        if(ci<=txt.length){cel.textContent=txt.slice(0,ci);ci++;twTimers.push(setTimeout(()=>stream(txt,spd),spd));scroll.scrollTop=scroll.scrollHeight;}
+        else{si++;twTimers.push(setTimeout(nxt,50));}
+      }
+      twTimers.push(setTimeout(nxt,420));
+    });
+  }
+
+  function goNote() {
+    if(!scId)return;
+    const sc=SC[scId]; editIdx=0; editLog=[];
+    qs('#SBAR').textContent='9:41';
+    // Use fade-in-up instead of slide for note page
+    const scr=qs('#SCR'); scr.innerHTML='';
+    const pg=mk('div','pg show fade-in-pg');
+      // pg is already position:absolute — do NOT override it
+      const bc=BCL[sc.id]; const now=new Date().toLocaleDateString('zh-CN');
+      // ── HEADER ──
+      const hdr=mk('div','nhd');
+      hdr.innerHTML=`<div class="nhd-row1">
+        <div class="nact" id="NOTE_BACK" style="display:flex;align-items:center;gap:4px;cursor:pointer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>返回
+        </div>
+        <div class="nacts">
+          <div class="nact" id="BTN_SRC" style="cursor:pointer;color:var(--mu);font-size:9.5px">原文</div>
+          <div class="nact">共享</div><div class="nact">···</div>
+        </div>
+      </div>
+      <div class="ntitle" id="NTitle">${sc.doc[0].v}</div>
+      <div class="nmeta" id="NMETA">
+        <span class="ntag" style="background:${bc.bg};color:${sc.color}">${sc.icon} ${NAMES[sc.id]}</span>
+        <span class="ndate">${now}</span>
+      </div>`;
+      hdr.querySelector('#NOTE_BACK').onclick=goHome;
+      hdr.querySelector('#BTN_SRC').onclick=()=>goSource(sc);
+      // ── SCROLLABLE BODY ──
+      const scroll=mk('div','pg-scroll'); scroll.style.paddingBottom='120px';
+      const nb=mk('div','nbody'); renderNoteBody(sc,nb); scroll.appendChild(nb);
+      pg.appendChild(hdr);
+      pg.appendChild(scroll);
+      // ── FLOATING INPUT ──
+      buildFloatInput(sc, pg);
+      scr.appendChild(pg);
+  }
+
+  // ── SOURCE PAGE (二级页) ──
+  function goSource(sc) {
+    showPage(pg=>{
+      const hdr=mk('div','nhd');
+      hdr.innerHTML=`<div class="nhd-row1">
+        <div class="nact" id="SRC_BACK" style="display:flex;align-items:center;gap:4px;cursor:pointer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>返回
+        </div>
+        <div style="font-size:12px;font-weight:600;color:var(--tx)">语音原文</div>
+        <div style="width:40px"></div>
+      </div>`;
+      hdr.querySelector('#SRC_BACK').onclick=goNote;
+      const scroll=mk('div','pg-scroll'); scroll.style.padding='14px';
+      // original voice text bubble
+      const srcCard=mk('div'); srcCard.style.cssText='background:var(--card);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)';
+      srcCard.innerHTML=`<div style="font-size:9.5px;font-weight:600;color:var(--mu);margin-bottom:8px;display:flex;align-items:center;gap:5px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="var(--rd)" opacity=".15"/><rect x="9" y="7" width="2" height="10" rx="1" fill="var(--rd)"/><rect x="13" y="7" width="2" height="10" rx="1" fill="var(--rd)"/></svg>语音转写</div>
+        <div style="font-size:12.5px;color:var(--tx);line-height:1.9">${sc.src}</div>`;
+      scroll.appendChild(srcCard);
+      // edit log
+      if(editLog.length){
+        const logHdr=mk('div'); logHdr.style.cssText='font-size:9.5px;font-weight:600;color:var(--mu);margin-bottom:8px;letter-spacing:.02em';
+        logHdr.textContent='修改记录';
+        scroll.appendChild(logHdr);
+        editLog.forEach((e,i)=>{
+          const item=mk('div'); item.style.cssText='background:var(--card);border-radius:12px;padding:10px 12px;margin-bottom:7px;box-shadow:0 1px 3px rgba(0,0,0,.05)';
+          item.innerHTML=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <div style="width:16px;height:16px;border-radius:50%;background:${e.color}18;color:${e.color};font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center">${i+1}</div>
+            <div style="font-size:11.5px;color:var(--tx)">${e.cmd}</div>
+          </div>
+          <div style="font-size:10.5px;color:${e.color};padding-left:22px">✓ ${e.reply}</div>`;
+          scroll.appendChild(item);
+        });
+      } else {
+        const empty=mk('div'); empty.style.cssText='text-align:center;padding:24px 0;font-size:12px;color:var(--mu)'; empty.textContent='暂无修改记录';
+        scroll.appendChild(empty);
+      }
+      pg.appendChild(hdr); pg.appendChild(scroll);
+    }, 'left'); // slide in from right
+  }
+
+  function appendChat(){} // no longer used
+
+  function renderNoteBody(sc,nb) {
+    if(sc.id==='research'){
+      nb.innerHTML=`<div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;margin-bottom:9px;color:var(--tx)">${sc.doc[0].v}</div>`;
+      const secs=sc.doc.slice(1);
+      secs.forEach(s=>{
+        if(s.t==='h2'){const h=mk('div','rh2');h.style.color='#007AFF';h.innerHTML=`<span style="background:#007AFF;width:3px;height:11px;border-radius:2px;display:inline-block;margin-right:6px"></span>${s.v}`;nb.appendChild(h);}
+        else{s.v.split('\n').forEach(l=>{const d=mk('div','rit');d.textContent=l.replace('— ','');nb.appendChild(d);});}
+      });
+    } else if(sc.id==='meeting'){
+      nb.innerHTML=`<div class="msec"><div class="msec-l">👥 参会人员</div>
+        <div class="avrow">${[['张','#f59e0b'],['李','#3b82f6'],['品','#a78bfa'],['我','#4ade80']].map(([n,c])=>`<div class="av" style="background:${c}22;color:${c}">${n}</div>`).join('')}</div>
+      </div>
+      <div class="msec"><div class="msec-l">📌 核心决策</div>
+        <div class="dec">AI 功能提前至五月上线</div><div class="dec">Q2 路线图正式确认</div>
+      </div>
+      <div class="msec"><div class="msec-l">⚡ 行动项</div>
+        <div class="aci"><div class="aow" style="background:rgba(245,158,11,.1);color:#f59e0b">李工</div><div><div class="adt">技术方案</div><div class="adl" id="LiDl">截止：下周五</div></div></div>
+        <div class="aci"><div class="aow" style="background:rgba(74,222,128,.1);color:#4ade80">我</div><div><div class="adt">跟进设计</div><div class="adl">截止：下周五</div></div></div>
+      </div>`;
+    } else if(sc.id==='idea'){
+      nb.innerHTML=`<div class="ihero">
+        <div class="ione" id="IdeaOne">AI 执行层笔记 — 从记录到真正完成任务</div>
+        <div class="isub">笔记不应只是存储，而应成为执行引擎<br>用户说话 → AI 直接帮你把它做完</div>
+        <div class="itags"><span class="itag">AI 原生</span><span class="itag">效率工具</span><span class="itag">执行引擎</span></div>
+      </div>
+      <div class="isec"><div class="isec-h">💡 机会点</div>
+        <div class="ibul">现有工具都在"记录"，缺少"执行"</div>
+        <div class="ibul">AI 时代用户期望大幅降低操作门槛</div>
+      </div>
+      <div class="isec"><div class="isec-h">🚀 下一步</div>
+        <div class="ibul">验证核心假设：用户是否愿意用语音替代打字</div>
+        <div class="ibul" id="IdeaLast">定义 MVP 功能边界</div>
+      </div>`;
+    } else if(sc.id==='task'){
+      nb.innerHTML=`<div class="tprog"><div class="tpbw"><div class="tpb" id="TP_BAR" style="width:0%"></div></div><div class="tptx" id="TP_TX">0 / 5 完成</div></div>
+      <div class="tgrp"><div class="tgl">💼 工作</div>
+        ${[{tx:'发融资材料给张总',p:'md',tm:''},{tx:'对接 UI 新版设计稿',p:'md',tm:''},{tx:'准备产品会 PPT',p:'hi',tm:'📅 今日 15:00'},{tx:'联系王先生确认见面',p:'hi',tm:''}].map(tk=>`
+        <div class="tki">
+          <div class="tcb" onclick="App.toggleTask(this)"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7 8,3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="tpri ${tk.p}">${tk.p==='hi'?'高':'中'}</div>
+          <div class="tkinfo"><div class="tktx">${tk.tx}</div>${tk.tm?`<div class="tktm">${tk.tm}</div>`:''}</div>
+        </div>`).join('')}
+      </div>
+      <div class="tgrp"><div class="tgl">🏠 个人</div>
+        <div class="tki">
+          <div class="tcb" onclick="App.toggleTask(this)"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7 8,3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="tpri lo">低</div>
+          <div class="tkinfo"><div class="tktx">给妈妈打电话</div></div>
+        </div>
+      </div>`;
+    }
+  }
+
+  function toggleTask(cb) {
+    cb.classList.toggle('ck');
+    const txt=cb.closest('.tki')?.querySelector('.tktx');
+    if(txt)txt.classList.toggle('done',cb.classList.contains('ck'));
+    const cbs=document.querySelectorAll('.tcb');
+    const done=[...cbs].filter(c=>c.classList.contains('ck')).length;
+    const bar=qs('#TP_BAR'); const tx=qs('#TP_TX');
+    if(bar)bar.style.width=`${done/cbs.length*100}%`;
+    if(tx)tx.textContent=`${done} / ${cbs.length} 完成`;
+  }
+
+  // ── FLOATING INPUT ──
+  function buildFloatInput(sc, pg) {
+    const upSVG=`<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><polyline points="12 5 12 19" stroke="white" stroke-width="2.5" stroke-linecap="round"/><polyline points="5 12 12 5 19 12" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+    const wrap=mk('div','float-wrap'); wrap.id='FLOAT_WRAP';
+
+    // ── CHIPS ROW (outside/above the card) ──
+    const chipsRow=mk('div','float-chips'); chipsRow.id='FLOAT_CHIPS';
+    sc.chips.forEach((c,i)=>{
+      const chip=mk('button','fc'); chip.textContent=c;
+      chip.style.animationDelay=`${i*.06}s`;
+      chip.onclick=()=>fillChip(c);
+      chipsRow.appendChild(chip);
+    });
+    wrap.appendChild(chipsRow);
+
+    // ── MAIN INPUT CARD (always visible, no done state) ──
+    const card=mk('div','float-card'); card.id='FLOAT_CARD';
+    const row=mk('div','float-input-row');
+    row.innerHTML=`<button class="fi-mic" id="FI_MIC"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill="var(--rd)"/><path d="M5 10a7 7 0 0 0 14 0" stroke="var(--rd)" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12" y2="21" stroke="var(--rd)" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <div class="fi-wave" id="FI_WAVE"></div>
+      <div class="fi-text" id="FI_TEXT">说出修改指令…</div>
+      <button class="fi-send hidden" id="FI_SEND">${upSVG}</button>`;
+    card.appendChild(row);
+    wrap.appendChild(card);
+    pg.appendChild(wrap);
+    const mic=wrap.querySelector('#FI_MIC');
+    mic.addEventListener('mousedown',startEditRec);
+    mic.addEventListener('mouseup',stopEditRec);
+    mic.addEventListener('touchstart',e=>{e.preventDefault();startEditRec();},{passive:false});
+    mic.addEventListener('touchend',e=>{e.preventDefault();stopEditRec();});
+    wrap.querySelector('#FI_SEND').addEventListener('click',sendEdit);
+  }
+
+  function fillChip(text) {
+    const area=qs('#FI_TEXT'); if(!area)return;
+    area.classList.add('active'); area.textContent='';
+    let i=0; clearInterval(editCharTimer);
+    editCharTimer=setInterval(()=>{
+      if(i<=text.length){area.textContent=text.slice(0,i);i++;}
+      else{clearInterval(editCharTimer);const snd=qs('#FI_SEND');if(snd)snd.classList.remove('hidden');}
+    },28);
+  }
+
+  function buildMiniWave(el, active) {
+    if(!el)return;
+    el.innerHTML=Array.from({length:8},(_,i)=>{
+      const h=active?(3+Math.abs(Math.sin(i*.9))*10):0;
+      return `<div class="fi-wvb" style="height:${h||2}px;${active?`animation:pulse ${0.4+(i%3)*.1}s ease-in-out infinite alternate;animation-delay:${i*.05}s`:'opacity:.3'}"></div>`;
+    }).join('');
+  }
+
+  function switchToSuggest(){
+    const fc=qs('#FLOAT_CARD'); if(fc)fc.style.opacity='1';
+  }
+  function switchToRec(){}
+
+  function startEditRec() {
+    const sc=SC[scId]; if(!sc||editIdx>=sc.edits.length)return;
+    const mic=qs('#FI_MIC'); const area=qs('#FI_TEXT'); const snd=qs('#FI_SEND');
+    if(!mic||!area)return;
+    mic.classList.add('rec');
+    area.classList.add('active'); area.textContent='';
+    if(snd)snd.classList.add('hidden');
+    buildMiniWave(qs('#FI_WAVE'), true);
+    const cmd=sc.edits[editIdx].cmd; let i=0;
+    clearInterval(editCharTimer);
+    editCharTimer=setInterval(()=>{
+      if(i<=cmd.length){area.textContent=cmd.slice(0,i);i++;}
+      else{clearInterval(editCharTimer);if(snd)snd.classList.remove('hidden');}
+    },32);
+  }
+
+  function stopEditRec() {
+    clearInterval(editCharTimer);
+    const mic=qs('#FI_MIC'); if(mic)mic.classList.remove('rec');
+    buildMiniWave(qs('#FI_WAVE'), false);
+    setTimeout(()=>{const snd=qs('#FI_SEND');if(snd)snd.classList.remove('hidden');},200);
+  }
+
+  function sendEdit() {
+    const sc=SC[scId]; if(!sc||editIdx>=sc.edits.length)return;
+    const edit=sc.edits[editIdx];
+    const area=qs('#FI_TEXT'); const snd=qs('#FI_SEND');
+    if(area){area.classList.add('active');area.innerHTML='<span style="color:var(--bl);animation:pulse 1s infinite;display:inline-block">AI 处理中…</span>';}
+    if(snd)snd.classList.add('hidden');
+    buildMiniWave(qs('#FI_WAVE'), false);
+    setTimeout(()=>{
+      const pg=qs('#SCR .pg'); const nb=qs('#SCR .nbody');
+      if(edit.fn) edit.fn(nb, pg);
+      editLog.push({cmd:edit.cmd,reply:edit.reply,color:sc.color});
+      editIdx++;
+      const area2=qs('#FI_TEXT');
+      if(area2){area2.className='fi-text';area2.textContent=editIdx<sc.edits.length?'还有要修改的吗？':'继续修改或发送…';}
+      buildMiniWave(qs('#FI_WAVE'),false);
+      // after all edits: swap chips for action buttons
+      if(editIdx>=sc.edits.length){
+        setTimeout(()=>{
+          const cr=qs('#FLOAT_CHIPS'); if(!cr)return;
+          cr.innerHTML=''; // clear old chips
+          sc.fins.forEach((f,i)=>{
+            const btn=mk('button','fc'); btn.textContent=f.l;
+            btn.style.animationDelay=`${i*.07}s`;
+            // all white, primary action gets a subtle left indicator only
+            if(f.hi){btn.style.fontWeight='600';}
+            cr.appendChild(btn);
+          });
+        },280);
+      }
+    },500);
+  }
+
+  // ── LIBRARY ──
+  function goLibrary() {
+    qs('#SBAR').textContent='9:41';
+    showPage(pg=>{
+      const scroll=mk('div','pg-scroll'); scroll.style.paddingBottom='16px';
+      const bk=mk('div','bk'); bk.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg><span>返回主页</span>`; bk.onclick=goHome; scroll.appendChild(bk);
+      const hdr=mk('div'); hdr.style.cssText='padding:11px 13px 6px'; hdr.innerHTML='<div style="font-size:14px;font-weight:700;margin-bottom:3px">全部笔记类型对比</div><div style="font-family:JetBrains Mono,monospace;font-size:8.5px;color:var(--mu);letter-spacing:.1em">4 种输入 · AI 自动识别 · 语音修改</div>'; scroll.appendChild(hdr);
+      LIBDATA.forEach((n,i)=>{
+        const sc=SC[n.id]; const bc=BCL[n.id]; const card=mk('div',`nc c-${CLRMAP[n.id]} asu`); card.style.animationDelay=`${i*.07}s`;
+        card.innerHTML=`<div class="nc-top"><div class="nc-title">${n.title}</div><div style="font-size:13px">${sc.icon}</div></div>
+          <div class="nc-prev">${n.prev}</div>
+          <div class="nc-foot"><div class="nc-badge" style="background:${bc.bg};color:${bc.c}">${sc.label}</div><div class="nc-time" style="margin-left:auto">✦ 3次修改</div></div>
+          <div style="margin-top:7px;padding-top:6px;border-top:1px solid rgba(30,41,59,.6);display:flex;gap:4px;flex-wrap:wrap">
+            ${sc.fins.map(f=>`<div style="font-size:8.5px;font-family:JetBrains Mono,monospace;padding:2px 7px;border-radius:5px;${f.hi?`background:${sc.color}12;border:1px solid ${sc.color}30;color:${sc.color}`:'background:rgba(255,255,255,.04);border:1px solid var(--bd);color:var(--dm)'}">${f.l}</div>`).join('')}
+          </div>`;
+        card.onclick=()=>select(n.id); scroll.appendChild(card);
+      });
+      const sum=mk('div','sum asu'); sum.style.animationDelay='.28s';
+      sum.innerHTML=`<div style="font-size:10px;font-weight:600;color:var(--mu);letter-spacing:.02em">本次统计</div>
+        <div class="sum-g">
+          ${[['4','输入类型'],['12','语音修改'],['0','键盘输入'],['100%','AI 自动化']].map(([v,l])=>`<div class="sum-i"><div class="sum-v">${v}</div><div class="sum-l">${l}</div></div>`).join('')}
+        </div>`; scroll.appendChild(sum);
+      pg.appendChild(scroll);
+    });
+  }
+
+  // ── SELECT SCENARIO ──
+  function select(id) {
+    scId=id; editIdx=0;
+    updateTabs(); updatePanel();
+    goRecord();
+  }
+
+  // ── AUTO DEMO ──
+  async function autoDemo() {
+    if(autoRunning)return;
+    autoRunning=true;
+    const btn=qs('#AUTO_BTN'); btn.textContent='演示中…'; btn.style.opacity='.6';
+    if(!scId){select('research');await delay(400);}
+    else{goRecord();await delay(500);}
+    startRec(); await delay(1100); doSend(); await delay(9800);
+      // small pause then start editing via floating input
+      const sc=SC[scId];
+    for(let i=0;i<sc.edits.length;i++){
+      await delay(700); startEditRec();
+      await delay(sc.edits[i].cmd.length*33+400);
+      stopEditRec(); await delay(400); sendEdit(); await delay(1400);
+    }
+    autoRunning=false; btn.textContent='▶ 自动演示完整流程'; btn.style.opacity='1';
+  }
+
+  // ── RESET ──
+  function reset() {
+    clearTimers(twTimers); twTimers=[];
+    clearInterval(editCharTimer); clearTimeout(pressTimer);
+    scId=null; editIdx=0; autoRunning=false; recPhase=0; longFired=false; editLog=[];
+    qs('#AUTO_BTN').textContent='▶ 自动演示完整流程'; qs('#AUTO_BTN').style.opacity='1';
+    SCLIST.forEach(id=>{const t=qs('#TAB_'+id);if(t)t.className='tab';});
+    qs('#RP_CONTENT').innerHTML='<div style="font-size:10.5px;color:var(--mu);line-height:1.7">选择上方类型查看该类型专属交互模式</div>';
+    qs('#RP_EG').innerHTML='—';
+    goHome();
+  }
+
+  // ── INIT ──
+  function init() { buildTabs(); goHome(); }
+
+  return { init, select, autoDemo, reset, goLibrary, goHome, toggleTask, startRec, endRec, doSend, startEditRec, stopEditRec, sendEdit, switchToRec, switchToSuggest };
+})();
+
+App.init();
+</script>
+</body>
+</html>

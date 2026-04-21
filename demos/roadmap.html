@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI笔记 v1 月度路线图</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #12151c;
+    --surface2: #1a1e28;
+    --border: #252a36;
+    --accent1: #4f8ef7;
+    --accent2: #7c5cfc;
+    --accent3: #00d4a0;
+    --accent4: #f7a84f;
+    --warn: #f75f5f;
+    --text: #e8ecf4;
+    --text-muted: #6b7594;
+    --text-dim: #3d4560;
+    --p0: #4f8ef7;
+    --p1: #00d4a0;
+    --w1: #f75f5f;
+    --w2: #f7a84f;
+    --w3: #7c5cfc;
+    --w4: #4f8ef7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 48px 32px;
+    background-image:
+      radial-gradient(ellipse 60% 40% at 10% 0%, rgba(79,142,247,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 90% 100%, rgba(124,92,252,0.06) 0%, transparent 70%);
+  }
+
+  .header {
+    max-width: 1140px;
+    margin: 0 auto 48px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left h1 {
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .header-left h1 span {
+    background: linear-gradient(90deg, var(--accent1), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header-left p {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .header-right {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-p0 { background: rgba(79,142,247,0.15); color: var(--p0); border: 1px solid rgba(79,142,247,0.3); }
+  .badge-p1 { background: rgba(0,212,160,0.12); color: var(--p1); border: 1px solid rgba(0,212,160,0.25); }
+  .badge-star { background: rgba(247,168,79,0.15); color: var(--accent4); border: 1px solid rgba(247,168,79,0.3); }
+
+  .strategy-bar {
+    max-width: 1140px;
+    margin: 0 auto 40px;
+    background: rgba(247,95,95,0.06);
+    border: 1px solid rgba(247,95,95,0.2);
+    border-radius: 12px;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .strategy-bar .icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .strategy-bar p {
+    font-size: 13px;
+    color: #faa;
+    line-height: 1.6;
+  }
+
+  .strategy-bar strong {
+    color: #f99;
+    font-weight: 700;
+  }
+
+  .roadmap {
+    max-width: 1140px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .week {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+  }
+
+  .week::after {
+    content: '';
+    position: absolute;
+    right: -8px;
+    top: 60px;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--border), transparent);
+  }
+
+  .week:last-child::after { display: none; }
+
+  .week-header {
+    padding: 16px 20px;
+    border-radius: 12px 12px 0 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .week-1 .week-header { background: linear-gradient(135deg, rgba(247,95,95,0.2), rgba(247,95,95,0.05)); border: 1px solid rgba(247,95,95,0.3); }
+  .week-2 .week-header { background: linear-gradient(135deg, rgba(247,168,79,0.2), rgba(247,168,79,0.05)); border: 1px solid rgba(247,168,79,0.3); }
+  .week-3 .week-header { background: linear-gradient(135deg, rgba(124,92,252,0.2), rgba(124,92,252,0.05)); border: 1px solid rgba(124,92,252,0.3); }
+  .week-4 .week-header { background: linear-gradient(135deg, rgba(79,142,247,0.2), rgba(79,142,247,0.05)); border: 1px solid rgba(79,142,247,0.3); }
+
+  .week-label {
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    opacity: 0.7;
+  }
+
+  .week-1 .week-label { color: var(--w1); }
+  .week-2 .week-label { color: var(--w2); }
+  .week-3 .week-label { color: var(--w3); }
+  .week-4 .week-label { color: var(--w4); }
+
+  .week-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .week-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .week-theme {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    line-height: 1.4;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .week-1 .focus-tag { background: rgba(247,95,95,0.1); color: var(--w1); border-color: rgba(247,95,95,0.3); }
+  .week-2 .focus-tag { background: rgba(247,168,79,0.1); color: var(--w2); border-color: rgba(247,168,79,0.3); }
+
+  .focus-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid;
+    margin-top: 6px;
+    letter-spacing: 0.3px;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: 3px 0 0 3px;
+  }
+
+  .feature-card.cat-voice::before { background: var(--accent3); }
+  .feature-card.cat-ai::before { background: var(--accent2); }
+  .feature-card.cat-struct::before { background: var(--accent4); }
+  .feature-card.cat-mem::before { background: var(--accent1); }
+  .feature-card.cat-sys::before { background: var(--text-muted); }
+
+  .feature-card:hover {
+    border-color: rgba(255,255,255,0.15);
+    transform: translateY(-1px);
+  }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .card-name {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .card-owner {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .card-date {
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    color: var(--text-dim);
+    padding: 1px 5px;
+    background: var(--surface2);
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+
+  .card-note {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+    line-height: 1.4;
+  }
+
+  .star-feature {
+    background: linear-gradient(135deg, rgba(247,168,79,0.05), var(--surface));
+    border-color: rgba(247,168,79,0.2);
+  }
+
+  .cat-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-weight: 500;
+    margin-bottom: 4px;
+    padding-left: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .section-divider {
+    margin: 4px 0;
+    border: none;
+    border-top: 1px dashed var(--border);
+  }
+
+  .milestone {
+    max-width: 1140px;
+    margin: 40px auto 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .milestone-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .milestone-icon { font-size: 24px; margin-bottom: 8px; }
+  .milestone-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .milestone-value { font-size: 22px; font-weight: 900; }
+  .m1 .milestone-value { color: var(--w1); }
+  .m2 .milestone-value { color: var(--w2); }
+  .m3 .milestone-value { color: var(--p1); }
+  .m4 .milestone-value { color: var(--w4); }
+
+  .footer {
+    max-width: 1140px;
+    margin: 40px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .cat-legend {
+    max-width: 1140px;
+    margin: 0 auto 32px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .cat-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .cat-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 900px) {
+    .roadmap, .milestone { grid-template-columns: 1fr 1fr; }
+    .header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>AI 笔记 <span>v1 月度路线图</span></h1>
+    <p>2025年3月 — 前两周聚焦差异化亮点功能，建立对小米笔记的竞争壁垒</p>
+  </div>
+  <div class="header-right">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--p0)"></div>
+      <span>P0 核心需求</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--p1)"></div>
+      <span>P1 重要需求</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--accent4)"></div>
+      <span>⭐ 差异化亮点</span>
+    </div>
+  </div>
+</div>
+
+<div class="strategy-bar">
+  <div class="icon">🎯</div>
+  <p>老板核心策略：<strong>前两周（3/5–3/16）优先交付与小米笔记的差异化亮点功能</strong>，快速建立 AI 能力壁垒；后两周补齐系统级能力、P1功能及整体优化。</p>
+</div>
+
+<div class="cat-legend">
+  <div class="cat-legend-item"><div class="cat-dot" style="background:var(--accent3)"></div>语音输入</div>
+  <div class="cat-legend-item"><div class="cat-dot" style="background:var(--accent2)"></div>笔记 AI 对话</div>
+  <div class="cat-legend-item"><div class="cat-dot" style="background:var(--accent4)"></div>内容结构化 / 自动生成</div>
+  <div class="cat-legend-item"><div class="cat-dot" style="background:var(--accent1)"></div>AskAI 记忆库</div>
+  <div class="cat-legend-item"><div class="cat-dot" style="background:var(--text-muted)"></div>系统级能力</div>
+</div>
+
+<div class="roadmap">
+
+  <!-- WEEK 1 -->
+  <div class="week week-1">
+    <div class="week-header">
+      <div class="week-label">Week 1</div>
+      <div class="week-title">差异化冲刺</div>
+      <div class="week-date">3/5 – 3/9</div>
+      <div class="week-theme">交付最核心的 AI 差异化功能，首批可演示</div>
+      <div class="focus-tag">⭐ 差异化重点周</div>
+    </div>
+
+    <div class="cat-label">语音输入</div>
+    <div class="feature-card cat-voice star-feature">
+      <div class="card-top">
+        <div class="card-name">笔记 APP 内语音输入</div>
+        <span class="badge badge-p0">P0</span>
+      </div>
+      <div class="card-meta">
+        <span class="badge badge-star">⭐ 差异化</span>
+        <span class="card-date">3.6</span>
+        <span class="card-owner">👤 刘超飞</span>
+      </div>
+      <div class="card-note">ASR + 录音能力，语音优先降低输入门槛</div>
+    </div>
+
+    <div class="cat-label">笔记 AI 对话</div>
+    <div class="feature-card cat-ai star-feature">
+      <div class="card-top">
+        <div class="card-name">与笔记内容直接对话</div>
+        <span class="badge badge-p0">P0</span>
+      </div>
+      <div class="card-meta">
+        <span class="badge badge-star">⭐ 差异化</span>
+        <span class="card-date">3.7</span>
+        <span class="card-owner">👤 潘睿</span>
+      </div>
+      <div class="card-note">Agent 搭建，用户感知到「AI 笔记」核心体验</div>
+    </div>
+
+    <div class="cat-label">内容自动生成</div>
+    <div class="feature-card cat-struct star-feature">
+      <div class="card-top">
+        <div class="card-name">会议录音自动整理</div>
+        <span class="badge badge-p1">P1</span>
+      </div>
+      <div class="card-meta">
+        <span class="badge badge-star">⭐ 差异化</span>
+        <span class="card-date">3.7</span>
+        <span class="card-owner">👤 刘超飞</span>
+      </div>
+      <div class="card-note">LLM 能力驱动，录完自动整理成结构化笔记</div>
+    </div>
+  </div>
+
+  <!-- WEEK 2 -->
+  <div class="week week-2">
+    <div class="week-header">
+      <div class="week-label">Week 2</div>
+      <div class="week-title">AI 能力完善</div>
+      <div class="week-date">3/10 – 3/16</div>
+      <div class="week-theme">完成剩余差异化功能，AI 闭环体验可 Demo</div>
+      <div class="focus-tag">⭐ 差异化重点周</div>
+    </div>
+
+    <div class="cat-label">笔记 AI 对话</div>
+    <div class="feature-card cat-ai star-feature">
+      <div class="card-top">
+        <div class="card-name">通过对话修改和补充记录</div>
+        <span class="badge badge-p0">P0</span>
+      </div>
+      <div class="card-meta">
+        <span class="badge badge-star">⭐ 差异化</span>
+        <span class="card-date">3.9</span>
+        <span class="card-owner">👤 潘睿</span>
+      </div>
+      <div class="card-note">需大模型精准修改能力攻坚</div>
+    </div>
+
+    <div class="cat-label">内容自动生成</div>
+    <div class="feature-card cat-struct star-feature">
+      <div class="card-top">
+        <div class="card-name">会议纪要自动生成</div>
+        <span class="badge badge-p0">P0</span>
+      </div>
+      <div class="card-meta">
+        <span class="badge badge-star">⭐ 差异化</span>
+        <span class="card-date">3.9</span>
+        <span class="card-owner">👤 潘睿</span>
+      </div>
+      <div class="card-note">提示词 Skill 驱动</div>
+    </div>
+
+    <div class="cat-label">语音输入</div>
+    <div class="feature-card cat-voice">
+      <div class="card-top">
+        <div class="card-name">通话录音自动进入笔记</div>
+        <span class="badge badge-p1">P1</span>
+      </div>
+      <div class="card-meta">
+        <span class="card-date">3.9</span>
+        <span class="card-owner">👤 赵洋</span>
+      </div>
+      <div class="card-note">外部能力拉通</div>
+    </div>
+
+    <div class="cat-label">AskAI 记忆库</div>
+    <div class="feature-card cat-mem star-feature">
+      <div class="card-top">
+        <div class="card-name">笔记内 Ask AI</div>
+        <span class="badge badge-p1">P1</span>
+      </div>
+      <div class="card-meta">
+        <span class="badge badge-star">⭐ 差异化</span>
+        <span class="card-date">3.10</span>
+        <span class="card-owner">👤 潘睿</span>
+      </div>
+      <div class="card-note">Agent 基础能力</div>
+    </div>
+
+    <div class="cat-label">内容自动生成</div>
+    <div class="feature-card cat-struct">
+      <div class="card-top">
+        <div class="card-name">学习总结 / 行动计划</div>
+        <span class="badge badge-p1">P1</span>
+      </div>
+      <div class="card-meta">
+        <span class="card-date">3.10</span>
+        <span class="card-owner">👤 潘睿</span>
+      </div>
+      <div class="card-note">提示词 Skill 驱动，产生直接价值</div>
+    </div>
+  </div>
+
+  <!-- WEEK 3 -->
+  <div class="week week-3">
+    <div class="week-header">
+      <div class="week-label">Week 3</div>
+      <div class="week-title">系统级能力接入</div>
+      <div class="week-date">3/17 – 3/23</div>
+      <div class="week-theme">拉通外部能力，扩展记忆库基础设施</div>
+    </div>
+
+    <div class="cat-label">语音输入（外部）</div>
+    <div class="feature-card cat-sys">
+      <div class="card-top">
+        <div class="card-name">系统级语音输入</div>
+        <span class="badge badge-p0">P0</span>
+      </div>
+      <div class="card-meta">
+        <span class="card-owner">外部能力，需拉通</span>
+      </div>
+    </div>
+
+    <div class="feature-card cat-sys">
+      <div class="card-top">
+        <div class="card-name">屏幕读屏 / 上下文感知记录</div>
+        <span class="badge badge-p0">P0</span>
+      </div>
+      <div class="card-meta">
+        <span class="card-owner">外部能力，需拉通</span>
+      </div>
+    </div>
+
+    <div class="cat-label">AskAI 记忆库</div>
+    <div class="feature-card cat-mem">
+      <div class="card-top">
+        <div class="card-name">记忆索引（基础能力）</div>
+        <span class="badge badge-p0">P0</span>
+      </div>
+      <div class="card-meta">
+        <span class="card-owner">👤 赵洋</span>
+      </div>
+      <div class="card-note">需先与 AI 子系统沟通，不一定露出 UI</div>
+    </div>
+
+    <div class="cat-label">内容自动生成</div>
+    <div class="feature-card cat-struct">
+      <div class="card-top">
+        <div class="card-name">项目复盘自动整理</div>
+        <span class="badge badge-p1">P1</span>
+      </div>
+      <div class="card-meta">
+        <span class="card-owner">👤 赵洋</span>
+      </div>
+      <div class="card-note">后台内容解析，产品方案 3/10 前明确</div>
+    </div>
+  </div>
+
+  <!-- WEEK 4 -->
+  <div class="week week-4">
+    <div class="week-header">
+      <div class="week-label">Week 4</div>
+      <div class="week-title">集成 & 打磨</div>
+      <div class="week-date">3/24 – 3/31</div>
+      <div class="week-theme">系统扩展、全面测试、性能优化，迎接上线</div>
+    </div>
+
+    <div class="cat-label">AskAI 系统扩展</div>
+    <div class="feature-card cat-mem">
+      <div class="card-top">
+        <div class="card-name">系统小爱 Ask AI 支持查询</div>
+        <span class="badge badge-p1">P1</span>
+      </div>
+      <div class="card-meta">
+        <span class="card-owner">MCP / Skill 暴露</span>
+      </div>
+      <div class="card-note">通过小爱入口扩大用户触达</div>
+    </div>
+
+    <div class="feature-card cat-ai">
+      <div class="card-top">
+        <div class="card-name">AI 对话能力优化</div>
+        <span class="badge badge-p0">P0</span>
+      </div>
+      <div class="card-meta">
+        <span class="card-owner">全团队</span>
+      </div>
+      <div class="card-note">提升修改准确率，覆盖更多对话场景</div>
+    </div>
+
+    <div class="feature-card cat-voice">
+      <div class="card-top">
+        <div class="card-name">多端语音输入全面联调</div>
+        <span class="badge badge-p0">P0</span>
+      </div>
+      <div class="card-meta">
+        <span class="card-owner">全团队</span>
+      </div>
+      <div class="card-note">ASR 准确率、延迟优化，多端一致性验证</div>
+    </div>
+
+    <div class="feature-card cat-struct">
+      <div class="card-top">
+        <div class="card-name">全功能集成测试 & 性能优化</div>
+        <span class="badge badge-p0">P0</span>
+      </div>
+      <div class="card-meta">
+        <span class="card-owner">全团队</span>
+      </div>
+      <div class="card-note">End-to-end 回归，Bug 清零，上线准备</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Milestone Summary -->
+<div class="milestone">
+  <div class="milestone-item m1">
+    <div class="milestone-icon">⭐</div>
+    <div class="milestone-label">差异化亮点功能（前2周交付）</div>
+    <div class="milestone-value">6 项</div>
+  </div>
+  <div class="milestone-item m2">
+    <div class="milestone-icon">📋</div>
+    <div class="milestone-label">P0 核心功能总数</div>
+    <div class="milestone-value">8 项</div>
+  </div>
+  <div class="milestone-item m3">
+    <div class="milestone-icon">🚀</div>
+    <div class="milestone-label">P1 重要功能总数</div>
+    <div class="milestone-value">6 项</div>
+  </div>
+  <div class="milestone-item m4">
+    <div class="milestone-icon">👥</div>
+    <div class="milestone-label">核心执行成员</div>
+    <div class="milestone-value">4 人</div>
+  </div>
+</div>
+
+<div class="footer">
+  <span>AI笔记 v1 · 月度路线图 · 2025.03</span>
+  <span>负责人：刘超飞 · 潘睿 · 赵洋 · Yang5 Zhao</span>
+</div>
+
+</body>
+</html>

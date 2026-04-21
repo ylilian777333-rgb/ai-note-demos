@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>AI笔记 · 首页概念</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f7f7f7;--card:#ffffff;--text:#1a1a1a;--sub:#555;--hint:#999;
+  --blue:#3478f6;--orange:#f5a623;--green:#34c759;--purple:#af52de;--red:#ff3b30;--cyan:#5ac8fa;
+  --radius:14px;--shadow:0 0.5px 2px rgba(0,0,0,.08);
+}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Display','PingFang SC','Noto Sans SC',sans-serif;min-height:100vh;overflow-x:hidden}
+.phone{width:393px;min-height:852px;margin:20px auto;background:var(--bg);position:relative;overflow:hidden;border-radius:44px;border:8px solid #1a1a1a;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+
+/* SVG icon helper */
+.icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.icon svg{display:block}
+
+.status-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 28px 0;font-size:12px;font-weight:600;color:var(--text)}
+.status-bar .time{font-size:15px;font-weight:700}
+.status-bar .right{display:flex;gap:6px;align-items:center;font-size:11px}
+
+.nav{display:flex;justify-content:space-between;align-items:center;padding:12px 20px 8px}
+.nav-title{font-size:28px;font-weight:700;letter-spacing:-.02em}
+.nav-actions{display:flex;gap:10px}
+.nav-btn{width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.04);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s}
+.nav-btn:hover{background:rgba(0,0,0,.08)}
+.nav-btn svg{color:var(--sub)}
+
+.content{padding:0 16px 100px}
+
+.section-label{font-size:12px;font-weight:600;color:var(--hint);padding:16px 4px 8px;letter-spacing:.02em}
+
+/* today */
+.today-card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.today-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.today-title{font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.today-badge{font-size:10px;background:rgba(52,120,246,.08);color:var(--blue);padding:3px 8px;border-radius:6px;font-weight:500}
+.today-items{display:flex;flex-direction:column;gap:12px}
+.today-item{display:flex;gap:10px;align-items:flex-start}
+.today-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.today-item-content{flex:1;min-width:0}
+.today-item-title{font-size:13px;font-weight:500;line-height:1.4}
+.today-item-meta{font-size:11px;color:var(--hint);margin-top:2px}
+.today-item-tag{display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;margin-top:4px;font-weight:500}
+
+/* smart grid */
+.smart-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.smart-card{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s}
+.smart-card:active{transform:scale(.97)}
+.smart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.smart-icon-wrap{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.smart-count{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;min-width:18px;text-align:center}
+.smart-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.smart-desc{font-size:11px;color:var(--hint);line-height:1.3}
+
+/* folder */
+.folder-row{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.folder-row::-webkit-scrollbar{display:none}
+.folder-chip{flex-shrink:0;display:flex;align-items:center;gap:4px;background:var(--card);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:500;box-shadow:var(--shadow);cursor:pointer;color:var(--sub)}
+.folder-chip.active{background:var(--text);color:#fff}
+
+/* note card */
+.note-card{background:var(--card);border-radius:12px;padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s}
+.note-card:active{transform:scale(.98)}
+.note-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.note-source{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:500;padding:2px 7px;border-radius:5px}
+.note-source svg{width:10px;height:10px}
+.note-time{font-size:11px;color:var(--hint)}
+.note-title{font-size:14px;font-weight:600;margin-bottom:4px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.note-preview{font-size:12px;color:var(--sub);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.note-tags{display:flex;gap:5px;margin-top:8px}
+.note-tag{font-size:10px;color:var(--hint);background:rgba(0,0,0,.03);padding:2px 7px;border-radius:4px}
+
+/* bottom */
+.bottom-bar{position:absolute;bottom:0;left:0;right:0;background:rgba(247,247,247,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,.06);padding:8px 16px 28px;display:flex;align-items:center;gap:8px}
+.input-bar{flex:1;display:flex;align-items:center;background:var(--card);border:1px solid rgba(0,0,0,.06);border-radius:22px;padding:9px 14px;gap:8px}
+.input-placeholder{font-size:13px;color:var(--hint);flex:1}
+.record-btn{width:42px;height:42px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(245,166,35,.25);transition:transform .15s}
+.record-btn:active{transform:scale(.9)}
+
+/* detail page */
+.detail-page{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:100;transform:translateX(100%);transition:transform .3s cubic-bezier(.25,.1,.25,1);overflow-y:auto;padding-bottom:80px}
+.detail-page.show{transform:translateX(0)}
+.detail-nav{display:flex;align-items:center;gap:8px;padding:48px 16px 12px;position:sticky;top:0;background:var(--bg);z-index:10}
+.detail-back{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(0,0,0,.04)}
+.detail-back:active{background:rgba(0,0,0,.1)}
+.detail-nav-title{font-size:15px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.detail-source{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:500;padding:3px 8px;border-radius:5px}
+.detail-body{padding:0 20px}
+.detail-title{font-size:22px;font-weight:700;line-height:1.3;margin-bottom:6px}
+.detail-meta{font-size:11px;color:var(--hint);margin-bottom:16px;display:flex;gap:12px}
+.detail-content{font-size:14px;line-height:1.8;color:var(--sub)}
+.detail-content p{margin-bottom:12px}
+.detail-content h3{font-size:15px;font-weight:600;color:var(--text);margin:20px 0 8px}
+.detail-content .todo{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:rgba(255,59,48,.04);border-radius:10px;margin:8px 0;font-size:13px}
+.detail-content .todo-check{width:18px;height:18px;border:2px solid var(--red);border-radius:4px;flex-shrink:0;margin-top:1px}
+.detail-content .todo.done .todo-check{background:var(--green);border-color:var(--green)}
+.detail-content .related{background:rgba(175,82,222,.04);border-radius:10px;padding:12px;margin-top:16px}
+.detail-content .related-label{font-size:11px;font-weight:600;color:var(--purple);margin-bottom:6px}
+.detail-content .related-item{font-size:13px;color:var(--text);padding:6px 0;border-bottom:1px solid rgba(0,0,0,.04)}
+.detail-content .related-item:last-child{border:none}
+
+/* search page */
+.search-page{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:200;transform:translateY(-100%);opacity:0;transition:all .3s cubic-bezier(.25,.1,.25,1);overflow-y:auto;padding-bottom:40px}
+.search-page.show{transform:translateY(0);opacity:1}
+.search-bar-wrap{padding:48px 16px 12px;position:sticky;top:0;background:var(--bg);z-index:10;display:flex;gap:8px;align-items:center}
+.search-input{flex:1;background:var(--card);border:1px solid rgba(0,0,0,.08);border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;outline:none;color:var(--text)}
+.search-input::placeholder{color:var(--hint)}
+.search-cancel{font-size:14px;color:var(--blue);font-weight:500;cursor:pointer;flex-shrink:0}
+.search-body{padding:0 16px}
+.search-section{margin-bottom:20px}
+.search-section-label{font-size:11px;font-weight:600;color:var(--hint);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.search-result{background:var(--card);border-radius:10px;padding:12px 14px;margin-bottom:6px;box-shadow:var(--shadow)}
+.search-result-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.search-result-preview{font-size:11px;color:var(--sub);line-height:1.4}
+.search-result-preview mark{background:rgba(52,120,246,.12);color:var(--blue);border-radius:2px;padding:0 2px}
+.search-result-meta{font-size:10px;color:var(--hint);margin-top:4px;display:flex;gap:8px}
+.search-ai-label{font-size:11px;color:var(--purple);font-weight:500;display:flex;align-items:center;gap:3px}
+
+.today-item{cursor:pointer;border-radius:10px;padding:6px;margin:-6px;transition:background .15s}
+.today-item:active{background:rgba(0,0,0,.03)}
+.note-card{cursor:pointer}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.a{animation:fadeUp .35s ease both}
+.d1{animation-delay:.04s}.d2{animation-delay:.08s}.d3{animation-delay:.12s}.d4{animation-delay:.16s}.d5{animation-delay:.2s}.d6{animation-delay:.24s}.d7{animation-delay:.28s}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="time">11:24</span>
+    <span class="right">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.56 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="10" x2="23" y2="14"/></svg>
+      86%
+    </span>
+  </div>
+
+  <div class="nav">
+    <div class="nav-title">笔记</div>
+    <div class="nav-actions">
+      <div class="nav-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      <div class="nav-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="section-label a">今日相关</div>
+    <div class="today-card a d1">
+      <div class="today-header">
+        <span class="today-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          今天有 3 件事跟你相关
+        </span>
+        <span class="today-badge">AI 整理</span>
+      </div>
+      <div class="today-items">
+        <div class="today-item">
+          <div class="today-icon" style="background:rgba(52,120,246,.06)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div class="today-item-content">
+            <div class="today-item-title">10:00 产品评审会</div>
+            <div class="today-item-meta">关联上次纪要 · 2条待办未完成</div>
+            <span class="today-item-tag" style="background:rgba(255,59,48,.06);color:var(--red)">待办：确认AI推荐排序方案</span>
+          </div>
+        </div>
+        <div class="today-item">
+          <div class="today-icon" style="background:rgba(52,199,89,.06)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          <div class="today-item-content">
+            <div class="today-item-title">昨天与张总的通话摘要</div>
+            <div class="today-item-meta">有 1 条待跟进事项</div>
+            <span class="today-item-tag" style="background:rgba(245,166,35,.06);color:var(--orange)">跟进：周五前发方案</span>
+          </div>
+        </div>
+        <div class="today-item">
+          <div class="today-icon" style="background:rgba(175,82,222,.06)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div class="today-item-content">
+            <div class="today-item-title">昨天的灵感和"首页改版"笔记有关联</div>
+            <div class="today-item-meta">AI 发现关联 · 点击查看</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="folder-row a d2">
+      <div class="folder-chip active">全部</div>
+      <div class="folder-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="8" y1="3" x2="8" y2="21"/></svg> 工作 <span style="font-size:10px;opacity:.5;margin-left:2px">12</span></div>
+      <div class="folder-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> 学习 <span style="font-size:10px;opacity:.5;margin-left:2px">8</span></div>
+      <div class="folder-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> 生活 <span style="font-size:10px;opacity:.5;margin-left:2px">5</span></div>
+      <div class="folder-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> 收藏</div>
+    </div>
+
+    <div class="section-label a d3">全部笔记</div>
+
+    <div class="note-card a d5">
+      <div class="note-head">
+        <span class="note-source" style="background:rgba(52,120,246,.06);color:var(--blue)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> 会议纪要</span>
+        <span class="note-time">今天 10:35</span>
+      </div>
+      <div class="note-title">产品评审会纪要 · 2026-04-13</div>
+      <div class="note-preview">决定采用A方案（卡片流），合集入口改为横滑卡片释放纵向空间。AI推荐tab点击率12%，本周出混合排序方案。</div>
+      <div class="note-tags"><span class="note-tag">产品设计</span><span class="note-tag">3条待办</span></div>
+    </div>
+
+    <div class="note-card a d5">
+      <div class="note-head">
+        <span class="note-source" style="background:rgba(52,199,89,.06);color:var(--green)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3"/></svg> 通话摘要</span>
+        <span class="note-time">昨天 17:22</span>
+      </div>
+      <div class="note-title">与张总通话 · 方案确认</div>
+      <div class="note-preview">张总确认了首页改版方向，要求周五前提交完整方案。重点关注AI推荐的准确性和用户留存数据。</div>
+      <div class="note-tags"><span class="note-tag">周五截止</span></div>
+    </div>
+
+    <div class="note-card a d6">
+      <div class="note-head">
+        <span class="note-source" style="background:rgba(245,166,35,.06);color:var(--orange)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> 灵感</span>
+        <span class="note-time">昨天 12:30</span>
+      </div>
+      <div class="note-title">首页可以加个AI推荐区</div>
+      <div class="note-preview">走路时想到的，首页除了时间线还可以有一个AI推荐区，根据用户最近的笔记内容推荐相关的历史笔记。</div>
+      <div class="note-tags"><span class="note-tag">产品设计</span><span class="note-tag">关联：首页改版</span></div>
+    </div>
+
+    <div class="note-card a d6">
+      <div class="note-head">
+        <span class="note-source" style="background:rgba(175,82,222,.06);color:var(--purple)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/></svg> MiClaw</span>
+        <span class="note-time">昨天 15:08</span>
+      </div>
+      <div class="note-title">2026年人工智能趋势分析报告</div>
+      <div class="note-preview">包含行业态势、技术突破、应用市场分析。由MiClaw根据对话指令生成并保存。</div>
+      <div class="note-tags"><span class="note-tag">AI</span><span class="note-tag">764字</span></div>
+    </div>
+
+    <div class="note-card a d7">
+      <div class="note-head">
+        <span class="note-source" style="background:rgba(90,200,250,.06);color:var(--cyan)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg> 录音</span>
+        <span class="note-time">04-11 14:20</span>
+      </div>
+      <div class="note-title">课堂笔记 · 机器学习基础</div>
+      <div class="note-preview">监督学习与非监督学习的区别，梯度下降算法原理，过拟合的解决方案。</div>
+      <div class="note-tags"><span class="note-tag">学习</span><span class="note-tag">32:15</span></div>
+    </div>
+
+    <div class="note-card a d7">
+      <div class="note-head">
+        <span class="note-source" style="background:rgba(0,0,0,.03);color:var(--sub)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg> 手动</span>
+        <span class="note-time">04-10 09:15</span>
+      </div>
+      <div class="note-title">WiFi密码 · 会议室B</div>
+      <div class="note-preview">密码：Xiaomi2026@meeting</div>
+      <div class="note-tags"><span class="note-tag">备忘</span></div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="input-bar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--hint)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      <span class="input-placeholder">说点什么，AI帮你记...</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--hint)" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+    </div>
+    <div class="record-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></div>
+  </div>
+
+  <!-- Detail: 产品评审会 -->
+  <div class="detail-page" id="detail-meeting">
+    <div class="detail-nav">
+      <div class="detail-back" onclick="closeDetail('detail-meeting')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="detail-nav-title">产品评审会纪要</div>
+      <span class="detail-source" style="background:rgba(52,120,246,.06);color:var(--blue)">会议纪要</span>
+    </div>
+    <div class="detail-body">
+      <div class="detail-title">产品评审会纪要 · 2026-04-13</div>
+      <div class="detail-meta"><span>今天 10:35</span><span>来自 MiClaw</span><span>764字</span></div>
+      <div class="detail-content">
+        <h3>会议共识</h3>
+        <p>1. 首页采用A方案（卡片流），合集入口改为横滑卡片释放纵向空间</p>
+        <p>2. 搜索栏保持顶部，下方用tab分类展示</p>
+        <p>3. AI推荐tab点击率12%，目标30%，本周出混合排序方案</p>
+        <h3>待办事项</h3>
+        <div class="todo"><div class="todo-check"></div><div>李四：本周五前出AI推荐排序方案</div></div>
+        <div class="todo"><div class="todo-check"></div><div>王五：两周内完成自定义词库接入</div></div>
+        <div class="todo done"><div class="todo-check"></div><div>赵六：下周一前完成A方案合集入口设计稿</div></div>
+        <h3>参会人</h3>
+        <p>张三、李四、王五、赵六</p>
+        <div class="related">
+          <div class="related-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" style="vertical-align:-1px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> AI 发现的关联笔记</div>
+          <div class="related-item"><span style="color:var(--hint);font-size:11px">同项目</span> 首页改版方案 v2 · 04-08</div>
+          <div class="related-item"><span style="color:var(--hint);font-size:11px">同参会人</span> 上次产品评审会纪要 · 03-28</div>
+          <div class="related-item"><span style="color:var(--hint);font-size:11px">同主题</span> AI推荐算法调研 · 03-25</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail: 通话摘要 -->
+  <div class="detail-page" id="detail-call">
+    <div class="detail-nav">
+      <div class="detail-back" onclick="closeDetail('detail-call')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="detail-nav-title">与张总通话</div>
+      <span class="detail-source" style="background:rgba(52,199,89,.06);color:var(--green)">通话摘要</span>
+    </div>
+    <div class="detail-body">
+      <div class="detail-title">与张总通话 · 方案确认</div>
+      <div class="detail-meta"><span>昨天 17:22</span><span>通话 8分32秒</span></div>
+      <div class="detail-content">
+        <h3>核心结论</h3>
+        <p>张总确认了首页改版方向，要求周五前提交完整方案。重点关注AI推荐的准确性和用户留存数据。</p>
+        <h3>待跟进</h3>
+        <div class="todo"><div class="todo-check"></div><div>周五前发送完整首页改版方案给张总</div></div>
+        <h3>通话要点</h3>
+        <p>1. 张总对A方案整体认可，但希望看到数据支撑</p>
+        <p>2. AI推荐需要和用户最近编辑的笔记强关联</p>
+        <p>3. 下周二安排一次线下评审</p>
+        <div class="related">
+          <div class="related-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" style="vertical-align:-1px"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> AI 发现的关联笔记</div>
+          <div class="related-item"><span style="color:var(--hint);font-size:11px">同一人</span> 产品评审会纪要 · 今天 10:35</div>
+          <div class="related-item"><span style="color:var(--hint);font-size:11px">同一人</span> 上次与张总通话 · 03-20</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail: 灵感关联 -->
+  <div class="detail-page" id="detail-idea">
+    <div class="detail-nav">
+      <div class="detail-back" onclick="closeDetail('detail-idea')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="detail-nav-title">灵感笔记</div>
+      <span class="detail-source" style="background:rgba(245,166,35,.06);color:var(--orange)">灵感</span>
+    </div>
+    <div class="detail-body">
+      <div class="detail-title">首页可以加个AI推荐区</div>
+      <div class="detail-meta"><span>昨天 12:30</span><span>语音速记</span></div>
+      <div class="detail-content">
+        <p>走路时想到的，首页除了时间线还可以有一个AI推荐区，根据用户最近的笔记内容推荐相关的历史笔记。比如用户刚写了一篇会议纪要，推荐区可以展示上次同主题的纪要。</p>
+        <div class="related">
+          <div class="related-label">AI 发现的关联笔记</div>
+          <div class="related-item">产品评审会纪要 · 2026-04-13</div>
+          <div class="related-item">首页改版方案 v2 · 2026-04-08</div>
+          <div class="related-item">AI推荐算法调研 · 2026-03-28</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Search Page -->
+  <div class="detail-page search-page" id="search-page">
+    <div class="search-bar-wrap">
+      <input class="search-input" placeholder="搜索笔记..." value="首页改版" readonly/>
+      <span class="search-cancel" onclick="closeDetail('search-page')">取消</span>
+    </div>
+    <div class="search-body">
+      <div class="search-section">
+        <div class="search-section-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> 精确匹配 · 2条</div>
+        <div class="search-result">
+          <div class="search-result-title">首页改版方案 v2</div>
+          <div class="search-result-preview">决定采用A方案（卡片流），<mark>首页改版</mark>合集入口改为横滑卡片释放纵向空间</div>
+          <div class="search-result-meta"><span>04-08</span><span>会议纪要</span></div>
+        </div>
+        <div class="search-result">
+          <div class="search-result-title">首页可以加个AI推荐区</div>
+          <div class="search-result-preview">走路时想到的，<mark>首页</mark>除了时间线还可以有一个AI推荐区</div>
+          <div class="search-result-meta"><span>昨天</span><span>灵感速记</span></div>
+        </div>
+      </div>
+      <div class="search-section">
+        <div class="search-section-label"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> <span class="search-ai-label">AI 语义关联 · 3条</span></div>
+        <div class="search-result">
+          <div class="search-result-title">产品评审会纪要 · 2026-04-13</div>
+          <div class="search-result-preview">讨论了首页方案选型，AI推荐tab点击率优化</div>
+          <div class="search-result-meta"><span>今天</span><span>会议纪要</span><span style="color:var(--purple)">关联：同项目</span></div>
+        </div>
+        <div class="search-result">
+          <div class="search-result-title">与张总通话 · 方案确认</div>
+          <div class="search-result-preview">张总确认了首页改版方向，要求周五前提交完整方案</div>
+          <div class="search-result-meta"><span>昨天</span><span>通话摘要</span><span style="color:var(--purple)">关联：同主题</span></div>
+        </div>
+        <div class="search-result">
+          <div class="search-result-title">AI推荐算法调研</div>
+          <div class="search-result-preview">基于编辑时间+内容相似度的混合排序方案调研</div>
+          <div class="search-result-meta"><span>03-25</span><span>手动笔记</span><span style="color:var(--purple)">关联：同主题</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.today-item').forEach((item, i) => {
+  const targets = ['detail-meeting', 'detail-call', 'detail-idea'];
+  item.onclick = () => openDetail(targets[i]);
+});
+document.querySelectorAll('.note-card').forEach((card, i) => {
+  const targets = ['detail-meeting', 'detail-call', 'detail-idea', 'detail-idea', 'detail-meeting', 'detail-call'];
+  card.onclick = () => openDetail(targets[i] || 'detail-meeting');
+});
+// search button
+document.querySelectorAll('.nav-btn')[0].onclick = () => openDetail('search-page');
+
+function openDetail(id) {
+  document.getElementById(id).classList.add('show');
+}
+function closeDetail(id) {
+  document.getElementById(id).classList.remove('show');
+}
+</script>
+</body>
+</html>

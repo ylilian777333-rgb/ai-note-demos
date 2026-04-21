@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 笔记 · 交互演示</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #1677FF;
+  --blue-light: #E6F0FF;
+  --orange: #FF6A00;
+  --orange-light: #FFF3EC;
+  --orange-bg: #FF8A40;
+  --gray-1: #F5F5F5;
+  --gray-2: #E8E8E8;
+  --gray-3: #BFBFBF;
+  --gray-4: #8C8C8C;
+  --gray-5: #595959;
+  --gray-6: #262626;
+  --green: #52C41A;
+  --purple: #722ED1;
+  --bg-page: #F0F0F0;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+body {
+  background: #1a1a1a;
+  font-family: 'Noto Sans SC', -apple-system, sans-serif;
+  font-size: 14px;
+  min-width: 1200px;
+}
+
+/* ── PAGE NAV ── */
+.page-nav {
+  position: sticky; top:0; z-index:999;
+  background: rgba(20,20,20,0.95); backdrop-filter:blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display:flex; align-items:center; gap:6px; padding:12px 28px;
+}
+.nav-logo { font-size:13px; font-weight:600; color:#fff; margin-right:14px; }
+.nav-pill {
+  padding:6px 16px; border-radius:20px;
+  border:1px solid rgba(255,255,255,0.15);
+  background:transparent; color:rgba(255,255,255,0.45);
+  font-size:12px; cursor:pointer; font-family:inherit;
+  transition:all .2s;
+}
+.nav-pill:hover { border-color:rgba(255,255,255,0.4); color:rgba(255,255,255,0.8); }
+.nav-pill.on { background:#1677FF; border-color:#1677FF; color:#fff; }
+
+/* ── STAGE ── */
+.stage { padding:40px 32px 80px; }
+
+.flow-block { margin-bottom:64px; }
+
+.flow-title {
+  font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+  color:rgba(255,255,255,0.3); margin-bottom:24px;
+  display:flex; align-items:center; gap:10px;
+}
+.flow-title::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.06); }
+
+.flow-label {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 12px; border-radius:20px;
+  font-size:11px; color:rgba(255,255,255,0.5);
+  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+  margin-bottom:20px;
+}
+.flow-sub-label {
+  font-size:11px; color:rgba(255,255,255,0.25); margin-bottom:14px; padding-left:2px;
+}
+
+/* ── PHONES ROW ── */
+.phones-row { display:flex; gap:14px; align-items:flex-start; flex-wrap:nowrap; }
+
+/* ── PHONE FRAME ── */
+.phone {
+  width: 200px;
+  height: 432px;
+  border-radius: 38px;
+  background: #fff;
+  border: 1.5px solid rgba(0,0,0,0.12);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow:
+    0 0 0 4px rgba(0,0,0,0.15),
+    0 24px 64px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+}
+.phone:hover { transform:translateY(-3px); box-shadow:0 0 0 4px rgba(0,0,0,0.15),0 32px 80px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.9); }
+.phone-notch {
+  position:absolute; top:6px; left:50%; transform:translateX(-50%);
+  width:56px; height:5px; background:#111; border-radius:3px; z-index:100;
+}
+
+/* ── STATUS BAR ── */
+.status-bar {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:14px 16px 4px;
+  font-size:9px; font-weight:600; color:#111;
+  position:relative; z-index:10;
+}
+.sb-right { display:flex; align-items:center; gap:3px; font-size:8px; }
+
+/* ── SCREEN BASE ── */
+.screen {
+  position:absolute; inset:0;
+  background:#fff;
+  display:flex; flex-direction:column;
+  overflow:hidden;
+}
+
+/* ── NAV BAR (note) ── */
+.nav-bar {
+  display:flex; align-items:center; gap:6px;
+  padding:6px 12px 8px;
+  border-bottom:1px solid rgba(0,0,0,0.06);
+}
+.nav-back { font-size:18px; color:var(--blue); line-height:1; cursor:pointer; }
+.nav-center { flex:1; font-size:13px; font-weight:600; color:var(--gray-6); text-align:center; }
+.nav-actions { display:flex; gap:12px; }
+.nav-action { font-size:15px; color:var(--gray-4); cursor:pointer; }
+
+/* ── NOTE BODY ── */
+.note-body {
+  flex:1; overflow-y:auto; padding:12px 14px;
+  font-size:11px; color:var(--gray-6); line-height:1.7;
+  scrollbar-width:none;
+}
+.note-body::-webkit-scrollbar { display:none; }
+.note-h1 { font-size:14px; font-weight:700; color:var(--gray-6); margin-bottom:10px; }
+.note-section { margin-bottom:10px; }
+.note-section-title {
+  font-size:10px; font-weight:700; color:var(--gray-4);
+  letter-spacing:.06em; text-transform:uppercase; margin-bottom:5px;
+}
+.note-field { display:flex; gap:4px; margin-bottom:3px; }
+.note-label { color:var(--gray-4); flex-shrink:0; min-width:28px; }
+.note-value { color:var(--gray-6); }
+.note-value.blue { color:var(--blue); }
+.note-value.orange { color:var(--orange); font-weight:500; }
+
+/* Chips */
+.chip-row { display:flex; gap:5px; flex-wrap:wrap; margin-top:4px; }
+.chip {
+  padding:3px 8px; border-radius:12px; font-size:9px; font-weight:500;
+  display:flex; align-items:center; gap:3px;
+}
+.chip.blue { background:var(--blue-light); color:var(--blue); }
+.chip.orange { background:var(--orange-light); color:var(--orange); }
+.chip.gray { background:var(--gray-1); color:var(--gray-4); }
+.chip.done { background:#F6FFED; color:var(--green); }
+
+/* Divider */
+.divider { height:1px; background:var(--gray-2); margin:8px 0; }
+
+/* Todo items */
+.todo-item { display:flex; align-items:flex-start; gap:6px; margin-bottom:4px; padding:4px 0; }
+.todo-check {
+  width:14px; height:14px; border-radius:3px;
+  border:1.5px solid var(--gray-3); flex-shrink:0; margin-top:1px;
+  display:flex; align-items:center; justify-content:center;
+}
+.todo-check.done { background:var(--blue); border-color:var(--blue); }
+.todo-check.done::after { content:'✓'; font-size:8px; color:#fff; font-weight:700; }
+.todo-text { font-size:11px; color:var(--gray-6); line-height:1.5; flex:1; }
+.todo-text.done { color:var(--gray-3); text-decoration:line-through; }
+.todo-action {
+  font-size:9px; padding:2px 7px; border-radius:10px;
+  background:var(--blue-light); color:var(--blue); cursor:pointer; flex-shrink:0;
+}
+.todo-action.orange { background:var(--orange-light); color:var(--orange); }
+
+/* ── BOTTOM INPUT BAR ── */
+.bottom-bar {
+  border-top:1px solid var(--gray-2);
+  padding:8px 12px;
+  background:#fff;
+}
+.input-row {
+  display:flex; align-items:center; gap:6px;
+  background:var(--gray-1); border-radius:20px; padding:6px 10px;
+}
+.input-text { flex:1; font-size:11px; color:var(--gray-4); }
+.input-voice { font-size:15px; color:var(--gray-4); }
+.ai-trigger-btn {
+  padding:5px 10px; border-radius:12px;
+  background: linear-gradient(135deg, var(--orange), #FF4D00);
+  color:#fff; font-size:10px; font-weight:600;
+  cursor:pointer; flex-shrink:0; border:none; font-family:inherit;
+  box-shadow:0 2px 6px rgba(255,106,0,0.35);
+  transition:all .15s;
+}
+.ai-trigger-btn:hover { transform:scale(1.05); }
+
+/* ── CHAT PANEL ── */
+.chat-panel {
+  position:absolute; inset:0; z-index:50;
+  display:flex; flex-direction:column;
+  background:#fff;
+  animation: slideUp .3s cubic-bezier(.16,1,.3,1);
+}
+@keyframes slideUp { from{transform:translateY(100%);opacity:.8} to{transform:translateY(0);opacity:1} }
+
+.chat-top {
+  display:flex; align-items:center;
+  padding:10px 12px 8px;
+  border-bottom:1px solid var(--gray-2);
+}
+.chat-context-pill {
+  flex:1; background:var(--gray-1); border-radius:8px; padding:5px 8px;
+  font-size:9px; color:var(--gray-5); display:flex; align-items:center; gap:4px;
+  overflow:hidden;
+}
+.chat-context-pill::before { content:'📄'; font-size:10px; flex-shrink:0; }
+.ctx-title { font-size:9px; font-weight:500; color:var(--gray-6); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chat-close {
+  font-size:10px; color:var(--gray-4); cursor:pointer; margin-left:8px;
+  padding:3px 8px; border-radius:6px; background:var(--gray-1);
+  border:none; font-family:inherit; transition:all .15s;
+}
+.chat-close:hover { background:var(--gray-2); color:var(--gray-6); }
+
+.chat-msgs {
+  flex:1; overflow-y:auto; padding:10px 12px;
+  display:flex; flex-direction:column; gap:8px;
+  scrollbar-width:none;
+}
+.chat-msgs::-webkit-scrollbar { display:none; }
+
+.msg { display:flex; flex-direction:column; max-width:88%; }
+.msg.user { align-self:flex-end; align-items:flex-end; }
+.msg.ai { align-self:flex-start; align-items:flex-start; }
+
+.msg-bubble {
+  padding:8px 10px; border-radius:12px;
+  font-size:10px; line-height:1.6;
+}
+.msg.user .msg-bubble {
+  background:var(--blue); color:#fff;
+  border-radius:12px 12px 2px 12px;
+}
+.msg.ai .msg-bubble {
+  background:var(--gray-1); color:var(--gray-6);
+  border-radius:12px 12px 12px 2px;
+}
+.msg-bubble .highlight { color:var(--orange); font-weight:600; }
+.msg-bubble .blue-text { color:var(--blue); font-weight:500; }
+
+.msg-ai-header {
+  display:flex; align-items:center; gap:4px; margin-bottom:4px;
+}
+.ai-avatar {
+  width:18px; height:18px; border-radius:50%;
+  background:linear-gradient(135deg, var(--blue), #7B5CF5);
+  display:flex; align-items:center; justify-content:center;
+  font-size:9px; color:#fff; flex-shrink:0;
+}
+.ai-name { font-size:9px; color:var(--gray-4); font-weight:500; }
+
+/* Suggestion chips in chat */
+.suggestion-row { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
+.sug-chip {
+  padding:4px 10px; border-radius:12px;
+  font-size:9px; border:1px solid var(--blue);
+  color:var(--blue); background:var(--blue-light);
+  cursor:pointer; transition:all .15s;
+}
+.sug-chip:hover { background:var(--blue); color:#fff; }
+
+/* Update card in chat */
+.update-card {
+  background:#F6FFED; border:1px solid #B7EB8F;
+  border-radius:10px; padding:8px 10px; margin-top:4px;
+  font-size:10px; color:var(--gray-6); line-height:1.6;
+}
+.update-card-title { font-size:9px; font-weight:600; color:var(--green); margin-bottom:4px; display:flex; align-items:center; gap:3px; }
+.update-card-title::before { content:'✓'; }
+
+/* ── CHAT BOTTOM INPUT ── */
+.chat-input-bar {
+  border-top:1px solid var(--gray-2); padding:8px 10px;
+  display:flex; align-items:center; gap:6px;
+}
+.chat-input {
+  flex:1; background:var(--gray-1); border-radius:18px;
+  padding:6px 10px; font-size:10px; color:var(--gray-5);
+  border:none; outline:none; font-family:inherit;
+}
+.chat-send {
+  width:28px; height:28px; border-radius:50%;
+  background:var(--blue); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; cursor:pointer; border:none; flex-shrink:0;
+  transition:transform .15s;
+}
+.chat-send:hover { transform:scale(1.1); }
+
+/* ── HOME SCREEN ── */
+.home-screen {
+  background: var(--gray-1);
+  display:flex; flex-direction:column;
+}
+.home-greeting {
+  padding:8px 14px 6px;
+  background:#fff;
+}
+.home-greeting-text { font-size:14px; font-weight:700; color:var(--gray-6); }
+.home-greeting-sub { font-size:10px; color:var(--gray-4); margin-top:1px; }
+.home-search {
+  display:flex; align-items:center; gap:6px;
+  background:var(--gray-1); border-radius:10px;
+  padding:6px 10px; margin:8px 14px;
+  font-size:10px; color:var(--gray-4);
+  border:1px solid var(--gray-2);
+}
+.home-search::before { content:'🔍'; font-size:10px; }
+.home-cats {
+  display:flex; gap:6px; padding:0 14px 8px;
+  overflow-x:auto; scrollbar-width:none;
+}
+.home-cats::-webkit-scrollbar { display:none; }
+.cat-chip {
+  padding:4px 10px; border-radius:16px; white-space:nowrap;
+  font-size:10px; flex-shrink:0;
+}
+.cat-chip.on { background:var(--blue); color:#fff; }
+.cat-chip.off { background:#fff; color:var(--gray-5); border:1px solid var(--gray-2); }
+
+.home-scroll {
+  flex:1; overflow-y:auto; padding:0 12px 8px;
+  scrollbar-width:none; display:flex; flex-direction:column; gap:8px;
+}
+.home-scroll::-webkit-scrollbar { display:none; }
+
+.note-card {
+  background:#fff; border-radius:12px; padding:10px 12px;
+  border:1px solid rgba(0,0,0,0.04);
+  cursor:pointer; transition:all .15s;
+}
+.note-card:hover { box-shadow:0 2px 12px rgba(0,0,0,0.1); }
+.nc-title { font-size:12px; font-weight:600; color:var(--gray-6); margin-bottom:4px; }
+.nc-preview { font-size:10px; color:var(--gray-4); line-height:1.5; }
+.nc-meta { display:flex; align-items:center; gap:6px; margin-top:6px; }
+.nc-date { font-size:9px; color:var(--gray-3); }
+.nc-tag { font-size:9px; padding:1px 6px; border-radius:6px; }
+.nc-tag.blue { background:var(--blue-light); color:var(--blue); }
+.nc-tag.orange { background:var(--orange-light); color:var(--orange); }
+.nc-tag.voice { background:#F9F0FF; color:var(--purple); }
+
+.home-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.note-card-sm { background:#fff; border-radius:12px; padding:10px; cursor:pointer; }
+.ncs-title { font-size:11px; font-weight:600; color:var(--gray-6); margin-bottom:4px; }
+.ncs-preview { font-size:9px; color:var(--gray-4); line-height:1.5; }
+
+/* ── HOME BOTTOM NAV ── */
+.home-bottom-nav {
+  border-top:1px solid var(--gray-2); background:#fff;
+  display:flex; align-items:center; justify-content:space-around;
+  padding:8px 0 12px;
+}
+.bnav-item { display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; }
+.bnav-icon { font-size:18px; }
+.bnav-label { font-size:8px; color:var(--gray-4); }
+.bnav-item.on .bnav-label { color:var(--blue); }
+.add-fab {
+  width:36px; height:36px; border-radius:50%;
+  background:var(--blue); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; font-weight:300; cursor:pointer;
+  box-shadow:0 4px 14px rgba(22,119,255,0.4);
+  transition:transform .15s;
+}
+.add-fab:hover { transform:scale(1.08); }
+
+/* ── VOICE RECORDING SCREEN ── */
+.voice-screen {
+  position:absolute; inset:0; z-index:60;
+  background: linear-gradient(160deg, #C9ABFF 0%, #B8A8F5 30%, #E8B4C8 70%, #F5C0B5 100%);
+  display:flex; flex-direction:column; align-items:center;
+  animation: fadeIn .25s ease;
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+.voice-top {
+  width:100%; display:flex; justify-content:space-between; align-items:center;
+  padding:14px 16px 0;
+}
+.voice-title { font-size:12px; font-weight:600; color:rgba(0,0,0,0.6); }
+.voice-type-picker {
+  display:flex; gap:4px;
+  background:rgba(255,255,255,0.3); border-radius:12px; padding:3px;
+}
+.vtp-item {
+  padding:3px 8px; border-radius:8px;
+  font-size:9px; font-weight:500; color:rgba(0,0,0,0.5);
+  cursor:pointer;
+}
+.vtp-item.on { background:#fff; color:var(--gray-6); box-shadow:0 1px 4px rgba(0,0,0,0.1); }
+
+.voice-timer-wrap {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px;
+}
+.voice-ring {
+  width:130px; height:130px; border-radius:50%; position:relative;
+  display:flex; align-items:center; justify-content:center;
+}
+.ring-bg {
+  position:absolute; inset:0; border-radius:50%;
+  border:2px solid rgba(255,255,255,0.3);
+}
+.ring-progress {
+  position:absolute; inset:-2px; border-radius:50%;
+  background: conic-gradient(rgba(255,255,255,0.8) var(--p,0%), transparent var(--p,0%));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  animation: ringProgress 60s linear infinite;
+}
+@keyframes ringProgress {
+  from { --p: 0%; } to { --p: 100%; }
+}
+.ring-inner {
+  width:108px; height:108px; border-radius:50%;
+  background:rgba(255,255,255,0.25); backdrop-filter:blur(10px);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  border:1px solid rgba(255,255,255,0.4);
+}
+.voice-time { font-size:24px; font-weight:200; color:rgba(0,0,0,0.7); letter-spacing:.02em; }
+.voice-time-label { font-size:9px; color:rgba(0,0,0,0.4); }
+
+/* waveform inside voice screen */
+.voice-wave {
+  display:flex; align-items:center; gap:2px; height:28px;
+}
+.vwave-bar {
+  width:2px; background:rgba(255,255,255,0.7); border-radius:2px;
+  animation:vwave 1s ease-in-out infinite;
+}
+.vwave-bar:nth-child(1) { animation-delay:.0s; height:5px; }
+.vwave-bar:nth-child(2) { animation-delay:.08s; height:10px; }
+.vwave-bar:nth-child(3) { animation-delay:.16s; height:18px; }
+.vwave-bar:nth-child(4) { animation-delay:.24s; height:24px; }
+.vwave-bar:nth-child(5) { animation-delay:.32s; height:20px; }
+.vwave-bar:nth-child(6) { animation-delay:.40s; height:28px; }
+.vwave-bar:nth-child(7) { animation-delay:.48s; height:22px; }
+.vwave-bar:nth-child(8) { animation-delay:.56s; height:16px; }
+.vwave-bar:nth-child(9) { animation-delay:.64s; height:20px; }
+.vwave-bar:nth-child(10) { animation-delay:.72s; height:14px; }
+.vwave-bar:nth-child(11) { animation-delay:.80s; height:8px; }
+.vwave-bar:nth-child(12) { animation-delay:.88s; height:5px; }
+@keyframes vwave {
+  0%,100%{transform:scaleY(1);opacity:.6} 50%{transform:scaleY(1.5);opacity:1}
+}
+
+.voice-transcript {
+  max-width:160px; text-align:center;
+  font-size:10px; color:rgba(0,0,0,0.55); line-height:1.6;
+  min-height:32px;
+}
+
+.voice-controls {
+  width:100%; display:flex; align-items:center; justify-content:space-around;
+  padding:0 20px 20px;
+}
+.vc-cancel {
+  width:36px; height:36px; border-radius:50%;
+  background:rgba(255,255,255,0.3); color:rgba(0,0,0,0.5);
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; cursor:pointer; transition:all .15s;
+}
+.vc-cancel:hover { background:rgba(255,255,255,0.5); }
+.vc-record {
+  width:52px; height:52px; border-radius:50%;
+  background:#FF4040; color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; cursor:pointer;
+  box-shadow:0 4px 16px rgba(255,64,64,0.4);
+  border:3px solid rgba(255,255,255,0.4);
+  transition:all .15s;
+}
+.vc-record:hover { transform:scale(1.05); }
+.vc-pause {
+  width:36px; height:36px; border-radius:50%;
+  background:rgba(255,255,255,0.3); color:rgba(0,0,0,0.5);
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; cursor:pointer; transition:all .15s;
+}
+.vc-pause:hover { background:rgba(255,255,255,0.5); }
+
+/* ── VOICE NOTE VIEW ── */
+.voice-note-screen {
+  background:#fff; display:flex; flex-direction:column;
+}
+.vn-nav {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 12px 6px; border-bottom:1px solid var(--gray-2);
+}
+.vn-back { font-size:18px; color:var(--blue); cursor:pointer; }
+.vn-icons { display:flex; gap:12px; }
+.vn-icon { font-size:16px; color:var(--gray-4); cursor:pointer; }
+
+.vn-body { flex:1; overflow-y:auto; padding:12px 14px; scrollbar-width:none; }
+.vn-body::-webkit-scrollbar { display:none; }
+
+.vn-title { font-size:15px; font-weight:700; color:var(--gray-6); margin-bottom:2px; }
+.vn-date { font-size:9px; color:var(--gray-4); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.vn-date .voice-tag {
+  font-size:8px; padding:1px 6px; border-radius:6px;
+  background:#F9F0FF; color:var(--purple);
+  display:flex; align-items:center; gap:2px;
+}
+.vn-date .voice-tag::before { content:'🎙'; font-size:8px; }
+
+/* Audio player */
+.audio-player {
+  background:var(--gray-1); border-radius:10px; padding:8px 10px;
+  display:flex; align-items:center; gap:8px; margin-bottom:12px;
+}
+.ap-play {
+  width:24px; height:24px; border-radius:50%;
+  background:var(--orange-bg); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; cursor:pointer; flex-shrink:0;
+}
+.ap-waveform { flex:1; display:flex; align-items:center; gap:1px; height:18px; }
+.ap-bar { width:2px; border-radius:1px; background:var(--orange-bg); opacity:.6; }
+.ap-time { font-size:9px; color:var(--gray-4); flex-shrink:0; }
+
+/* AI structured content */
+.ai-structured {
+  margin-bottom:10px;
+}
+.ais-section { margin-bottom:8px; }
+.ais-title {
+  font-size:10px; font-weight:700; color:var(--gray-4);
+  letter-spacing:.05em; text-transform:uppercase;
+  margin-bottom:5px; display:flex; align-items:center; gap:4px;
+}
+.ais-title::before { content:''; width:3px; height:10px; background:var(--blue); border-radius:2px; display:inline-block; }
+.ais-content { font-size:10px; color:var(--gray-6); line-height:1.7; }
+.ais-item { display:flex; gap:5px; margin-bottom:2px; }
+.ais-item::before { content:'·'; color:var(--blue); flex-shrink:0; font-weight:700; }
+
+/* Todo items in voice note */
+.vn-todo { background:var(--gray-1); border-radius:10px; padding:8px 10px; margin-bottom:8px; }
+.vn-todo-title {
+  font-size:10px; font-weight:600; color:var(--gray-5);
+  margin-bottom:6px; display:flex; align-items:center; justify-content:space-between;
+}
+.vn-todo-title span { font-size:9px; color:var(--gray-3); }
+.vn-todo-item { display:flex; align-items:flex-start; gap:6px; margin-bottom:5px; }
+.vn-checkbox {
+  width:14px; height:14px; border-radius:3px;
+  border:1.5px solid var(--gray-3); flex-shrink:0; margin-top:1px;
+}
+.vn-checkbox.done { background:var(--blue); border-color:var(--blue); position:relative; }
+.vn-checkbox.done::after { content:'✓'; font-size:8px; color:#fff; font-weight:700; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
+.vn-todo-text { font-size:10px; color:var(--gray-6); line-height:1.5; flex:1; }
+.vn-todo-text.done { color:var(--gray-3); text-decoration:line-through; }
+.todo-btn {
+  font-size:8px; padding:2px 7px; border-radius:8px;
+  background:var(--orange-light); color:var(--orange);
+  flex-shrink:0; cursor:pointer;
+}
+.todo-btn.blue { background:var(--blue-light); color:var(--blue); }
+
+/* Original transcript toggle */
+.transcript-toggle {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 10px; border-radius:8px; background:var(--gray-1);
+  cursor:pointer; margin-bottom:8px;
+}
+.tt-label { font-size:10px; color:var(--gray-5); display:flex; align-items:center; gap:4px; }
+.tt-label::before { content:'📄'; font-size:10px; }
+.tt-toggle { font-size:10px; color:var(--gray-4); }
+
+/* Bottom input for voice note */
+.vn-bottom {
+  border-top:1px solid var(--gray-2); padding:8px 12px;
+}
+.vn-input-row {
+  display:flex; align-items:center; gap:6px;
+  background:var(--gray-1); border-radius:18px; padding:6px 10px;
+}
+.vn-input-text { flex:1; font-size:10px; color:var(--gray-4); }
+.vn-input-voice { font-size:14px; color:var(--gray-4); }
+
+/* ── FLOW ARROW ── */
+.flow-arrow-wrap {
+  display:flex; flex-direction:column; align-items:center;
+  padding-top:80px; flex-shrink:0; gap:3px;
+}
+.fa-line { width:1px; height:24px; background:linear-gradient(to bottom, transparent, rgba(255,255,255,.15), transparent); }
+.fa-arrow { font-size:12px; color:rgba(255,255,255,.2); }
+.fa-label { font-size:9px; color:rgba(255,255,255,.2); text-align:center; max-width:50px; line-height:1.4; }
+
+/* ── STEP HINT ── */
+.step-hint-text {
+  font-size:9px; color:rgba(255,255,255,.2); text-align:center; margin-top:8px;
+  display:flex; align-items:center; justify-content:center; gap:3px;
+}
+.step-hint-text::before { content:'↑'; animation:bounce .8s infinite; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+
+/* ── SECTION HEADER ── */
+.section-header {
+  display:flex; align-items:center; gap:10px;
+  padding:0 0 16px;
+}
+.sh-badge {
+  padding:5px 14px; border-radius:20px; font-size:11px; font-weight:500;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.6);
+}
+.sh-line { flex:1; height:1px; background:rgba(255,255,255,.06); }
+
+/* Audio player bars variation */
+.apb { height: 14px; background: var(--orange-bg); border-radius:1px; opacity:.7; }
+</style>
+</head>
+<body>
+
+<nav class="page-nav">
+  <span class="nav-logo">AI 笔记 · 演示</span>
+  <button class="nav-pill on" onclick="scrollToId('flow1')">笔记内对话</button>
+  <button class="nav-pill" onclick="scrollToId('flow2')">新建语音笔记</button>
+  <button class="nav-pill" onclick="scrollToId('flow3')">查看语音笔记</button>
+</nav>
+
+<div class="stage">
+
+<!-- ══════════════════════════════════════
+     FLOW 1: 笔记内对话
+══════════════════════════════════════ -->
+<div class="flow-block" id="flow1">
+  <div class="section-header">
+    <div class="sh-badge">笔记内对话</div>
+    <div class="sh-line"></div>
+  </div>
+
+  <div class="phones-row">
+
+    <!-- ① 笔记原始内容 -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="flow-label">① 笔记原始内容</div>
+      <div class="phone" id="p1" onclick="openChat()">
+        <div class="phone-notch"></div>
+        <div class="screen" id="s-note">
+          <div class="status-bar">
+            <span>2:36</span>
+            <div class="sb-right"><span>▲▲▲</span><span>WiFi</span><span>🔋</span></div>
+          </div>
+          <div class="nav-bar">
+            <span class="nav-back">‹</span>
+            <span class="nav-center" style="font-size:12px;">百事王总联系方式及拜访计划</span>
+            <div class="nav-actions">
+              <span class="nav-action">↑</span>
+              <span class="nav-action">⋯</span>
+            </div>
+          </div>
+          <div class="note-body">
+            <div class="note-section">
+              <div class="note-field"><span class="note-label">姓名</span><span class="note-value">：王大方</span></div>
+              <div class="note-field"><span class="note-label">职位</span><span class="note-value">：行业总监</span></div>
+              <div class="note-field"><span class="note-label">电话</span><span class="note-value blue">：139-xxxx-1234</span></div>
+              <div class="note-field"><span class="note-label">微信</span><span class="note-value">：wangdafang</span></div>
+              <div class="note-field"><span class="note-label">邮箱</span><span class="note-value blue">：wang@baishipartner.com</span></div>
+            </div>
+            <div class="divider"></div>
+            <div class="note-section">
+              <div class="note-section-title">行程计划</div>
+              <div class="chip-row">
+                <div class="chip blue">🗓 拜访安排日程</div>
+                <div class="chip orange">已记录</div>
+              </div>
+              <div style="margin-top:8px;">
+                <div class="todo-item">
+                  <div class="todo-check done"></div>
+                  <div class="todo-text done">联系确认拜访时间</div>
+                </div>
+                <div class="todo-item">
+                  <div class="todo-check"></div>
+                  <div class="todo-text">准备拜访资料</div>
+                  <div class="todo-action">立即去做</div>
+                </div>
+                <div class="todo-item">
+                  <div class="todo-check"></div>
+                  <div class="todo-text">安排用车</div>
+                  <div class="todo-action orange">待定</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bottom-bar">
+            <div class="input-row">
+              <span class="input-text">快速记录灵感…</span>
+              <span class="input-voice">🎙</span>
+              <button class="ai-trigger-btn">联系传达</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-hint-text">点击打开对话</div>
+    </div>
+
+    <div class="flow-arrow-wrap">
+      <div class="fa-line"></div>
+      <div class="fa-arrow">›</div>
+      <div class="fa-label">点击唤起 AI</div>
+      <div class="fa-line"></div>
+    </div>
+
+    <!-- ② AI 对话界面 -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="flow-label">② AI 对话中</div>
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen">
+          <div class="status-bar">
+            <span>2:36</span>
+            <div class="sb-right"><span>▲▲▲</span><span>🔋</span></div>
+          </div>
+          <!-- Chat panel always open here -->
+          <div class="chat-panel" style="position:relative;inset:unset;flex:1;animation:none;">
+            <div class="chat-top">
+              <div class="chat-context-pill">
+                <div class="ctx-title">百事王总联系方式及拜访计划</div>
+              </div>
+              <button class="chat-close">关闭对话</button>
+            </div>
+            <div class="chat-msgs">
+              <div class="msg user">
+                <div class="msg-bubble">王总什么时候方便拜访？</div>
+              </div>
+              <div class="msg ai">
+                <div class="msg-ai-header">
+                  <div class="ai-avatar">AI</div>
+                  <span class="ai-name">AI 助手</span>
+                </div>
+                <div class="msg-bubble">
+                  根据笔记记录，王总的拜访计划尚未确定具体时间。建议您在<span class="highlight">下周二工作汇报后</span>联系确认，届时日程相对宽松。<br><br>
+                  他的联系方式：<span class="blue-text">139-xxxx-1234</span>
+                </div>
+                <div class="suggestion-row">
+                  <div class="sug-chip">📅 加入日历</div>
+                  <div class="sug-chip">📞 拨打电话</div>
+                </div>
+              </div>
+              <div class="msg user">
+                <div class="msg-bubble">帮我整理一下需要准备的资料</div>
+              </div>
+              <div class="msg ai">
+                <div class="msg-ai-header">
+                  <div class="ai-avatar">AI</div>
+                  <span class="ai-name">AI 助手</span>
+                </div>
+                <div class="msg-bubble">
+                  拜访前建议准备：
+                </div>
+                <div class="update-card">
+                  <div class="update-card-title">拜访准备清单</div>
+                  · 公司介绍 PPT<br>
+                  · 合作方案初稿<br>
+                  · 产品 Demo 演示<br>
+                  · 名片 &amp; 小礼品
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-bar">
+              <input class="chat-input" placeholder="继续追问…" />
+              <div class="chat-send">↑</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow-wrap">
+      <div class="fa-line"></div>
+      <div class="fa-arrow">›</div>
+      <div class="fa-label">AI 追问追答</div>
+      <div class="fa-line"></div>
+    </div>
+
+    <!-- ③ 深度对话 -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="flow-label">③ AI 深度分析</div>
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen">
+          <div class="status-bar">
+            <span>2:36</span>
+            <div class="sb-right"><span>▲▲▲</span><span>🔋</span></div>
+          </div>
+          <div class="chat-panel" style="position:relative;inset:unset;flex:1;animation:none;">
+            <div class="chat-top">
+              <div class="chat-context-pill">
+                <div class="ctx-title">百事王总联系方式及拜访计划</div>
+              </div>
+              <button class="chat-close">关闭对话</button>
+            </div>
+            <div class="chat-msgs">
+              <div class="msg user">
+                <div class="msg-bubble">王总公司主要做什么业务？</div>
+              </div>
+              <div class="msg ai">
+                <div class="msg-ai-header">
+                  <div class="ai-avatar">AI</div>
+                  <span class="ai-name">AI 助手</span>
+                </div>
+                <div class="msg-bubble">
+                  根据笔记信息：王总是<span class="highlight">百事合伙人</span>行业总监，主要负责渠道拓展与品牌合作。
+                </div>
+              </div>
+              <div class="msg user">
+                <div class="msg-bubble">这次拜访的核心目的是什么？</div>
+              </div>
+              <div class="msg ai">
+                <div class="msg-ai-header">
+                  <div class="ai-avatar">AI</div>
+                  <span class="ai-name">AI 助手</span>
+                </div>
+                <div class="msg-bubble">
+                  基于笔记内容分析，这次拜访的核心目的是：
+                </div>
+                <div class="update-card">
+                  <div class="update-card-title">本次拜访目标</div>
+                  · 建立渠道合作意向<br>
+                  · 了解对方采购计划<br>
+                  · <span style="color:var(--orange);font-weight:600;">推进签约可能性</span>
+                </div>
+                <div class="suggestion-row" style="margin-top:6px;">
+                  <div class="sug-chip">✍ 写入笔记</div>
+                  <div class="sug-chip">📋 生成任务</div>
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-bar">
+              <input class="chat-input" placeholder="继续追问…" />
+              <div class="chat-send">↑</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow-wrap">
+      <div class="fa-line"></div>
+      <div class="fa-arrow">›</div>
+      <div class="fa-label">关闭对话</div>
+      <div class="fa-line"></div>
+    </div>
+
+    <!-- ④ 对话收尾 -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="flow-label">④ 确认写入笔记</div>
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen">
+          <div class="status-bar">
+            <span>2:36</span>
+            <div class="sb-right"><span>▲▲▲</span><span>🔋</span></div>
+          </div>
+          <div class="chat-panel" style="position:relative;inset:unset;flex:1;animation:none;">
+            <div class="chat-top">
+              <div class="chat-context-pill">
+                <div class="ctx-title">百事王总联系方式及拜访计划</div>
+              </div>
+              <button class="chat-close" style="background:rgba(22,119,255,0.1);color:var(--blue);border:1px solid rgba(22,119,255,0.2);">关闭对话 ×</button>
+            </div>
+            <div class="chat-msgs">
+              <div class="msg ai">
+                <div class="msg-ai-header">
+                  <div class="ai-avatar">AI</div>
+                  <span class="ai-name">AI 助手</span>
+                </div>
+                <div class="msg-bubble">
+                  已为您整理完毕。是否将<span class="highlight">拜访目标</span>和<span class="highlight">准备清单</span>写入笔记？
+                </div>
+                <div class="suggestion-row">
+                  <div class="sug-chip" style="background:var(--blue);color:#fff;border-color:var(--blue);">✓ 写入笔记</div>
+                  <div class="sug-chip">暂不写入</div>
+                </div>
+              </div>
+              <div class="msg user">
+                <div class="msg-bubble">写入笔记</div>
+              </div>
+              <div class="msg ai">
+                <div class="msg-ai-header">
+                  <div class="ai-avatar">AI</div>
+                  <span class="ai-name">AI 助手</span>
+                </div>
+                <div class="update-card">
+                  <div class="update-card-title">已更新笔记内容</div>
+                  ✓ 拜访目标已补充<br>
+                  ✓ 准备清单已添加为待办<br>
+                  ✓ 建议联系时间已标注
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-bar">
+              <input class="chat-input" placeholder="继续追问…" />
+              <div class="chat-send">↑</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow-wrap">
+      <div class="fa-line"></div>
+      <div class="fa-arrow">›</div>
+      <div class="fa-label">返回笔记</div>
+      <div class="fa-line"></div>
+    </div>
+
+    <!-- ⑤ 更新后的笔记 -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="flow-label">⑤ AI 已更新笔记</div>
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen">
+          <div class="status-bar">
+            <span>2:36</span>
+            <div class="sb-right"><span>▲▲▲</span><span>🔋</span></div>
+          </div>
+          <div class="nav-bar">
+            <span class="nav-back">‹</span>
+            <span class="nav-center" style="font-size:12px;">百事王总联系方式及拜访计划</span>
+            <div class="nav-actions">
+              <span class="nav-action">↑</span>
+              <span class="nav-action">⋯</span>
+            </div>
+          </div>
+          <div class="note-body">
+            <div class="note-section">
+              <div class="note-field"><span class="note-label">姓名</span><span class="note-value">：王大方</span></div>
+              <div class="note-field"><span class="note-label">职位</span><span class="note-value">：行业总监</span></div>
+              <div class="note-field"><span class="note-label">电话</span><span class="note-value blue">：139-xxxx-1234</span></div>
+              <div class="note-field"><span class="note-label">微信</span><span class="note-value">：wangdafang</span></div>
+              <div class="note-field"><span class="note-label">邮箱</span><span class="note-value blue">：wang@baishipartner.com</span></div>
+              <div class="note-field"><span class="note-label">地址</span><span class="note-value">：建国门外大街 18 号</span></div>
+            </div>
+            <div class="divider"></div>
+            <div class="note-section">
+              <div class="note-section-title">本次拜访目标</div>
+              <div style="font-size:10px;color:var(--gray-5);line-height:1.7;background:rgba(22,119,255,0.04);border-left:2px solid var(--blue);padding:5px 8px;border-radius:0 6px 6px 0;">
+                建立渠道合作意向 · 了解采购计划<br>
+                <span style="color:var(--orange);font-weight:500;">核心：推进签约可能性</span>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="note-section">
+              <div class="note-section-title">行程待办</div>
+              <div class="todo-item">
+                <div class="todo-check done"></div>
+                <div class="todo-text done">联系确认拜访时间</div>
+              </div>
+              <div class="todo-item">
+                <div class="todo-check"></div>
+                <div class="todo-text">准备公司介绍 PPT</div>
+                <div class="todo-action">立即</div>
+              </div>
+              <div class="todo-item">
+                <div class="todo-check"></div>
+                <div class="todo-text">整理合作方案初稿</div>
+                <div class="todo-action orange">周二前</div>
+              </div>
+              <div class="todo-item">
+                <div class="todo-check"></div>
+                <div class="todo-text">准备产品 Demo</div>
+                <div class="todo-action">立即</div>
+              </div>
+            </div>
+          </div>
+          <div class="bottom-bar">
+            <div class="input-row">
+              <span class="input-text">快速记录灵感…</span>
+              <span class="input-voice">🎙</span>
+              <button class="ai-trigger-btn">联系传达</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /phones-row -->
+</div>
+
+<!-- ══════════════════════════════════════
+     FLOW 2: 新建语音笔记
+══════════════════════════════════════ -->
+<div class="flow-block" id="flow2">
+  <div class="section-header">
+    <div class="sh-badge">新建语音笔记</div>
+    <div class="sh-line"></div>
+  </div>
+
+  <div class="phones-row">
+
+    <!-- ① 笔记首页 -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="flow-label">① 笔记首页</div>
+      <div class="phone" id="p-home" onclick="openVoice()">
+        <div class="phone-notch"></div>
+        <div class="screen home-screen">
+          <div class="status-bar">
+            <span>2:36</span>
+            <div class="sb-right"><span>▲▲▲</span><span>WiFi</span><span>🔋</span></div>
+          </div>
+          <div class="home-greeting">
+            <div class="home-greeting-text">Hi 你，快速记录灵感～</div>
+            <div class="home-greeting-sub">今日已记录 3 条笔记</div>
+          </div>
+          <div class="home-search">搜索你的笔记内容…</div>
+          <div class="home-cats">
+            <div class="cat-chip on">全部</div>
+            <div class="cat-chip off">AI正在追踪</div>
+            <div class="cat-chip off">人文总结</div>
+            <div class="cat-chip off">会议记录</div>
+            <div class="cat-chip off">待办</div>
+          </div>
+          <div class="home-scroll">
+            <div class="note-card">
+              <div class="nc-title">今日待办</div>
+              <div class="nc-preview">准备拜访资料、联系王总确认时间…</div>
+              <div class="nc-meta">
+                <span class="nc-date">今天</span>
+                <span class="nc-tag blue">AI 整理</span>
+              </div>
+            </div>
+            <div class="home-grid">
+              <div class="note-card-sm">
+                <div class="ncs-title">人文总结</div>
+                <div class="ncs-preview">本周阅读摘要与思考…</div>
+              </div>
+              <div class="note-card-sm">
+                <div class="ncs-title">新闻摘要</div>
+                <div class="ncs-preview">今日热点 · AI 生成</div>
+              </div>
+            </div>
+            <div class="note-card">
+              <div class="nc-title">盒马新零售会议纪要</div>
+              <div class="nc-preview">人群分层差异化体验设计讨论…</div>
+              <div class="nc-meta">
+                <span class="nc-date">昨天</span>
+                <span class="nc-tag voice">语音</span>
+              </div>
+            </div>
+          </div>
+          <div class="home-bottom-nav">
+            <div class="bnav-item on">
+              <div class="bnav-icon">🏠</div>
+              <div class="bnav-label" style="color:var(--blue);">首页</div>
+            </div>
+            <div class="add-fab">＋</div>
+            <div class="bnav-item">
+              <div class="bnav-icon">👤</div>
+              <div class="bnav-label">我的</div>
+            </div>
+          </div>
+          <!-- Voice recording overlay -->
+          <div class="voice-screen hidden" id="vs-screen">
+            <div class="status-bar" style="width:100%;color:rgba(0,0,0,0.5);">
+              <span>2:36</span>
+              <div class="sb-right"><span>▲▲▲</span><span>🔋</span></div>
+            </div>
+            <div class="voice-top">
+              <span class="voice-title">录音笔记</span>
+              <div class="voice-type-picker">
+                <div class="vtp-item on">语音</div>
+                <div class="vtp-item">文字</div>
+              </div>
+            </div>
+            <div class="voice-timer-wrap">
+              <div class="voice-ring">
+                <div class="ring-bg"></div>
+                <div class="ring-progress" id="ring-progress"></div>
+                <div class="ring-inner">
+                  <div class="voice-time" id="voice-time">00:00.00</div>
+                  <div class="voice-time-label">录制中</div>
+                </div>
+              </div>
+              <div class="voice-wave">
+                <div class="vwave-bar"></div><div class="vwave-bar"></div>
+                <div class="vwave-bar"></div><div class="vwave-bar"></div>
+                <div class="vwave-bar"></div><div class="vwave-bar"></div>
+                <div class="vwave-bar"></div><div class="vwave-bar"></div>
+                <div class="vwave-bar"></div><div class="vwave-bar"></div>
+                <div class="vwave-bar"></div><div class="vwave-bar"></div>
+              </div>
+              <div class="voice-transcript" id="voice-transcript">准备录制…</div>
+            </div>
+            <div class="voice-controls">
+              <div class="vc-cancel" onclick="closeVoice(event)">✕</div>
+              <div class="vc-record" onclick="closeVoice(event)">⏹</div>
+              <div class="vc-pause">⏸</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step-hint-text">点击「+」开始录音</div>
+    </div>
+
+    <div class="flow-arrow-wrap">
+      <div class="fa-line"></div>
+      <div class="fa-arrow">›</div>
+      <div class="fa-label">点击录音</div>
+      <div class="fa-line"></div>
+    </div>
+
+    <!-- ② 录音界面 (static) -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="flow-label">② 录音进行中</div>
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen" style="background:linear-gradient(160deg,#C9ABFF 0%,#B8A8F5 30%,#E8B4C8 70%,#F5C0B5 100%);">
+          <div class="status-bar" style="color:rgba(0,0,0,0.5);">
+            <span>2:36</span>
+            <div class="sb-right"><span>▲▲▲</span><span>🔋</span></div>
+          </div>
+          <div class="voice-top">
+            <span class="voice-title">录音笔记</span>
+            <div class="voice-type-picker">
+              <div class="vtp-item on">语音</div>
+              <div class="vtp-item">文字</div>
+            </div>
+          </div>
+          <div class="voice-timer-wrap">
+            <div class="voice-ring">
+              <div class="ring-bg"></div>
+              <div class="ring-inner" style="background:rgba(255,255,255,0.3);">
+                <div class="voice-time">00:01.42</div>
+                <div class="voice-time-label">录制中</div>
+              </div>
+            </div>
+            <div class="voice-wave">
+              <div class="vwave-bar"></div><div class="vwave-bar"></div>
+              <div class="vwave-bar"></div><div class="vwave-bar"></div>
+              <div class="vwave-bar"></div><div class="vwave-bar"></div>
+              <div class="vwave-bar"></div><div class="vwave-bar"></div>
+              <div class="vwave-bar"></div><div class="vwave-bar"></div>
+              <div class="vwave-bar"></div><div class="vwave-bar"></div>
+            </div>
+            <div class="voice-transcript">今天 6 月 18 日活动会议，讨论了用户分层运营策略，重点是差异化体验…</div>
+          </div>
+          <div class="voice-controls">
+            <div class="vc-cancel">✕</div>
+            <div class="vc-record">⏹</div>
+            <div class="vc-pause">⏸</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow-wrap">
+      <div class="fa-line"></div>
+      <div class="fa-arrow">›</div>
+      <div class="fa-label">停止录音</div>
+      <div class="fa-line"></div>
+    </div>
+
+    <!-- ③ AI 处理中 -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="flow-label">③ AI 结构化整理</div>
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen" style="background:linear-gradient(160deg,#C9ABFF 0%,#B8A8F5 30%,#E8B4C8 70%,#F5C0B5 100%);">
+          <div class="status-bar" style="color:rgba(0,0,0,0.5);">
+            <span>2:36</span>
+            <div class="sb-right"><span>▲▲▲</span><span>🔋</span></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.3);backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;font-size:22px;animation:spin 1.5s linear infinite;">⚙</div>
+            <div style="text-align:center;">
+              <div style="font-size:14px;font-weight:600;color:rgba(0,0,0,0.6);margin-bottom:4px;">AI 整理中…</div>
+              <div style="font-size:11px;color:rgba(0,0,0,0.4);">正在自动结构化你的语音笔记</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.2);border-radius:12px;padding:12px;width:100%;backdrop-filter:blur(8px);">
+              <div style="font-size:10px;color:rgba(0,0,0,0.5);margin-bottom:6px;">识别内容</div>
+              <div style="font-size:10px;color:rgba(0,0,0,0.65);line-height:1.7;">
+                ✓ 提取会议日期<br>
+                ✓ 识别核心议题<br>
+                ⟳ 生成待办事项…
+              </div>
+            </div>
+          </div>
+          <div style="padding:16px;text-align:center;">
+            <div style="font-size:10px;color:rgba(0,0,0,0.35);">共录制 1 分 42 秒</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /phones-row -->
+</div>
+
+<!-- ══════════════════════════════════════
+     FLOW 3: 查看语音笔记
+══════════════════════════════════════ -->
+<div class="flow-block" id="flow3">
+  <div class="section-header">
+    <div class="sh-badge">查看语音笔记 · 自动结构化整理，保留转录原文查看入口</div>
+    <div class="sh-line"></div>
+  </div>
+
+  <div class="phones-row">
+
+    <!-- 笔记1: 6月活动会议纪要 -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="flow-label">会议纪要</div>
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen voice-note-screen">
+          <div class="status-bar">
+            <span>2:36</span>
+            <div class="sb-right"><span>▲▲▲</span><span>WiFi</span><span>🔋</span></div>
+          </div>
+          <div class="vn-nav">
+            <span class="vn-back">‹</span>
+            <div class="vn-icons">
+              <span class="vn-icon">↑</span>
+              <span class="vn-icon">⋯</span>
+            </div>
+          </div>
+          <div class="vn-body">
+            <div class="vn-title">6月活动会议纪要</div>
+            <div class="vn-date">
+              今天 · 5月18日
+              <span class="voice-tag">语音笔记</span>
+            </div>
+            <div class="audio-player">
+              <div class="ap-play">▶</div>
+              <div class="ap-waveform">
+                <div class="ap-bar apb" style="height:6px;"></div>
+                <div class="ap-bar apb" style="height:10px;"></div>
+                <div class="ap-bar apb" style="height:14px;"></div>
+                <div class="ap-bar apb" style="height:18px;"></div>
+                <div class="ap-bar apb" style="height:12px;"></div>
+                <div class="ap-bar apb" style="height:16px;"></div>
+                <div class="ap-bar apb" style="height:18px;"></div>
+                <div class="ap-bar apb" style="height:14px;"></div>
+                <div class="ap-bar apb" style="height:10px;"></div>
+                <div class="ap-bar apb" style="height:8px;"></div>
+                <div class="ap-bar apb" style="height:12px;"></div>
+                <div class="ap-bar apb" style="height:14px;"></div>
+                <div class="ap-bar apb" style="height:16px;"></div>
+                <div class="ap-bar apb" style="height:12px;"></div>
+                <div class="ap-bar apb" style="height:8px;"></div>
+                <div class="ap-bar apb" style="height:6px;"></div>
+              </div>
+              <span class="ap-time">10:34</span>
+            </div>
+            <div class="ai-structured">
+              <div class="ais-section">
+                <div class="ais-title">会议纪要</div>
+                <div class="ais-content">
+                  <div class="ais-item">6月18日活动策略会</div>
+                  <div class="ais-item">参会：产品、运营、设计共 8 人</div>
+                  <div class="ais-item">核心议题：用户分层运营策略</div>
+                </div>
+              </div>
+              <div class="ais-section">
+                <div class="ais-title">核心结论</div>
+                <div class="ais-content">
+                  <div class="ais-item">按消费频次分三层用户：高频、中频、低频</div>
+                  <div class="ais-item">差异化推送策略，提升高频用户 LTV</div>
+                  <div class="ais-item">低频用户以促活券激活为主</div>
+                </div>
+              </div>
+            </div>
+            <div class="vn-todo">
+              <div class="vn-todo-title">待办事项 <span>3 项待完成</span></div>
+              <div class="vn-todo-item">
+                <div class="vn-checkbox"></div>
+                <div class="vn-todo-text">完成用户分层数据分析报告</div>
+                <div class="todo-btn orange">本周五</div>
+              </div>
+              <div class="vn-todo-item">
+                <div class="vn-checkbox done"></div>
+                <div class="vn-todo-text done">同步设计团队启动差异化方案</div>
+              </div>
+              <div class="vn-todo-item">
+                <div class="vn-checkbox"></div>
+                <div class="vn-todo-text">发送会议纪要给所有参会人</div>
+                <div class="todo-btn blue">立即发送</div>
+              </div>
+            </div>
+            <div class="transcript-toggle">
+              <span class="tt-label">查看原始转录文字</span>
+              <span class="tt-toggle">∨</span>
+            </div>
+          </div>
+          <div class="vn-bottom">
+            <div class="vn-input-row">
+              <span class="vn-input-text">追加语音笔记…</span>
+              <span class="vn-input-voice">🎙</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 笔记2: 盒马新零售 -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="flow-label">产品调研</div>
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen voice-note-screen">
+          <div class="status-bar">
+            <span>2:36</span>
+            <div class="sb-right"><span>▲▲▲</span><span>WiFi</span><span>🔋</span></div>
+          </div>
+          <div class="vn-nav">
+            <span class="vn-back">‹</span>
+            <div class="vn-icons">
+              <span class="vn-icon">↑</span>
+              <span class="vn-icon">⋯</span>
+            </div>
+          </div>
+          <div class="vn-body">
+            <div class="vn-title">识途记忆：盒马新零售人群分层差异化体验设计</div>
+            <div class="vn-date">
+              昨天 · 5月17日
+              <span class="voice-tag">语音笔记</span>
+            </div>
+            <div class="audio-player">
+              <div class="ap-play">▶</div>
+              <div class="ap-waveform">
+                <div class="ap-bar apb" style="height:8px;"></div>
+                <div class="ap-bar apb" style="height:16px;"></div>
+                <div class="ap-bar apb" style="height:18px;"></div>
+                <div class="ap-bar apb" style="height:12px;"></div>
+                <div class="ap-bar apb" style="height:18px;"></div>
+                <div class="ap-bar apb" style="height:14px;"></div>
+                <div class="ap-bar apb" style="height:10px;"></div>
+                <div class="ap-bar apb" style="height:16px;"></div>
+                <div class="ap-bar apb" style="height:18px;"></div>
+                <div class="ap-bar apb" style="height:8px;"></div>
+                <div class="ap-bar apb" style="height:12px;"></div>
+                <div class="ap-bar apb" style="height:6px;"></div>
+              </div>
+              <span class="ap-time">10:34</span>
+            </div>
+            <div class="ai-structured">
+              <div class="ais-section">
+                <div class="ais-title">背景</div>
+                <div class="ais-content">
+                  <div class="ais-item">盒马新零售场景下的用户研究</div>
+                  <div class="ais-item">聚焦人群分层与差异化体验设计</div>
+                </div>
+              </div>
+              <div class="ais-section">
+                <div class="ais-title">核心洞察</div>
+                <div class="ais-content">
+                  <div class="ais-item">家庭主力采购者：重价格&amp;效率</div>
+                  <div class="ais-item">年轻探索者：重新鲜感&amp;社交</div>
+                  <div class="ais-item">健康追求者：重溯源&amp;品质</div>
+                </div>
+              </div>
+              <div class="ais-section">
+                <div class="ais-title">设计方向</div>
+                <div class="ais-content">
+                  <div class="ais-item">首页模块根据人群画像动态重排</div>
+                  <div class="ais-item">推送内容个性化分层投放</div>
+                  <div class="ais-item">购后体验差异化反馈机制</div>
+                </div>
+              </div>
+            </div>
+            <div class="vn-todo">
+              <div class="vn-todo-title">待办事项</div>
+              <div class="vn-todo-item">
+                <div class="vn-checkbox"></div>
+                <div class="vn-todo-text">完成三类人群用户旅程图</div>
+                <div class="todo-btn orange">下周一</div>
+              </div>
+              <div class="vn-todo-item">
+                <div class="vn-checkbox"></div>
+                <div class="vn-todo-text">发起"以家人之名" 设计共创</div>
+                <div class="todo-btn blue">查看</div>
+              </div>
+            </div>
+            <div class="transcript-toggle">
+              <span class="tt-label">查看原始转录文字</span>
+              <span class="tt-toggle">∨</span>
+            </div>
+          </div>
+          <div class="vn-bottom">
+            <div class="vn-input-row">
+              <span class="vn-input-text">追加语音笔记…</span>
+              <span class="vn-input-voice">🎙</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 笔记3: 组组生日 -->
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div class="flow-label">生活闪念</div>
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="screen voice-note-screen">
+          <div class="status-bar">
+            <span>2:36</span>
+            <div class="sb-right"><span>▲▲▲</span><span>WiFi</span><span>🔋</span></div>
+          </div>
+          <div class="vn-nav">
+            <span class="vn-back">‹</span>
+            <div class="vn-icons">
+              <span class="vn-icon">↑</span>
+              <span class="vn-icon">⋯</span>
+            </div>
+          </div>
+          <div class="vn-body">
+            <div class="vn-title">组组生日</div>
+            <div class="vn-date">
+              2 天前 · 5月16日
+              <span class="voice-tag">语音笔记</span>
+            </div>
+            <div class="audio-player">
+              <div class="ap-play">▶</div>
+              <div class="ap-waveform">
+                <div class="ap-bar apb" style="height:6px;"></div>
+                <div class="ap-bar apb" style="height:12px;"></div>
+                <div class="ap-bar apb" style="height:8px;"></div>
+                <div class="ap-bar apb" style="height:14px;"></div>
+                <div class="ap-bar apb" style="height:10px;"></div>
+                <div class="ap-bar apb" style="height:8px;"></div>
+                <div class="ap-bar apb" style="height:6px;"></div>
+                <div class="ap-bar apb" style="height:10px;"></div>
+              </div>
+              <span class="ap-time">00:12</span>
+            </div>
+            <div style="background:var(--gray-1);border-radius:10px;padding:10px;margin-bottom:10px;font-size:10px;color:var(--gray-5);line-height:1.7;font-style:italic;border-left:3px solid var(--orange);">
+              "本人声音：组组 6 月 23 日生日，记得买蛋糕，家二哥喜欢草莓味的，提前问一下，手录 7 月 4 日去奶奶家…"
+            </div>
+            <div class="ai-structured">
+              <div class="ais-section">
+                <div class="ais-title">AI 提取信息</div>
+                <div class="ais-content">
+                  <div class="ais-item">组组生日：<span style="color:var(--orange);font-weight:600;">6月23日</span></div>
+                  <div class="ais-item">蛋糕口味偏好：草莓味</div>
+                  <div class="ais-item">家庭聚会：7月4日</div>
+                </div>
+              </div>
+            </div>
+            <div class="vn-todo">
+              <div class="vn-todo-title">自动生成待办</div>
+              <div class="vn-todo-item">
+                <div class="vn-checkbox"></div>
+                <div class="vn-todo-text">6月20日前预订生日蛋糕（草莓）</div>
+                <div class="todo-btn orange">提醒</div>
+              </div>
+              <div class="vn-todo-item">
+                <div class="vn-checkbox"></div>
+                <div class="vn-todo-text">安排7月4日奶奶家行程</div>
+                <div class="todo-btn blue">📅 日历</div>
+              </div>
+            </div>
+            <div class="transcript-toggle">
+              <span class="tt-label">查看原始转录文字</span>
+              <span class="tt-toggle">∨</span>
+            </div>
+          </div>
+          <div class="vn-bottom">
+            <div class="vn-input-row">
+              <span class="vn-input-text">追加语音笔记…</span>
+              <span class="vn-input-voice">🎙</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /phones-row -->
+</div>
+
+</div><!-- /stage -->
+
+<!-- ── INTERACTIVE CHAT PANEL OVERLAY ── -->
+<div id="chat-overlay" class="hidden" style="
+  position:fixed; inset:0; z-index:900;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.7); backdrop-filter:blur(8px);
+" onclick="closeOverlay(event)">
+  <div style="width:240px; display:flex; flex-direction:column; gap:10px;" onclick="event.stopPropagation()">
+    <div style="text-align:center; font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:4px;">点击手机外任意区域关闭</div>
+    <div class="phone" style="width:240px; height:480px; cursor:default; transform:none; box-shadow:0 40px 100px rgba(0,0,0,0.8), 0 0 0 4px rgba(255,255,255,0.1);">
+      <div class="phone-notch"></div>
+      <div class="screen">
+        <div class="status-bar">
+          <span>2:36</span>
+          <div class="sb-right"><span>▲▲▲</span><span>🔋</span></div>
+        </div>
+        <!-- Note behind chat (greyed) -->
+        <div style="padding:8px 12px 6px; border-bottom:1px solid var(--gray-2); display:flex; align-items:center; gap:6px;">
+          <span style="font-size:18px; color:var(--blue);">‹</span>
+          <span style="font-size:11px; font-weight:600; color:var(--gray-6); flex:1; text-align:center;">百事王总联系方式及拜访计划</span>
+          <span style="font-size:15px; color:var(--gray-4);">⋯</span>
+        </div>
+        <!-- Chat panel animated -->
+        <div class="chat-panel" style="position:relative; inset:unset; flex:1; animation:slideUp .4s cubic-bezier(.16,1,.3,1);">
+          <div class="chat-top">
+            <div class="chat-context-pill">
+              <div class="ctx-title">百事王总联系方式及拜访计划</div>
+            </div>
+            <button class="chat-close" onclick="closeOverlayBtn()">关闭对话</button>
+          </div>
+          <div class="chat-msgs" id="overlay-msgs">
+            <div class="msg ai">
+              <div class="msg-ai-header">
+                <div class="ai-avatar">AI</div>
+                <span class="ai-name">AI 助手</span>
+              </div>
+              <div class="msg-bubble">你好！我已读取了这篇笔记内容。关于王总的联系与拜访，有什么想了解的？</div>
+              <div class="suggestion-row">
+                <div class="sug-chip" onclick="sendSug(this,'拜访时间建议')">🗓 拜访时间</div>
+                <div class="sug-chip" onclick="sendSug(this,'准备什么材料')">📋 准备清单</div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-bar">
+            <input class="chat-input" id="chat-in" placeholder="问问 AI…" onkeypress="chatEnter(event)" />
+            <div class="chat-send" onclick="sendChat()">↑</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.hidden { display:none !important; }
+</style>
+
+<script>
+// ── CHAT OVERLAY ──
+function openChat() {
+  document.getElementById('chat-overlay').classList.remove('hidden');
+}
+function closeOverlay(e) {
+  if (e.target === document.getElementById('chat-overlay')) {
+    document.getElementById('chat-overlay').classList.add('hidden');
+  }
+}
+function closeOverlayBtn() {
+  document.getElementById('chat-overlay').classList.add('hidden');
+}
+
+// ── AI REPLIES ──
+const replies = {
+  '拜访时间建议': '建议选在<span class="highlight">下周二工作汇报结束后</span>联系王总确认，他的邮箱和微信都已在笔记中。届时日程相对宽松，成功约到的概率更高。',
+  '准备什么材料': '根据拜访目的，建议准备：<br><br>· 公司介绍 PPT（重点突出渠道合作优势）<br>· <span class="highlight">合作方案初稿</span>（附定价方案）<br>· 产品 Demo 演示版本<br>· 名片若干',
+  '联系方式': '王总的联系方式：<br>📞 <span class="blue-text">139-xxxx-1234</span><br>微信：wangdafang<br>📧 wang@baishipartner.com',
+};
+
+function sendSug(el, text) {
+  addUserMsg(text);
+  el.closest('.suggestion-row').remove();
+  setTimeout(() => addAiMsg(replies[text] || '好的，让我思考一下…'), 600);
+}
+
+function sendChat() {
+  const inp = document.getElementById('chat-in');
+  const val = inp.value.trim();
+  if (!val) return;
+  addUserMsg(val);
+  inp.value = '';
+  const replyMap = {
+    '王总': '王总是百事合伙人的行业总监，主要负责渠道拓展与品牌合作。这次拜访的核心是<span class="highlight">推进合作签约可能性</span>。',
+    '时间': '建议<span class="highlight">下周二下午3点后</span>联系，可发微信先确认。',
+    '材料': replies['准备什么材料'],
+  };
+  let reply = '已根据笔记分析，这个问题的关键是：<span class="highlight">优先建立信任，再谈具体合作条款</span>。建议保持轻松拜访氛围，不要过于强调签约。';
+  for (const k in replyMap) {
+    if (val.includes(k)) { reply = replyMap[k]; break; }
+  }
+  setTimeout(() => addAiMsg(reply), 700);
+}
+
+function chatEnter(e) {
+  if (e.key === 'Enter') sendChat();
+}
+
+function addUserMsg(text) {
+  const msgs = document.getElementById('overlay-msgs');
+  const div = document.createElement('div');
+  div.className = 'msg user';
+  div.innerHTML = `<div class="msg-bubble">${text}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addAiMsg(html) {
+  const msgs = document.getElementById('overlay-msgs');
+  const div = document.createElement('div');
+  div.className = 'msg ai';
+  div.style.animation = 'slideUp .3s ease';
+  div.innerHTML = `
+    <div class="msg-ai-header"><div class="ai-avatar">AI</div><span class="ai-name">AI 助手</span></div>
+    <div class="msg-bubble">${html}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── VOICE RECORDING ──
+let voiceTimer = null;
+let voiceSeconds = 0;
+
+const transcripts = [
+  '准备录制…',
+  '今天 6 月 18 日活动会议…',
+  '今天 6 月 18 日活动会议，讨论了用户分层运营策略…',
+  '今天 6 月 18 日活动会议，讨论了用户分层运营策略，重点是差异化体验设计和人群精细化运营…',
+];
+
+function openVoice() {
+  const vs = document.getElementById('vs-screen');
+  vs.classList.remove('hidden');
+  voiceSeconds = 0;
+  voiceTimer = setInterval(() => {
+    voiceSeconds++;
+    const min = String(Math.floor(voiceSeconds / 100)).padStart(2, '0');
+    const sec = String(voiceSeconds % 100).padStart(2, '0');
+    document.getElementById('voice-time').textContent = `00:${min}.${sec}`;
+    const p = Math.min(voiceSeconds * 1.5, 100);
+    document.getElementById('ring-progress').style.setProperty('--p', p + '%');
+    const ti = Math.min(Math.floor(voiceSeconds / 30), transcripts.length - 1);
+    document.getElementById('voice-transcript').textContent = transcripts[ti];
+  }, 100);
+}
+
+function closeVoice(e) {
+  e.stopPropagation();
+  clearInterval(voiceTimer);
+  document.getElementById('vs-screen').classList.add('hidden');
+  voiceSeconds = 0;
+}
+
+// ── NAV SCROLL ──
+function scrollToId(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('.nav-pill').forEach((b, i) => {
+    b.classList.toggle('on', ['flow1','flow2','flow3'][i] === id);
+  });
+}
+
+// IntersectionObserver for nav
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      document.querySelectorAll('.nav-pill').forEach((b,i) => {
+        b.classList.toggle('on', ['flow1','flow2','flow3'][i] === id);
+      });
+    }
+  });
+}, { threshold: 0.4 });
+['flow1','flow2','flow3'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) obs.observe(el);
+});
+</script>
+</body>
+</html>

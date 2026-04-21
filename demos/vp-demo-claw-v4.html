@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Claw v4 · 产品级笔记交互</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F2F2F7;--card:#FFFFFF;--card2:#F8F8FA;--card3:#F0F0F5;
+  --bd:rgba(60,60,67,.08);--bd2:rgba(60,60,67,.14);
+  --tx:#1C1C1E;--su:#48484A;--mu:#8E8E93;--dm:rgba(60,60,67,.2);
+  --bl:#0A84FF;--am:#FF9F0A;--gn:#30D158;--rd:#FF453A;--pu:#BF5AF2;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06);
+  --shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --r-sm:10px;--r-md:16px;--r-lg:22px;--r-full:999px;
+}
+html,body{background:var(--bg);color:var(--tx);font-family:-apple-system,'Noto Sans SC',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;align-items:center;padding:32px 12px 56px}
+.hd{text-align:center;margin-bottom:20px}
+.hd-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(10,132,255,.08);border-radius:var(--r-full);padding:5px 14px;font-size:10px;letter-spacing:.06em;color:var(--bl);font-weight:600;margin-bottom:8px;border:1px solid rgba(10,132,255,.12)}
+.hd-title{font-size:22px;font-weight:800;letter-spacing:-.04em;margin-bottom:4px}
+.hd-sub{font-size:12px;color:var(--mu);font-weight:400}
+/* ── PHONE ── */
+.phone{width:375px;height:720px;background:var(--card);border-radius:52px;border:1px solid rgba(0,0,0,.07);position:relative;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.16),0 8px 24px rgba(0,0,0,.08),inset 0 0 0 1.5px rgba(255,255,255,.95);flex-shrink:0}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:32px;background:#1C1C1E;border-radius:0 0 22px 22px;z-index:30}
+.notch::after{content:'';width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);position:absolute;right:28px;top:11px}
+.sbar{position:absolute;top:36px;left:0;right:0;padding:0 24px;display:flex;justify-content:space-between;align-items:center;z-index:20;pointer-events:none}
+.sbar-l{font-size:12px;font-weight:700;color:var(--tx)}.sbar-r{display:flex;gap:4px;align-items:center}
+.sd{width:5px;height:5px;border-radius:50%;background:var(--bl)}
+.screen{position:absolute;inset:0;top:56px;overflow:hidden;background:var(--card2)}
+/* ── CLAW LINE ── */
+.claw-line{position:absolute;bottom:0;left:0;right:0;height:4px;z-index:50;cursor:pointer;overflow:visible;animation:claw-breathe 3s ease-in-out infinite}
+.claw-line::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#4F46E5,#7C3AED,#A855F7,#6366F1,#3B82F6,#06B6D4,#7C3AED,#4F46E5);background-size:300% 100%;animation:cf 6s linear infinite;border-radius:2px}
+.claw-line::after{content:'';position:absolute;top:-6px;bottom:-6px;left:0;right:0;background:linear-gradient(90deg,rgba(79,70,229,.3),rgba(124,58,237,.4),rgba(168,85,247,.3));background-size:300% 100%;animation:cf 6s linear infinite;filter:blur(10px);pointer-events:none}
+@keyframes cf{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+@keyframes claw-breathe{0%,100%{opacity:.65}50%{opacity:1}}
+.claw-line.processing{height:5px;animation:none;opacity:1}
+.claw-line.processing::before{animation:cf .8s linear infinite;background:linear-gradient(90deg,#00ccff,#00ff88,#00ccff,#0088ff,#00ff88);background-size:300% 100%}
+.claw-line.processing::after{top:-8px;bottom:-8px;filter:blur(12px);animation:cf .8s linear infinite;background:linear-gradient(90deg,rgba(0,204,255,.3),rgba(0,255,136,.3),rgba(0,136,255,.3));background-size:300% 100%}
+/* ── TABS ── */
+.tab-bar{display:flex;background:var(--card);border-bottom:1px solid var(--bd);padding:0 16px}
+.tab-item{padding:10px 14px;font-size:12px;font-weight:600;color:var(--mu);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab-item.active{color:var(--tx);border-bottom-color:var(--tx)}
+/* ── NOTE CONTENT ── */
+.note-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:80px}
+.note-scroll::-webkit-scrollbar{width:2px}.note-scroll::-webkit-scrollbar-thumb{background:var(--dm)}
+.note-header{padding:14px 18px 10px}
+.note-title{font-size:17px;font-weight:800;line-height:1.3;letter-spacing:-.02em;margin-bottom:6px}
+.note-meta-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.note-chip{font-size:9px;font-weight:600;padding:3px 10px;border-radius:8px;background:var(--card3);color:var(--su)}
+.note-chip.blue{background:rgba(10,132,255,.08);color:var(--bl)}
+.note-section{padding:0 18px;margin-bottom:14px}
+.note-section-title{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.note-section-bar{width:3px;height:13px;border-radius:2px;display:inline-block;flex-shrink:0}
+.note-body{font-size:11.5px;color:var(--su);line-height:1.9;padding-left:14px;white-space:pre-line}
+.note-summary{margin:0 18px 14px;padding:12px 14px;background:rgba(10,132,255,.04);border:1px solid rgba(10,132,255,.1);border-radius:14px}
+.note-summary-label{font-size:9px;font-weight:700;color:var(--bl);letter-spacing:.04em;margin-bottom:4px}
+.note-summary-text{font-size:11px;color:var(--su);line-height:1.7}
+/* ── HIGHLIGHT (orange) ── */
+.hl-orange{background:rgba(255,159,10,.15);border-radius:4px;padding:0 2px;transition:background .3s}
+.hl-orange.confirmed{background:rgba(48,209,88,.12)}
+/* ── BOTTOM INPUT BAR ── */
+.input-bar{position:absolute;bottom:0;left:0;right:0;z-index:45;background:rgba(255,255,255,.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:0.5px solid rgba(60,60,67,.08);padding:8px 14px 16px;display:flex;align-items:center;gap:8px}
+.input-field{flex:1;padding:9px 14px;background:var(--card3);border:1px solid var(--bd);border-radius:20px;font-size:12px;color:var(--tx);outline:none;font-family:inherit}
+.input-field::placeholder{color:var(--mu)}
+.input-send{width:32px;height:32px;border-radius:50%;background:var(--bl);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.input-send:active{transform:scale(.9)}
+.input-send svg{width:16px;height:16px}
+.input-mic{width:32px;height:32px;border-radius:50%;background:var(--card3);border:1px solid var(--bd);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;transition:all .2s}
+/* ── CONFIRM OVERLAY ── */
+.confirm-bar{position:absolute;bottom:0;left:0;right:0;z-index:48;background:rgba(255,255,255,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--bd);padding:14px 16px;display:none;flex-direction:column;gap:10px;animation:slideUp .3s ease both}
+.confirm-bar.show{display:flex}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.confirm-cmd{font-size:10.5px;color:var(--bl);font-weight:600;display:flex;align-items:center;gap:5px}
+.confirm-diff{display:flex;border-radius:12px;overflow:hidden;border:1px solid var(--bd);font-size:10.5px}
+.confirm-before{flex:1;padding:8px 10px;background:#FFF1F0;border-right:1px solid var(--bd)}
+.confirm-after{flex:1;padding:8px 10px;background:#F0FDF4}
+.confirm-lbl{font-size:8px;font-weight:700;letter-spacing:.06em;margin-bottom:3px}
+.confirm-before .confirm-lbl{color:var(--rd)}.confirm-after .confirm-lbl{color:var(--gn)}
+.confirm-txt{line-height:1.5;color:var(--tx)}
+.confirm-btns{display:flex;gap:8px}
+.confirm-rej{flex:1;padding:9px;border-radius:12px;font-size:12px;font-weight:600;border:1.5px solid var(--bd2);background:transparent;color:var(--su);cursor:pointer;font-family:inherit}
+.confirm-acc{flex:2;padding:9px;border-radius:12px;font-size:12px;font-weight:700;border:none;background:var(--gn);color:white;cursor:pointer;box-shadow:0 4px 12px rgba(48,209,88,.3);font-family:inherit}
+/* ── PROCESSING DOTS ── */
+.proc-inline{display:none;align-items:center;gap:4px;padding:8px 18px}
+.proc-inline.show{display:flex}
+.proc-inline-dot{width:6px;height:6px;border-radius:50%;background:var(--bl);animation:pd 1.2s ease-in-out infinite}
+.proc-inline-dot:nth-child(2){animation-delay:.2s}.proc-inline-dot:nth-child(3){animation-delay:.4s}
+@keyframes pd{0%,100%{opacity:.15;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+.proc-inline-text{font-size:11px;color:var(--mu);font-weight:500;margin-left:4px}
+/* ── TOAST ── */
+.toast{position:absolute;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:55;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);color:white;font-size:11px;font-weight:600;padding:8px 18px;border-radius:20px;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ── STEP INDICATOR ── */
+.steps-bar{display:flex;gap:8px;margin-top:16px;margin-bottom:8px;flex-wrap:wrap;justify-content:center}
+.step-pill{padding:6px 14px;border-radius:var(--r-md);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid var(--bd);background:var(--card);color:var(--su);box-shadow:var(--shadow-sm)}
+.step-pill:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.step-pill.active{border-color:rgba(10,132,255,.3);background:rgba(10,132,255,.06);color:var(--bl)}
+.step-pill.done{border-color:rgba(48,209,88,.2);background:rgba(48,209,88,.04);color:var(--gn)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.anim-in{animation:fadeIn .35s ease both}
+</style>
+</head>
+<body>
+<div class="hd">
+  <div class="hd-badge">✦ Claw v4 · 产品级笔记交互</div>
+  <div class="hd-title">龙虾项目复盘 · 完整交互演示</div>
+  <div class="hd-sub">底部输入指令 → 橙色高亮变更 → 确认应用</div>
+</div>
+<div class="steps-bar" id="STEPS"></div>
+<div style="display:flex;gap:20px;align-items:flex-start;justify-content:center">
+  <div class="phone" id="PHONE">
+    <div class="notch"></div>
+    <div class="sbar"><span class="sbar-l">9:41</span><div class="sbar-r"><div class="sd"></div><div class="sd"></div><div class="sd"></div></div></div>
+    <div class="screen" id="SCR"></div>
+  </div>
+</div>
+<div style="display:flex;gap:9px;margin-top:20px;flex-wrap:wrap;justify-content:center">
+  <button style="border-radius:var(--r-md);padding:10px 20px;font-size:12.5px;font-weight:600;cursor:pointer;border:none;font-family:inherit;background:rgba(255,69,58,.06);border:1px solid rgba(255,69,58,.14);color:var(--rd)" onclick="App.reset()">↺ 重置</button>
+  <button id="AUTO_BTN" style="border-radius:var(--r-md);padding:10px 20px;font-size:12.5px;font-weight:600;cursor:pointer;border:none;font-family:inherit;background:linear-gradient(145deg,#1A8FFF,#0A84FF);color:white;box-shadow:0 4px 14px rgba(10,132,255,.3)" onclick="App.autoDemo()">▶ 自动演示完整流程</button>
+</div>
+</body>
+<script>
+function mk(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html)e.innerHTML=html;return e}
+function qs(sel,ctx){return(ctx||document).querySelector(sel)}
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+
+// ═══ SCENARIO DATA ═══
+const NOTE={
+  title:'龙虾项目上线复盘总结会议',
+  meta:{time:'2025.03.15 14:00-15:30',attendees:'张总、李工、阿雅、小王、小陈',type:'会议纪要'},
+  summary:'本次复盘围绕龙虾项目上线后的表现进行回顾，总结了值得保留的方案、存在的问题以及下一步尝试计划。整体上线效果达到预期，但在性能和用户反馈响应方面仍有改进空间。',
+  sections:[
+    {id:'keep',title:'保留的方案 Keep',icon:'✅',color:'#30D158',items:[
+      '分阶段灰度发布策略，有效控制了上线风险',
+      '东方向好的用户增长模型，首周 DAU 达到 12,000',
+      'AI 推荐算法的冷启动方案，新用户留存率提升 18%',
+      '跨部门协作的日站会机制，问题响应速度提升 40%'
+    ]},
+    {id:'problem',title:'存在的问题 Problem',icon:'⚠️',color:'#FF9F0A',items:[
+      '高峰期接口响应时间超过 2s，影响用户体验',
+      '用户反馈渠道分散，问题收集不够及时',
+      '部分边缘场景的测试覆盖不足，上线后出现 3 个 P2 级 bug',
+      '文档更新滞后，新成员 onboarding 效率低'
+    ]},
+    {id:'try',title:'尝试计划 Try',icon:'🚀',color:'#0A84FF',items:[
+      '引入性能监控平台，设置 P95 响应时间告警',
+      '统一用户反馈入口，建立 48h 响应 SLA',
+      '补充自动化测试用例，覆盖率目标提升至 85%',
+      '每次迭代同步更新文档，纳入 Definition of Done'
+    ]}
+  ]
+};
+
+// ═══ EDIT STEPS ═══
+const EDITS=[
+  {
+    id:'edit1',
+    label:'① 修改更正式',
+    cmd:'帮我把"东方向好"这块修改更正式一点，并补充一些数据',
+    target:'keep',targetIdx:1,
+    before:'东方向好的用户增长模型，首周 DAU 达到 12,000',
+    after:'用户增长模型表现优异，首周 DAU 达到 12,000，环比增长 35%，超出预期目标 20%',
+  },
+  {
+    id:'edit2',
+    label:'② 补充问题细节',
+    cmd:'高峰期响应时间那条，补充一下具体是哪个接口',
+    target:'problem',targetIdx:0,
+    before:'高峰期接口响应时间超过 2s，影响用户体验',
+    after:'高峰期 /api/recommend 接口响应时间超过 2s（P99 达 3.2s），影响首页推荐流加载体验',
+  },
+  {
+    id:'edit3',
+    label:'③ 新增备注',
+    cmd:'在尝试计划最后加一条：申请增加两名 QA 人力',
+    target:'try',targetIdx:-1,
+    before:'（尝试计划末尾）',
+    after:'+ 向 PMO 申请增加 2 名 QA 人力，支撑 Q2 测试需求',
+    isAppend:true,
+    appendText:'向 PMO 申请增加 2 名 QA 人力，支撑 Q2 测试需求'
+  },
+  {
+    id:'edit4',
+    label:'④ 修改标题',
+    cmd:'标题改成"龙虾项目 Q1 上线复盘"',
+    target:'title',
+    before:'龙虾项目上线复盘总结会议',
+    after:'龙虾项目 Q1 上线复盘',
+  },
+  {
+    id:'edit5',
+    label:'⑤ 目标确认',
+    cmd:'小米汽车今年目标完成了吗？帮我加个状态',
+    target:'append-status',
+    before:'（无目标状态）',
+    after:'+ 🎯 小米汽车年度目标：已完成 ✅',
+    isStatus:true
+  }
+];
+
+// ═══ APP ═══
+const App=(()=>{
+  let currentStep=-1,autoRunning=false;
+  let timers=[];
+  function clearAll(){timers.forEach(t=>clearTimeout(t));timers=[]}
+
+  function buildSteps(){
+    const w=qs('#STEPS');w.innerHTML='';
+    EDITS.forEach((e,i)=>{
+      const pill=mk('div','step-pill',e.label);
+      pill.id='STEP_'+i;
+      pill.onclick=()=>jumpToStep(i);
+      w.appendChild(pill);
+    });
+  }
+  function updateSteps(){
+    EDITS.forEach((e,i)=>{
+      const pill=qs('#STEP_'+i);if(!pill)return;
+      pill.className='step-pill'+(i===currentStep?' active':i<currentStep?' done':'');
+    });
+  }
+
+  // ═══ RENDER NOTE ═══
+  function renderNote(){
+    const scr=qs('#SCR');scr.innerHTML='';
+    const pg=mk('div','');pg.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;background:var(--card2)';
+
+    // Tab bar
+    const tabBar=mk('div','tab-bar');
+    tabBar.innerHTML='<div class="tab-item active">文字笔记_精简</div><div class="tab-item">Claw space 评估</div>';
+    pg.appendChild(tabBar);
+
+    // Scroll area
+    const scroll=mk('div','note-scroll');scroll.id='NOTE_SCROLL';
+
+    // Header
+    const hd=mk('div','note-header');
+    hd.innerHTML=`<div class="note-title" id="NOTE_TITLE">${NOTE.title}</div><div class="note-meta-row"><span class="note-chip blue">📋 ${NOTE.meta.type}</span><span class="note-chip">📅 ${NOTE.meta.time}</span><span class="note-chip">👥 ${NOTE.meta.attendees}</span></div>`;
+    scroll.appendChild(hd);
+
+    // Summary
+    const sum=mk('div','note-summary');
+    sum.innerHTML=`<div class="note-summary-label">📝 会议摘要</div><div class="note-summary-text" id="NOTE_SUMMARY">${NOTE.summary}</div>`;
+    scroll.appendChild(sum);
+
+    // Sections
+    NOTE.sections.forEach(sec=>{
+      const section=mk('div','note-section');section.id='SEC_'+sec.id;
+      let itemsHtml=sec.items.map((item,i)=>`<div class="note-item" id="ITEM_${sec.id}_${i}" style="margin-bottom:4px">• ${item}</div>`).join('');
+      section.innerHTML=`<div class="note-section-title"><span class="note-section-bar" style="background:${sec.color}"></span>${sec.icon} ${sec.title}</div><div class="note-body" id="BODY_${sec.id}">${itemsHtml}</div>`;
+      scroll.appendChild(section);
+    });
+
+    // Status area (initially empty)
+    const statusArea=mk('div','');statusArea.id='STATUS_AREA';statusArea.style.cssText='padding:0 18px';
+    scroll.appendChild(statusArea);
+
+    // Bottom hint
+    const hint=mk('div','');hint.style.cssText='text-align:center;padding:24px 16px 8px';
+    hint.innerHTML='<div style="font-size:10px;color:var(--mu)">AI 帮你整理，说出想法即可</div>';
+    scroll.appendChild(hint);
+
+    pg.appendChild(scroll);
+
+    // Processing indicator
+    const proc=mk('div','proc-inline');proc.id='PROC';
+    proc.innerHTML='<div class="proc-inline-dot"></div><div class="proc-inline-dot"></div><div class="proc-inline-dot"></div><div class="proc-inline-text">AI 正在处理…</div>';
+    pg.appendChild(proc);
+
+    // Confirm bar
+    const confirm=mk('div','confirm-bar');confirm.id='CONFIRM';
+    pg.appendChild(confirm);
+
+    // Input bar
+    const inputBar=mk('div','input-bar');inputBar.id='INPUT_BAR';
+    inputBar.innerHTML=`<div class="input-mic" id="MIC_BTN">🎙</div><input class="input-field" id="INPUT" placeholder="输入指令，或点击🎙语音" readonly/><div class="input-send" id="SEND_BTN"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></div>`;
+    pg.appendChild(inputBar);
+
+    // Toast
+    const toast=mk('div','toast');toast.id='TOAST';
+    pg.appendChild(toast);
+
+    // Claw line
+    const cl=mk('div','claw-line');cl.id='CLAW';
+    pg.appendChild(cl);
+
+    scr.appendChild(pg);
+  }
+
+  function showToast(text,duration=1500){
+    const t=qs('#TOAST');if(!t)return;
+    t.textContent=text;t.classList.add('show');
+    const tm=setTimeout(()=>t.classList.remove('show'),duration);timers.push(tm);
+  }
+
+  // ═══ EXECUTE EDIT STEP ═══
+  async function executeStep(idx){
+    if(idx<0||idx>=EDITS.length)return;
+    currentStep=idx;updateSteps();
+    const edit=EDITS[idx];
+
+    // 1. Show command in input
+    const input=qs('#INPUT');
+    if(input){input.value='';input.placeholder='';
+      // Typing animation
+      for(let i=0;i<edit.cmd.length;i++){
+        input.value=edit.cmd.slice(0,i+1);
+        await delay(25);
+      }
+    }
+    await delay(400);
+
+    // 2. Show processing
+    const cl=qs('#CLAW');if(cl)cl.classList.add('processing');
+    const proc=qs('#PROC');if(proc)proc.classList.add('show');
+    if(input)input.value='';
+    await delay(1000);
+    if(cl)cl.classList.remove('processing');
+    if(proc)proc.classList.remove('show');
+
+    // 3. Highlight the target area in orange
+    highlightTarget(edit);
+    await delay(300);
+
+    // 4. Show confirm bar
+    showConfirm(edit);
+  }
+
+  function highlightTarget(edit){
+    if(edit.target==='title'){
+      const el=qs('#NOTE_TITLE');
+      if(el){el.innerHTML=`<span class="hl-orange" id="HL_ACTIVE">${el.textContent}</span>`;scrollToEl(el)}
+    } else if(edit.isAppend){
+      const body=qs('#BODY_'+edit.target);
+      if(body){const newItem=mk('div','note-item anim-in');newItem.id='HL_ACTIVE';
+        newItem.innerHTML=`<span class="hl-orange">• ${edit.appendText}</span>`;
+        body.appendChild(newItem);scrollToEl(newItem)}
+    } else if(edit.isStatus){
+      const area=qs('#STATUS_AREA');
+      if(area){area.innerHTML=`<div class="anim-in" id="HL_ACTIVE" style="padding:12px 14px;background:rgba(255,159,10,.06);border:1px solid rgba(255,159,10,.15);border-radius:14px;margin-bottom:14px"><div style="font-size:10px;font-weight:700;color:var(--am);margin-bottom:4px">🎯 目标状态</div><div style="font-size:12px;font-weight:600;color:var(--tx)"><span class="hl-orange">小米汽车年度目标：已完成 ✅</span></div></div>`;
+        scrollToEl(area)}
+    } else {
+      const item=qs('#ITEM_'+edit.target+'_'+edit.targetIdx);
+      if(item){item.innerHTML=`<span class="hl-orange" id="HL_ACTIVE">• ${edit.after}</span>`;scrollToEl(item)}
+    }
+  }
+
+  function scrollToEl(el){
+    const scroll=qs('#NOTE_SCROLL');
+    if(scroll&&el){el.scrollIntoView({behavior:'smooth',block:'center'})}
+  }
+
+  function showConfirm(edit){
+    const bar=qs('#CONFIRM');if(!bar)return;
+    bar.innerHTML=`<div class="confirm-cmd">🎙 "${edit.cmd}"</div><div class="confirm-diff"><div class="confirm-before"><div class="confirm-lbl">BEFORE</div><div class="confirm-txt">${edit.before}</div></div><div class="confirm-after"><div class="confirm-lbl">AFTER</div><div class="confirm-txt">${edit.after}</div></div></div><div class="confirm-btns"><button class="confirm-rej" onclick="App.reject()">放弃</button><button class="confirm-acc" onclick="App.accept()">✓ 应用修改</button></div>`;
+    bar.classList.add('show');
+    // Hide input bar
+    const ib=qs('#INPUT_BAR');if(ib)ib.style.display='none';
+  }
+
+  function accept(){
+    const bar=qs('#CONFIRM');if(bar)bar.classList.remove('show');
+    // Confirm highlight → green
+    const hl=qs('#HL_ACTIVE');if(hl){
+      const hlSpan=hl.querySelector('.hl-orange')||hl;
+      if(hlSpan.classList)hlSpan.classList.add('confirmed');
+    }
+    showToast('✓ 已应用修改');
+    // Restore input bar
+    const ib=qs('#INPUT_BAR');if(ib)ib.style.display='flex';
+    const input=qs('#INPUT');if(input){input.value='';input.placeholder='输入指令，或点击🎙语音'}
+  }
+
+  function reject(){
+    const bar=qs('#CONFIRM');if(bar)bar.classList.remove('show');
+    // Remove highlight / revert
+    const edit=EDITS[currentStep];
+    if(edit){
+      if(edit.target==='title'){
+        const el=qs('#NOTE_TITLE');if(el)el.textContent=NOTE.title;
+      } else if(edit.isAppend){
+        const hl=qs('#HL_ACTIVE');if(hl)hl.remove();
+      } else if(edit.isStatus){
+        const area=qs('#STATUS_AREA');if(area)area.innerHTML='';
+      } else {
+        const item=qs('#ITEM_'+edit.target+'_'+edit.targetIdx);
+        if(item)item.innerHTML=`• ${edit.before}`;
+      }
+    }
+    showToast('已放弃');
+    const ib=qs('#INPUT_BAR');if(ib)ib.style.display='flex';
+    const input=qs('#INPUT');if(input){input.value='';input.placeholder='输入指令，或点击🎙语音'}
+  }
+
+  function jumpToStep(idx){
+    clearAll();
+    // Re-render note fresh
+    renderNote();
+    // Apply all previous steps silently
+    for(let i=0;i<idx;i++){
+      applyEditSilent(i);
+    }
+    // Then animate current step
+    setTimeout(()=>executeStep(idx),300);
+  }
+
+  function applyEditSilent(idx){
+    const edit=EDITS[idx];if(!edit)return;
+    if(edit.target==='title'){
+      const el=qs('#NOTE_TITLE');if(el)el.textContent=edit.after;
+    } else if(edit.isAppend){
+      const body=qs('#BODY_'+edit.target);
+      if(body){const newItem=mk('div','note-item');newItem.innerHTML=`• ${edit.appendText}`;body.appendChild(newItem)}
+    } else if(edit.isStatus){
+      const area=qs('#STATUS_AREA');
+      if(area)area.innerHTML=`<div style="padding:12px 14px;background:rgba(48,209,88,.04);border:1px solid rgba(48,209,88,.12);border-radius:14px;margin-bottom:14px"><div style="font-size:10px;font-weight:700;color:var(--gn);margin-bottom:4px">🎯 目标状态</div><div style="font-size:12px;font-weight:600;color:var(--tx)">小米汽车年度目标：已完成 ✅</div></div>`;
+    } else {
+      const item=qs('#ITEM_'+edit.target+'_'+edit.targetIdx);
+      if(item)item.innerHTML=`• ${edit.after}`;
+    }
+  }
+
+  // ═══ AUTO DEMO ═══
+  async function autoDemo(){
+    if(autoRunning)return;autoRunning=true;
+    const btn=qs('#AUTO_BTN');if(btn)btn.textContent='⏳ 演示中…';
+    renderNote();
+    await delay(600);
+    for(let i=0;i<EDITS.length;i++){
+      await executeStep(i);
+      // Wait for confirm bar, then auto-accept
+      await delay(2500);
+      accept();
+      await delay(800);
+    }
+    showToast('🎉 演示完成',2000);
+    autoRunning=false;
+    if(btn)btn.textContent='▶ 自动演示完整流程';
+  }
+
+  function reset(){
+    clearAll();autoRunning=false;currentStep=-1;
+    qs('#AUTO_BTN').textContent='▶ 自动演示完整流程';
+    buildSteps();renderNote();
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{buildSteps();renderNote()});
+
+  return{accept,reject,autoDemo,reset,jumpToStep,executeStep};
+})();
+</script>
+</html>

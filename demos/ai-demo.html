@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 助手演示 Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=SF+Pro+Display:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #0a0a0f;
+    font-family: 'Noto Sans SC', -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: #fff;
+  }
+
+  /* ========== SCENE SELECTOR ========== */
+  .scene-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    background: rgba(10,10,15,0.9);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+  }
+  .scene-nav .logo {
+    font-size: 13px;
+    font-weight: 700;
+    color: #a78bfa;
+    margin-right: 16px;
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+  }
+  .scene-btn {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: transparent;
+    color: rgba(255,255,255,0.55);
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .scene-btn.active {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #fff;
+  }
+  .scene-btn:hover:not(.active) {
+    border-color: rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.8);
+  }
+
+  /* ========== STAGE ========== */
+  .stage {
+    margin-top: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 40px 20px 80px;
+  }
+
+  .scene-title {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #7c3aed;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .scene-headline {
+    font-size: 22px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .scene-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 40px;
+    text-align: center;
+    max-width: 500px;
+    line-height: 1.6;
+  }
+
+  /* ========== PHONE FRAME ========== */
+  .phones-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .phone-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .phone-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.08em;
+  }
+
+  .phone {
+    width: 200px;
+    height: 420px;
+    background: #111118;
+    border-radius: 36px;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.1);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .phone::before {
+    content: '';
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 60px; height: 6px;
+    background: #1a1a24;
+    border-radius: 3px;
+    z-index: 10;
+  }
+
+  /* ========== LOCK SCREEN ========== */
+  .screen-lock {
+    width: 100%; height: 100%;
+    background: linear-gradient(160deg, #1a0533 0%, #0d0d1f 50%, #0a0a14 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 50px;
+    position: relative;
+  }
+  .lock-wallpaper {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 120% 60% at 50% 30%, rgba(120,60,200,0.3) 0%, transparent 70%),
+      radial-gradient(ellipse 80% 80% at 20% 80%, rgba(60,20,120,0.2) 0%, transparent 60%),
+      linear-gradient(160deg, #1a0533, #0a0a14);
+    overflow: hidden;
+  }
+  .lock-wallpaper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 100% 100% at 50% -10%, rgba(180,120,255,0.15) 0%, transparent 60%);
+  }
+  .lock-time {
+    position: relative;
+    font-size: 56px;
+    font-weight: 200;
+    color: #fff;
+    letter-spacing: -2px;
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(180,120,255,0.4);
+    z-index: 1;
+  }
+  .lock-date {
+    position: relative;
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    margin-top: 4px;
+    z-index: 1;
+  }
+  .lock-bottom {
+    position: absolute;
+    bottom: 20px; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    z-index: 1;
+  }
+  .lock-icon {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .ai-btn {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 0 20px rgba(124,58,237,0.5);
+    animation: pulse-ring 2s infinite;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .ai-btn:hover { transform: scale(1.08); }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(124,58,237,0.5); }
+    70% { box-shadow: 0 0 0 10px rgba(124,58,237,0); }
+    100% { box-shadow: 0 0 0 0 rgba(124,58,237,0); }
+  }
+
+  /* ========== AI POPUP ========== */
+  .ai-popup {
+    position: absolute;
+    bottom: 70px; left: 12px; right: 12px;
+    background: rgba(20,12,40,0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(160,100,255,0.3);
+    border-radius: 16px;
+    padding: 14px;
+    z-index: 10;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .ai-popup-title {
+    font-size: 10px;
+    color: #a78bfa;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .ai-popup-title::before { content: '✦'; font-size: 8px; }
+  .ai-popup-input {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    font-style: italic;
+    font-family: inherit;
+  }
+  .ai-popup-chips {
+    display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;
+  }
+  .chip {
+    padding: 4px 8px;
+    background: rgba(124,58,237,0.2);
+    border: 1px solid rgba(124,58,237,0.4);
+    border-radius: 12px;
+    font-size: 9px;
+    color: #c4b5fd;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip:hover { background: rgba(124,58,237,0.4); }
+  .chip.active { background: rgba(124,58,237,0.6); border-color: #a78bfa; color: #fff; }
+
+  /* ========== NOTIFICATION ========== */
+  .notification {
+    position: absolute;
+    top: 24px; left: 10px; right: 10px;
+    background: rgba(20,12,40,0.92);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(160,100,255,0.25);
+    border-radius: 14px;
+    padding: 10px 12px;
+    z-index: 10;
+    display: flex; align-items: center; gap: 8px;
+    animation: dropDown 0.3s ease;
+  }
+  @keyframes dropDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .notif-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .notif-text { flex: 1; }
+  .notif-app { font-size: 9px; color: rgba(255,255,255,0.4); margin-bottom: 2px; }
+  .notif-content { font-size: 10px; color: #e2d9f3; line-height: 1.4; }
+  .notif-action {
+    font-size: 9px; color: #a78bfa; margin-top: 4px; cursor: pointer;
+    background: rgba(124,58,237,0.15);
+    padding: 3px 8px; border-radius: 8px;
+    display: inline-block;
+  }
+
+  /* ========== HOME SCREEN ========== */
+  .screen-home {
+    width: 100%; height: 100%;
+    background: linear-gradient(160deg, #0f0520 0%, #0d0d1f 100%);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .home-status {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px 8px;
+    font-size: 10px; color: rgba(255,255,255,0.6);
+  }
+  .home-wallpaper {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 120% 60% at 50% 20%, rgba(100,40,180,0.25) 0%, transparent 70%);
+  }
+
+  /* Content feed */
+  .feed-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 10px;
+    scrollbar-width: none;
+    position: relative;
+    z-index: 1;
+  }
+  .feed-container::-webkit-scrollbar { display: none; }
+
+  .feed-item {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .feed-item:hover { background: rgba(255,255,255,0.07); }
+  .feed-item-header {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 6px;
+  }
+  .feed-avatar {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+  .feed-name { font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 500; }
+  .feed-time { font-size: 9px; color: rgba(255,255,255,0.3); margin-left: auto; }
+  .feed-text { font-size: 10px; color: rgba(255,255,255,0.55); line-height: 1.5; }
+  .feed-img {
+    width: 100%; height: 60px;
+    border-radius: 6px;
+    margin-top: 6px;
+    object-fit: cover;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(100,40,180,0.2), rgba(40,80,180,0.2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: rgba(255,255,255,0.2);
+  }
+
+  /* AI Brainstorm card on home */
+  .brainstorm-card {
+    background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(59,130,246,0.1));
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .brainstorm-badge {
+    font-size: 8px; color: #a78bfa;
+    margin-bottom: 4px; display: flex; align-items: center; gap: 3px;
+  }
+  .brainstorm-title { font-size: 11px; color: #fff; font-weight: 500; margin-bottom: 4px; }
+  .brainstorm-list { list-style: none; }
+  .brainstorm-list li {
+    font-size: 10px; color: rgba(255,255,255,0.6);
+    padding: 3px 0;
+    display: flex; align-items: flex-start; gap: 4px;
+    line-height: 1.4;
+  }
+  .brainstorm-list li::before { content: '→'; color: #7c3aed; flex-shrink: 0; margin-top: 0; }
+
+  /* Widget */
+  .widget-row {
+    display: flex; gap: 6px; padding: 0 10px 8px;
+    position: relative; z-index: 1;
+  }
+  .widget {
+    flex: 1; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; padding: 8px;
+  }
+  .widget-ai {
+    background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(168,85,247,0.1));
+    border-color: rgba(124,58,237,0.3);
+  }
+  .widget-title { font-size: 8px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+  .widget-value { font-size: 18px; font-weight: 200; color: #fff; }
+  .widget-sub { font-size: 8px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+
+  /* Dock */
+  .dock {
+    margin: 0 10px 14px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 8px 16px;
+    display: flex; justify-content: space-around;
+    position: relative; z-index: 1;
+  }
+  .dock-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .dock-icon:hover { transform: scale(1.15); }
+
+  /* ========== NOTES SCREEN ========== */
+  .screen-notes {
+    width: 100%; height: 100%;
+    background: #f5f5f0;
+    display: flex; flex-direction: column;
+    position: relative;
+    color: #1a1a1a;
+  }
+  .notes-header {
+    background: #fff;
+    padding: 36px 14px 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .notes-back { font-size: 16px; color: #007aff; cursor: pointer; }
+  .notes-title-sm { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+  .notes-content { flex: 1; overflow-y: auto; padding: 12px 14px; scrollbar-width: none; }
+  .notes-content::-webkit-scrollbar { display: none; }
+
+  .note-item {
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+  .note-item:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+  .note-item-title { font-size: 11px; font-weight: 600; color: #1a1a1a; margin-bottom: 3px; }
+  .note-item-preview { font-size: 10px; color: #888; line-height: 1.5; }
+  .note-item-date { font-size: 9px; color: #bbb; margin-top: 4px; }
+  .note-ai-badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: rgba(124,58,237,0.1);
+    color: #7c3aed;
+    font-size: 8px; padding: 2px 6px; border-radius: 8px;
+    margin-bottom: 4px;
+  }
+
+  .ai-summary-card {
+    background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(59,130,246,0.06));
+    border: 1px solid rgba(124,58,237,0.2);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .ai-summary-title { font-size: 10px; font-weight: 600; color: #7c3aed; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+  .ai-summary-text { font-size: 10px; color: #444; line-height: 1.6; }
+  .ai-action-row { display: flex; gap: 6px; margin-top: 8px; }
+  .ai-action-btn {
+    flex: 1; padding: 6px; border-radius: 8px;
+    font-size: 9px; font-weight: 500; cursor: pointer;
+    border: none; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .ai-action-btn.primary {
+    background: #7c3aed; color: #fff;
+  }
+  .ai-action-btn.secondary {
+    background: rgba(124,58,237,0.1); color: #7c3aed;
+    border: 1px solid rgba(124,58,237,0.2);
+  }
+  .ai-action-btn:hover { opacity: 0.85; }
+
+  /* ========== DECISION CARD ========== */
+  .decision-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 20;
+    display: flex; flex-direction: column;
+    padding: 16px 12px;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .decision-title { font-size: 11px; font-weight: 600; color: #a78bfa; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+  .decision-headline { font-size: 14px; font-weight: 500; color: #fff; margin-bottom: 10px; }
+  .decision-analysis {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  .analysis-label { font-size: 9px; color: rgba(255,255,255,0.4); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .analysis-text { font-size: 10px; color: rgba(255,255,255,0.75); line-height: 1.5; }
+  .decision-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .decision-action {
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 10px; font-weight: 500;
+    cursor: pointer; font-family: inherit;
+    border: none; display: flex; align-items: center; gap: 6px;
+    transition: all 0.2s;
+  }
+  .decision-action.a { background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff; }
+  .decision-action.b { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.25); }
+  .decision-action.c { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.08); }
+  .decision-action:hover { transform: translateX(3px); }
+  .decision-action span { flex: 1; text-align: left; }
+  .decision-action .arrow { font-size: 12px; }
+
+  /* ========== STEP INDICATOR ========== */
+  .step-indicator {
+    display: flex; gap: 8px; margin-bottom: 30px;
+    align-items: center;
+  }
+  .step-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .step-dot.active { background: #7c3aed; width: 20px; border-radius: 3px; }
+  .step-dot.done { background: rgba(124,58,237,0.5); }
+
+  /* ========== ARROWS ========== */
+  .flow-arrow {
+    display: flex; align-items: center;
+    font-size: 11px; color: rgba(124,58,237,0.5);
+    flex-direction: column; gap: 4px;
+    padding-top: 40px;
+  }
+  .flow-arrow-line {
+    width: 1px; height: 30px;
+    background: linear-gradient(to bottom, transparent, rgba(124,58,237,0.4), transparent);
+  }
+  .flow-arrow-text { font-size: 9px; color: rgba(255,255,255,0.2); text-align: center; max-width: 60px; line-height: 1.4; }
+
+  /* ========== SECTION DIVIDER ========== */
+  .section-divider {
+    width: 100%; max-width: 900px;
+    border: none; border-top: 1px solid rgba(255,255,255,0.05);
+    margin: 40px 0;
+  }
+
+  /* ========== HIDDEN SCREENS ========== */
+  .scene { display: none; flex-direction: column; align-items: center; width: 100%; }
+  .scene.active { display: flex; }
+
+  /* ========== INTERACTIVE STEP BUTTONS ========== */
+  .step-controls {
+    display: flex; gap: 8px; margin-top: 24px;
+  }
+  .step-ctrl-btn {
+    padding: 8px 20px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: transparent; color: rgba(255,255,255,0.6);
+    font-size: 12px; cursor: pointer; font-family: inherit;
+    transition: all 0.2s;
+  }
+  .step-ctrl-btn:hover { border-color: rgba(124,58,237,0.5); color: #a78bfa; }
+  .step-ctrl-btn.primary {
+    background: #7c3aed; border-color: #7c3aed; color: #fff;
+  }
+  .step-ctrl-btn.primary:hover { background: #6d28d9; }
+  .step-ctrl-btn:disabled { opacity: 0.3; cursor: default; }
+
+  /* helper */
+  .hidden { display: none !important; }
+
+  /* Screen states controlled by JS */
+  .screen-state { display: none; }
+  .screen-state.active { display: block; position: absolute; inset: 0; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="scene-nav">
+  <span class="logo">✦ AI DEMO</span>
+  <button class="scene-btn active" onclick="switchScene(0)">场景一：锁屏状态</button>
+  <button class="scene-btn" onclick="switchScene(1)">场景二：解锁 · 场景盒图</button>
+  <button class="scene-btn" onclick="switchScene(2)">场景三：沉淀记忆 · 决策卡</button>
+</nav>
+
+<div class="stage">
+
+<!-- ============================================================
+     SCENE 1: LOCK SCREEN
+============================================================ -->
+<div class="scene active" id="scene-0">
+  <div class="scene-title">演示场景一</div>
+  <div class="scene-headline">AI 键日常唤起 · 锁屏状态下</div>
+  <div class="scene-desc">长按 AI 键 → 说出想法 → 系统提醒小部件完成闭环</div>
+
+  <div class="step-indicator" id="s0-steps">
+    <div class="step-dot active" onclick="setScene0Step(0)"></div>
+    <div class="step-dot" onclick="setScene0Step(1)"></div>
+    <div class="step-dot" onclick="setScene0Step(2)"></div>
+    <div class="step-dot" onclick="setScene0Step(3)"></div>
+  </div>
+
+  <div class="phones-row">
+
+    <!-- Phone 1: lock screen -->
+    <div class="phone-wrap">
+      <div class="phone-label">① 锁屏状态</div>
+      <div class="phone" onclick="nextScene0Step()">
+        <div class="screen-lock">
+          <div class="lock-wallpaper"></div>
+          <div class="lock-time">21:24</div>
+          <div class="lock-date">周一 · 8月7日</div>
+          <div class="lock-bottom">
+            <div class="lock-icon">🔦</div>
+            <div class="ai-btn" title="长按唤起 AI">✦</div>
+            <div class="lock-icon">📷</div>
+          </div>
+
+          <!-- Step 1: AI popup for info intent -->
+          <div class="ai-popup hidden" id="s0-popup">
+            <div class="ai-popup-title">AI 键长按 · 信息型意图</div>
+            <div class="ai-popup-input">说出你的想法…</div>
+            <div class="ai-popup-chips">
+              <div class="chip active">💡 记录灵感</div>
+              <div class="chip">📋 待办事项</div>
+              <div class="chip">🔍 搜索</div>
+            </div>
+          </div>
+
+          <!-- Step 2: AI popup for action intent -->
+          <div class="ai-popup hidden" id="s0-popup2">
+            <div class="ai-popup-title">AI 键长按 · 动作型意图</div>
+            <div class="ai-popup-input">帮我记录：下午约了水龙头维修，费用 358 元</div>
+            <div class="ai-popup-chips">
+              <div class="chip active">✓ 已识别</div>
+              <div class="chip">📅 加入日历</div>
+              <div class="chip">💰 记账</div>
+            </div>
+          </div>
+
+          <!-- Step 3: Notification -->
+          <div class="notification hidden" id="s0-notif">
+            <div class="notif-icon">✦</div>
+            <div class="notif-text">
+              <div class="notif-app">AI 助手 · 系统提醒</div>
+              <div class="notif-content">水龙头维修记录已保存<br>费用 358 元 · 15:00</div>
+              <div class="notif-action">查看记录 →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">
+      <div class="flow-arrow-line"></div>
+      <div style="font-size:14px; color: rgba(124,58,237,0.5);">›</div>
+      <div class="flow-arrow-text">长按 AI 键唤起</div>
+      <div class="flow-arrow-line"></div>
+    </div>
+
+    <!-- Phone 2: Input state -->
+    <div class="phone-wrap">
+      <div class="phone-label">② 输入意图</div>
+      <div class="phone">
+        <div class="screen-lock">
+          <div class="lock-wallpaper"></div>
+          <div class="lock-time">21:24</div>
+          <div class="lock-date">周一 · 8月7日</div>
+          <div class="lock-bottom">
+            <div class="lock-icon">🔦</div>
+            <div class="ai-btn" style="box-shadow: 0 0 0 4px rgba(124,58,237,0.3), 0 0 30px rgba(124,58,237,0.6);">✦</div>
+            <div class="lock-icon">📷</div>
+          </div>
+          <div class="ai-popup">
+            <div class="ai-popup-title">AI 键长按激活中</div>
+            <div class="ai-popup-input" style="color: rgba(255,255,255,0.8); font-style: normal;">帮我记录：下午约了水龙头维修，费用 358 元</div>
+            <div class="ai-popup-chips">
+              <div class="chip active">💡 信息型意图</div>
+              <div class="chip active">✓ 内容识别</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">
+      <div class="flow-arrow-line"></div>
+      <div style="font-size:14px; color: rgba(124,58,237,0.5);">›</div>
+      <div class="flow-arrow-text">AI 处理 · 写入记录</div>
+      <div class="flow-arrow-line"></div>
+    </div>
+
+    <!-- Phone 3: Widget result -->
+    <div class="phone-wrap">
+      <div class="phone-label">③ 完成闭环</div>
+      <div class="phone">
+        <div class="screen-lock">
+          <div class="lock-wallpaper"></div>
+          <div style="font-size:10px; color: rgba(255,255,255,0.4); margin-top: -10px; margin-bottom: 6px; position: relative; z-index:1;">已记录</div>
+          <div class="lock-time" style="font-size: 48px;">0358</div>
+          <div class="lock-date" style="color: #a78bfa;">维修费用 · 已存档</div>
+          <div class="notification" style="position: relative; top: auto; left: auto; right: auto; margin: 12px 0; width: calc(100% - 20px);">
+            <div class="notif-icon">✦</div>
+            <div class="notif-text">
+              <div class="notif-app">AI 助手</div>
+              <div class="notif-content">水龙头维修记录已保存<br>今日家庭支出已更新</div>
+              <div class="notif-action">查看账单 →</div>
+            </div>
+          </div>
+          <div class="lock-bottom">
+            <div class="lock-icon">🔦</div>
+            <div class="ai-btn">✦</div>
+            <div class="lock-icon">📷</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="step-controls">
+    <button class="step-ctrl-btn" onclick="prevScene0Step()" id="s0-prev" disabled>← 上一步</button>
+    <button class="step-ctrl-btn primary" onclick="nextScene0Step()" id="s0-next">下一步 →</button>
+    <button class="step-ctrl-btn" onclick="resetScene0()" id="s0-reset" style="display:none">重置</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCENE 2: UNLOCKED - SCENE BRAINSTORM
+============================================================ -->
+<div class="scene" id="scene-1">
+  <div class="scene-title">演示场景二</div>
+  <div class="scene-headline">解锁环境 · 场景盒图 · 笔记内容随手记</div>
+  <div class="scene-desc">在解锁状态下，AI 主动理解当前场景并生成灵感盒图，笔记可快速捕获内容</div>
+
+  <div class="phones-row">
+
+    <!-- Phone: Feed with brainstorm -->
+    <div class="phone-wrap">
+      <div class="phone-label">① 场景识别 · 盒图</div>
+      <div class="phone">
+        <div class="screen-home">
+          <div class="home-wallpaper"></div>
+          <div class="home-status">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          <div class="widget-row">
+            <div class="widget">
+              <div class="widget-title">日期</div>
+              <div class="widget-value" style="font-size:22px;">25</div>
+              <div class="widget-sub">三月 · 周日</div>
+            </div>
+            <div class="widget widget-ai">
+              <div class="widget-title">✦ AI 助手</div>
+              <div class="widget-value" style="font-size:13px; margin-top:2px;">3 条建议</div>
+              <div class="widget-sub">基于今日场景</div>
+            </div>
+          </div>
+          <div class="feed-container">
+            <div class="brainstorm-card">
+              <div class="brainstorm-badge">✦ AI 场景识别 · 盒图建议</div>
+              <div class="brainstorm-title">你可能正在想…</div>
+              <ul class="brainstorm-list">
+                <li>整理本周读书笔记</li>
+                <li>计划下次出行路线</li>
+                <li>回顾上周家庭开销</li>
+              </ul>
+            </div>
+            <div class="feed-item">
+              <div class="feed-item-header">
+                <div class="feed-avatar" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">科</div>
+                <span class="feed-name">科技快讯</span>
+                <span class="feed-time">2m ago</span>
+              </div>
+              <div class="feed-text">AI Sandbox 2 正式发布，超越 GPT-5 基准测试...</div>
+            </div>
+            <div class="feed-item">
+              <div class="feed-item-header">
+                <div class="feed-avatar" style="background: linear-gradient(135deg, #3b82f6, #6366f1);">热</div>
+                <span class="feed-name">热点推荐</span>
+                <span class="feed-time">8m ago</span>
+              </div>
+              <div class="feed-text">周末餐厅推荐 · 新开三家人均 80 的好店</div>
+              <div class="feed-img">[ 图片 · 美食推荐 ]</div>
+            </div>
+          </div>
+          <div class="dock">
+            <div class="dock-icon">📱</div>
+            <div class="dock-icon">💬</div>
+            <div class="dock-icon" style="background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.2)); border-radius: 8px;">✦</div>
+            <div class="dock-icon">📧</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">
+      <div class="flow-arrow-line"></div>
+      <div style="font-size:14px; color: rgba(124,58,237,0.5);">›</div>
+      <div class="flow-arrow-text">点击进入笔记</div>
+      <div class="flow-arrow-line"></div>
+    </div>
+
+    <!-- Phone: Notes quick entry -->
+    <div class="phone-wrap">
+      <div class="phone-label">② 随手记入口</div>
+      <div class="phone">
+        <div class="screen-notes">
+          <div class="notes-header">
+            <span class="notes-back">‹</span>
+            <span class="notes-title-sm">笔记内容随手记</span>
+          </div>
+          <div class="notes-content">
+            <div style="font-size:10px; color:#888; margin-bottom:8px;">快速录入</div>
+            <div style="background:#fff; border-radius:10px; padding: 8px 10px; margin-bottom:8px; border: 1.5px solid rgba(124,58,237,0.3);">
+              <div style="font-size:9px; color:#a78bfa; margin-bottom:4px;">✦ AI 建议填写</div>
+              <div style="font-size:11px; color:#333; margin-bottom:6px;">水龙头维修记录</div>
+              <div style="font-size:10px; color:#888; line-height:1.5;">费用：358 元<br>日期：今天 15:00<br>师傅：王师傅 138xxxx</div>
+            </div>
+            <div class="note-item">
+              <div class="note-ai-badge">✦ AI 整理</div>
+              <div class="note-item-title">本周读书笔记汇总</div>
+              <div class="note-item-preview">《原则》第三章 · 极度透明原则在…</div>
+              <div class="note-item-date">今天 · 3 条记录</div>
+            </div>
+            <div class="note-item">
+              <div class="note-item-title">出行计划 · 五一</div>
+              <div class="note-item-preview">成都 3 天 · 宽窄巷子 + 火锅...</div>
+              <div class="note-item-date">昨天 · 草稿</div>
+            </div>
+            <div class="note-item">
+              <div class="note-item-title">家庭支出 · 3 月</div>
+              <div class="note-item-preview">餐饮 1,200 · 交通 380 · 维修 358…</div>
+              <div class="note-item-date">3天前</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">
+      <div class="flow-arrow-line"></div>
+      <div style="font-size:14px; color: rgba(124,58,237,0.5);">›</div>
+      <div class="flow-arrow-text">AI 整理 · 小部件</div>
+      <div class="flow-arrow-line"></div>
+    </div>
+
+    <!-- Phone: Widget knowledge card -->
+    <div class="phone-wrap">
+      <div class="phone-label">③ 小部件 · 知识卡</div>
+      <div class="phone">
+        <div class="screen-home">
+          <div class="home-wallpaper"></div>
+          <div class="home-status">
+            <span>9:41</span>
+            <span>📶 🔋</span>
+          </div>
+          <div class="widget-row">
+            <div class="widget">
+              <div class="widget-title">日期</div>
+              <div class="widget-value" style="font-size:22px;">25</div>
+              <div class="widget-sub">三月 · 周日</div>
+            </div>
+            <div class="widget widget-ai" style="flex:1.5;">
+              <div class="widget-title">✦ 知识卡</div>
+              <div style="font-size:10px; color:#c4b5fd; margin-top:2px; line-height:1.4;">今日已记录 3 条内容，AI 提醒：账单待归类</div>
+              <div class="ai-action-row" style="margin-top:4px;">
+                <div class="ai-action-btn primary" style="font-size:8px; padding:3px 8px;">查看 →</div>
+                <div class="ai-action-btn secondary" style="font-size:8px; padding:3px 8px;">稍后</div>
+              </div>
+            </div>
+          </div>
+          <div class="feed-container">
+            <div class="brainstorm-card">
+              <div class="brainstorm-badge">✦ 今日待办 · AI 汇总</div>
+              <div class="brainstorm-title">需要你的确认</div>
+              <ul class="brainstorm-list">
+                <li>归类今日维修支出 358元</li>
+                <li>完善出行计划草稿</li>
+                <li>阅读已保存 2 篇文章</li>
+              </ul>
+            </div>
+            <div class="feed-item">
+              <div class="feed-item-header">
+                <div class="feed-avatar" style="background: linear-gradient(135deg, #10b981, #059669);">财</div>
+                <span class="feed-name">财务助手</span>
+                <span class="feed-time">刚刚</span>
+              </div>
+              <div class="feed-text">本月支出比上月增加 12%，主要在维修类别</div>
+            </div>
+          </div>
+          <div class="dock">
+            <div class="dock-icon">📱</div>
+            <div class="dock-icon">💬</div>
+            <div class="dock-icon" style="background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.2)); border-radius: 8px;">✦</div>
+            <div class="dock-icon">📧</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================
+     SCENE 3: LONG-TERM MEMORY + DECISION CARD
+============================================================ -->
+<div class="scene" id="scene-2">
+  <div class="scene-title">演示场景三</div>
+  <div class="scene-headline">长期沉淀记忆 · 决策行动卡</div>
+  <div class="scene-desc">AI 沉淀长期记忆，在关键时刻主动推送决策行动卡，完成从"记录"到"行动"的闭环</div>
+
+  <div class="phones-row">
+
+    <!-- Phone 1: lock screen with notification -->
+    <div class="phone-wrap">
+      <div class="phone-label">① 锁屏接收提醒</div>
+      <div class="phone">
+        <div class="screen-lock">
+          <div class="lock-wallpaper"></div>
+          <div class="lock-time">21:24</div>
+          <div class="lock-date">周一 · 8月7日</div>
+          <div class="notification" style="position:relative; top:auto; left:auto; right:auto; margin: 14px 0; width: calc(100% - 20px);">
+            <div class="notif-icon">✦</div>
+            <div class="notif-text">
+              <div class="notif-app">AI 助手 · 决策提醒</div>
+              <div class="notif-content">基于过去 3 个月记录，你的五一出行计划可以开始了</div>
+              <div class="notif-action">查看建议 →</div>
+            </div>
+          </div>
+          <div class="lock-bottom">
+            <div class="lock-icon">🔦</div>
+            <div class="ai-btn">✦</div>
+            <div class="lock-icon">📷</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">
+      <div class="flow-arrow-line"></div>
+      <div style="font-size:14px; color: rgba(124,58,237,0.5);">›</div>
+      <div class="flow-arrow-text">点击查看详情</div>
+      <div class="flow-arrow-line"></div>
+    </div>
+
+    <!-- Phone 2: Home with AI card -->
+    <div class="phone-wrap">
+      <div class="phone-label">② 解锁 · AI 唤起</div>
+      <div class="phone" onclick="showDecision()">
+        <div class="screen-home" id="s2-home">
+          <div class="home-wallpaper"></div>
+          <div class="home-status">
+            <span>21:24</span>
+            <span>📶 🔋</span>
+          </div>
+          <div class="widget-row">
+            <div class="widget">
+              <div class="widget-title">日期</div>
+              <div class="widget-value" style="font-size:22px;">25</div>
+              <div class="widget-sub">三月 · 周日</div>
+            </div>
+            <div class="widget widget-ai" style="flex:2;">
+              <div class="widget-title">✦ AI 决策建议</div>
+              <div style="font-size:10px; color: #c4b5fd; margin-top:2px;">五一出行 · 可以开始规划</div>
+            </div>
+          </div>
+          <div class="feed-container">
+            <div class="brainstorm-card" style="cursor:pointer; border-color: rgba(124,58,237,0.5);">
+              <div class="brainstorm-badge">✦ 长期记忆 · 决策行动卡 · 点击展开</div>
+              <div class="brainstorm-title">AI 帮你梳理了 3 个月的记录</div>
+              <ul class="brainstorm-list">
+                <li>出行预算：结余约 3,500 元</li>
+                <li>之前看中：成都、重庆、西安</li>
+                <li>最佳时间：4月28日出发</li>
+              </ul>
+            </div>
+          </div>
+          <div class="dock">
+            <div class="dock-icon">📱</div>
+            <div class="dock-icon">💬</div>
+            <div class="dock-icon" style="background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(168,85,247,0.2)); border-radius: 8px;">✦</div>
+            <div class="dock-icon">📧</div>
+          </div>
+
+          <!-- Decision card overlay -->
+          <div class="decision-overlay hidden" id="s2-decision">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+              <div class="decision-title">✦ 决策行动卡</div>
+              <div style="font-size:11px; color: rgba(255,255,255,0.3); cursor:pointer;" onclick="hideDecision(event)">关闭 ×</div>
+            </div>
+            <div class="decision-headline">五一出行，现在规划正好</div>
+            <div class="decision-analysis">
+              <div class="analysis-label">AI 分析依据</div>
+              <div class="analysis-text">
+                基于你过去 3 个月的记录：存款结余 <strong style="color:#a78bfa">3,500 元</strong>，之前收藏成都路线 2 次，五一高铁需提前 30 天购票，明天是最佳购票时机。
+              </div>
+            </div>
+            <div class="decision-analysis" style="margin-top:0;">
+              <div class="analysis-label">推荐路线</div>
+              <div class="analysis-text">成都 3 天 · 预估花费 2,200 元，剩余预算充足</div>
+            </div>
+            <div class="decision-actions">
+              <button class="decision-action a"><span>立即查看成都行程</span><span class="arrow">→</span></button>
+              <button class="decision-action b"><span>去 12306 预订高铁</span><span class="arrow">→</span></button>
+              <button class="decision-action c"><span>稍后提醒我</span><span class="arrow">○</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow">
+      <div class="flow-arrow-line"></div>
+      <div style="font-size:14px; color: rgba(124,58,237,0.5);">›</div>
+      <div class="flow-arrow-text">执行决策</div>
+      <div class="flow-arrow-line"></div>
+    </div>
+
+    <!-- Phone 3: Completed result -->
+    <div class="phone-wrap">
+      <div class="phone-label">③ 行动完成</div>
+      <div class="phone">
+        <div class="screen-home">
+          <div class="home-wallpaper" style="background: radial-gradient(ellipse 120% 60% at 50% 20%, rgba(16,185,129,0.15) 0%, transparent 70%);"></div>
+          <div class="home-status">
+            <span>21:26</span>
+            <span>📶 🔋</span>
+          </div>
+          <div class="widget-row">
+            <div class="widget">
+              <div class="widget-title">日期</div>
+              <div class="widget-value" style="font-size:22px;">25</div>
+              <div class="widget-sub">三月 · 周日</div>
+            </div>
+            <div class="widget" style="flex:2; background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.1)); border-color: rgba(16,185,129,0.3);">
+              <div class="widget-title" style="color: #6ee7b7;">✓ 已完成</div>
+              <div style="font-size:10px; color: #a7f3d0; margin-top:2px;">高铁票已预订 · 4月28日出发</div>
+            </div>
+          </div>
+          <div class="feed-container">
+            <div class="brainstorm-card" style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.05)); border-color: rgba(16,185,129,0.25);">
+              <div class="brainstorm-badge" style="color: #6ee7b7;">✓ 决策已执行 · 闭环完成</div>
+              <div class="brainstorm-title">成都行程已确认</div>
+              <ul class="brainstorm-list">
+                <li style="color: rgba(255,255,255,0.5);">高铁：G2345 · 4月28日 09:00</li>
+                <li style="color: rgba(255,255,255,0.5);">酒店：AI 已推荐 3 家备选</li>
+                <li style="color: rgba(255,255,255,0.5);">预算：AI 已自动建立账单</li>
+              </ul>
+            </div>
+            <div class="feed-item">
+              <div class="feed-item-header">
+                <div class="feed-avatar" style="background: linear-gradient(135deg, #10b981, #059669);">✓</div>
+                <span class="feed-name">行程助手</span>
+                <span class="feed-time">刚刚</span>
+              </div>
+              <div class="feed-text">五一出行计划已创建，AI 将持续跟进天气、交通提醒</div>
+            </div>
+          </div>
+          <div class="dock">
+            <div class="dock-icon">📱</div>
+            <div class="dock-icon">💬</div>
+            <div class="dock-icon" style="background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.2)); border-radius: 8px;">✦</div>
+            <div class="dock-icon">📧</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top: 30px; text-align: center;">
+    <div style="font-size: 11px; color: rgba(255,255,255,0.3); margin-bottom: 8px;">提示：点击中间手机展开决策行动卡</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ============ Scene switching ============
+const sceneBtns = document.querySelectorAll('.scene-btn');
+const scenes = document.querySelectorAll('.scene');
+
+function switchScene(idx) {
+  scenes.forEach((s,i) => s.classList.toggle('active', i === idx));
+  sceneBtns.forEach((b,i) => b.classList.toggle('active', i === idx));
+  if (idx === 0) resetScene0();
+}
+
+// ============ Scene 0 Steps ============
+let s0Step = 0;
+const s0TotalSteps = 4;
+
+function updateScene0UI() {
+  // Update step dots
+  const dots = document.querySelectorAll('#s0-steps .step-dot');
+  dots.forEach((d,i) => {
+    d.classList.toggle('active', i === s0Step);
+    d.classList.toggle('done', i < s0Step);
+  });
+  
+  // Show/hide elements
+  const popup = document.getElementById('s0-popup');
+  const popup2 = document.getElementById('s0-popup2');
+  const notif = document.getElementById('s0-notif');
+  
+  popup.classList.toggle('hidden', s0Step < 1);
+  popup2.classList.toggle('hidden', s0Step < 2);
+  notif.classList.toggle('hidden', s0Step < 3);
+  
+  // Buttons
+  document.getElementById('s0-prev').disabled = s0Step === 0;
+  document.getElementById('s0-next').style.display = s0Step >= s0TotalSteps - 1 ? 'none' : '';
+  document.getElementById('s0-reset').style.display = s0Step >= s0TotalSteps - 1 ? '' : 'none';
+}
+
+function nextScene0Step() {
+  if (s0Step < s0TotalSteps - 1) {
+    s0Step++;
+    updateScene0UI();
+  }
+}
+function prevScene0Step() {
+  if (s0Step > 0) {
+    s0Step--;
+    updateScene0UI();
+  }
+}
+function setScene0Step(n) {
+  s0Step = n;
+  updateScene0UI();
+}
+function resetScene0() {
+  s0Step = 0;
+  updateScene0UI();
+}
+
+// ============ Scene 2 Decision Card ============
+function showDecision() {
+  document.getElementById('s2-decision').classList.remove('hidden');
+}
+function hideDecision(e) {
+  e.stopPropagation();
+  document.getElementById('s2-decision').classList.add('hidden');
+}
+
+// Init
+updateScene0UI();
+</script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>笔记 · 手机端大版本需求排期 & 发布策略</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: #f5f5f7; color: #1d1d1f; padding: 24px 20px; line-height: 1.5;
+}
+.container { max-width: 1520px; margin: 0 auto; }
+.header { margin-bottom: 16px; display: flex; align-items: baseline; gap: 10px; }
+.header h1 { font-size: 20px; font-weight: 700; }
+.header .sub { font-size: 13px; color: #888; }
+.today-marker {
+  display: inline-block; font-size: 10px; background: #007aff; color: #fff;
+  padding: 1px 6px; border-radius: 3px; font-weight: 600; margin-left: 8px;
+}
+.section-title {
+  font-size: 16px; font-weight: 700; margin: 28px 0 14px;
+  padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;
+  display: flex; align-items: center; gap: 8px;
+}
+.rom-master {
+  background: #fff; border-radius: 10px; overflow: hidden; margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.rom-master-title {
+  padding: 10px 18px 6px; font-size: 13px; font-weight: 700; color: #1d1d1f;
+  display: flex; align-items: center; gap: 8px;
+}
+.rom-master-title .dot { width: 8px; height: 8px; border-radius: 50%; background: #007aff; }
+.rom-bar-wrap { padding: 0 18px 12px; }
+.rom-bar {
+  display: flex; height: 34px; border-radius: 7px; overflow: hidden;
+  font-size: 11px; font-weight: 600; color: #fff;
+}
+.rom-bar .seg {
+  display: flex; align-items: center; justify-content: center;
+  white-space: nowrap; padding: 0 6px;
+}
+.rom-bar .seg.done { opacity: 0.35; }
+.rom-bar .seg.current { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.7); }
+.rom-labels { display: flex; padding: 4px 0 0; font-size: 10px; color: #999; }
+.rom-labels span { text-align: center; }
+.cards-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  margin-bottom: 18px; grid-auto-rows: 1fr;
+}
+.phase-label {
+  font-size: 13px; font-weight: 700; margin-bottom: 10px;
+  padding: 7px 12px; border-radius: 7px; display: flex;
+  align-items: center; gap: 6px;
+}
+.pl-blue { background: #eff6ff; color: #1e40af; }
+.card {
+  background: #fff; border-radius: 8px; padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  display: flex; flex-direction: column;
+}
+.card h3 {
+  font-size: 12.5px; font-weight: 700; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+}
+.tag {
+  font-size: 9.5px; color: #fff; padding: 1px 6px;
+  border-radius: 3px; font-weight: 600; white-space: nowrap;
+}
+.tag-rom { background: #6366f1; }
+.tag-beta { background: #10b981; font-size: 10px; padding: 2px 8px; }
+.card ul { font-size: 12px; padding-left: 16px; color: #555; }
+.card ul li { margin-bottom: 2px; }
+.dev-items { border-left: 3px solid #3b82f6; padding-left: 8px; margin: 4px 0; }
+.test-items { border-left: 3px solid #f59e0b; padding-left: 8px; margin: 4px 0; }
+.label-dev { font-size: 10.5px; font-weight: 700; color: #3b82f6; margin-bottom: 3px; }
+.label-test { font-size: 10.5px; font-weight: 700; color: #f59e0b; margin-bottom: 3px; }
+.milestone { margin-top: auto; padding-top: 6px; font-size: 11px; color: #10b981; font-weight: 600; }
+.card-beta {
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+  box-shadow: 0 2px 8px rgba(16,185,129,0.15);
+}
+.card-beta h3 { font-size: 14px; }
+.compare-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  background: #fff; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 24px;
+  table-layout: fixed;
+}
+.compare-table col.col-dim { width: 110px; }
+.compare-table col.col-plan { width: calc((100% - 110px) / 2); }
+.compare-table th, .compare-table td {
+  padding: 12px 14px; text-align: left; font-size: 12.5px;
+  border-bottom: 1px solid #f0f0f0; vertical-align: top;
+}
+.compare-table thead th {
+  background: #fafafa; font-weight: 700; font-size: 13px;
+  color: #1d1d1f; border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+}
+.compare-table tbody tr:last-child td { border-bottom: none; }
+.compare-table tbody td:first-child {
+  font-weight: 700; color: #1d1d1f; background: #fafafa; white-space: nowrap;
+}
+.col-highlight { background: #f0f7ff; }
+thead .col-highlight { background: #e8f1fd; color: #1a56db; }
+.tag-rec {
+  display: inline-block; font-size: 9px; padding: 1px 5px;
+  border-radius: 3px; font-weight: 600; background: #1a56db; color: #fff;
+  margin-left: 4px; vertical-align: middle;
+}
+.context-box {
+  background: #fff; border-radius: 10px; padding: 14px 18px;
+  font-size: 13px; color: #555; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-bottom: 18px;
+}
+.context-box strong { color: #1d1d1f; }
+.recommendation {
+  background: linear-gradient(135deg, #f0f7ff 0%, #e8f4f0 100%);
+  border-radius: 12px; padding: 18px 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.recommendation h2 { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: #1a56db; }
+.recommendation p { font-size: 13px; color: #444; line-height: 1.7; }
+@media (max-width: 1200px) { .cards-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 900px) { .cards-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>笔记 · 手机端大版本需求排期 & 发布策略</h1>
+  <span class="sub">跟随 Miclaw ROM 版本节奏</span>
+  <span class="today-marker">📍 今天 3/20</span>
+</div>
+
+<div class="section-title">📋 W3—W5 核心需求排期</div>
+
+<div class="rom-master">
+  <div class="rom-master-title"><span class="dot"></span>Miclaw ROM 主节奏线</div>
+  <div class="rom-bar-wrap">
+    <div class="rom-bar">
+      <div class="seg done" style="flex:1;background:#94a3b8;">已完成</div>
+      <div class="seg current" style="flex:3;background:#3b82f6;">核心特性开发 + 测试并行</div>
+      <div class="seg" style="flex:1.5;background:#f59e0b;">BugFix + 准出</div>
+      <div class="seg" style="flex:1.2;background:#10b981;font-size:12px;font-weight:700;">⭐ 4/20 Beta</div>
+      <div class="seg" style="flex:3;background:#86efac;color:#065f46;">Beta 质量看护</div>
+      <div class="seg" style="flex:1;background:#059669;">6/1 OS4.0</div>
+    </div>
+    <div class="rom-labels">
+      <span style="flex:1;">~3/16</span>
+      <span style="flex:3;">3/17 — 4/7</span>
+      <span style="flex:1.5;">4/8 — 4/19</span>
+      <span style="flex:1.2;font-weight:700;color:#059669;">4/20</span>
+      <span style="flex:3;">4/20 — 5/20</span>
+      <span style="flex:1;">6/1</span>
+    </div>
+  </div>
+</div>
+
+<div class="phase-label pl-blue">
+  <span style="font-size:14px;">🚀</span> 当前进行：一二期核心特性开发 + 测试并行（3/17 — 4/7）
+</div>
+<div class="cards-row">
+  <div class="card">
+    <h3><span class="tag tag-rom">ROM 3/20</span> W3 · 3/17—3/23</h3>
+    <div class="dev-items">
+      <div class="label-dev">💻 核心特性</div>
+      <ul>
+        <li>系统能力补齐 & 依赖对齐</li>
+        <li>生成学习总结（支持差异化的场景总结模版：学习/会议/调研/访谈总结）</li>
+        <li>录音入口 / 智能快捷方式</li>
+        <li>PO 功能补齐（视图/录音/日程）</li>
+        <li>支持智能化全部工具</li>
+      </ul>
+    </div>
+    <div class="test-items">
+      <div class="label-test">🔍 测试</div>
+      <ul>
+        <li>ROM 3/20 首轮功能验证</li>
+        <li>W2 回归验证</li>
+        <li>内部筛选用户定向测试启动</li>
+      </ul>
+    </div>
+    <div class="milestone">🎯 核心 AI 能力开发完成</div>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag tag-rom">ROM 3/27</span> W4 · 3/24—3/31</h3>
+    <div class="dev-items">
+      <div class="label-dev">💻 核心特性</div>
+      <ul>
+        <li>AskAI 扩展 & 体验优化</li>
+        <li>接入 Miclaw（Skills/Tools）</li>
+        <li>记忆/笔记/图片/附件补齐</li>
+        <li>AI 效果优化 · 问题集中修复</li>
+        <li>二期需求启动开发</li>
+      </ul>
+    </div>
+    <div class="test-items">
+      <div class="label-test">🔍 测试</div>
+      <ul>
+        <li>ROM 3/27 第二轮回归</li>
+        <li>首份质量报告 · 多机型验证</li>
+        <li>内测反馈问题跟踪</li>
+      </ul>
+    </div>
+    <div class="milestone">✅ 3/31 一期新功能开发完成</div>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag tag-rom">ROM 4/3</span> W5 · 4/1—4/7</h3>
+    <div class="dev-items">
+      <div class="label-dev">💻 核心特性</div>
+      <ul>
+        <li>存量 P0 迁移新架构</li>
+        <li>云同步/私密笔记/编辑器主题</li>
+        <li>拍照导入/涂鸦/分享导出</li>
+        <li>二期需求持续开发</li>
+      </ul>
+    </div>
+    <div class="test-items">
+      <div class="label-test">🔍 测试</div>
+      <ul>
+        <li>ROM 4/3 适配验证</li>
+        <li>存量迁移回归 · 数据兼容专项</li>
+      </ul>
+    </div>
+    <div class="milestone">✅ 4/7 全部需求开发完成</div>
+  </div>
+
+  <div class="card card-beta">
+    <h3><span class="tag tag-beta">⭐ 核心节点</span> 4/8—4/20 进入 Beta</h3>
+    <div class="dev-items" style="border-left-color:#10b981;">
+      <div style="font-size:10.5px;font-weight:700;color:#059669;margin-bottom:3px;">📋 关键里程碑</div>
+      <ul>
+        <li>4/8—4/19 BugFix + 准出验收 · 问题清零</li>
+        <li>4/20—5/20 Beta 质量看护（20w+ 用户）</li>
+        <li>5/20 Beta 内测结束</li>
+        <li><strong style="color:#059669;">6/1 OS4.0 正式发布</strong></li>
+      </ul>
+    </div>
+    <div class="test-items">
+      <div class="label-test">🔍 测试</div>
+      <ul>
+        <li>全量回归 · 多机型覆盖 · 性能功耗专项</li>
+        <li>Beta 用户反馈持续跟踪修复</li>
+        <li>内存、性能、功耗的优化</li>
+        <li>种子用户外测启动 · 问卷+录屏</li>
+      </ul>
+    </div>
+    <div class="milestone">✅ 6/1 OS4.0 正式发布</div>
+  </div>
+</div>
+<div class="section-title">📊 版本发布策略对比</div>
+
+<div class="context-box">
+  <strong>背景：</strong>笔记手机端本次为大版本升级（架构重构 + 多项新功能上线），为确保用户体验质量，建议预留充分的内测、外测周期，收集用户满意度反馈并完成优化后，再跟随 ROM 版本正式发布。以下两种发布节奏供决策。
+</div>
+
+<table class="compare-table">
+<colgroup>
+  <col class="col-dim">
+  <col class="col-plan">
+  <col class="col-plan">
+</colgroup>
+<thead>
+<tr>
+  <th>对比维度</th>
+  <th>方案 A<br>跟随 4/20 Beta 全量发布</th>
+  <th class="col-highlight">方案 B<br>基于 Beta 拉人群包灰度 <span class="tag-rec">推荐</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>方案概述</td>
+  <td>4/20 跟随 ROM Beta 全量发布，20w+ 用户同时获得所有新功能</td>
+  <td class="col-highlight">4/20 ROM Beta 正常发布；在 Beta 用户中圈选部分用户 IMEI 定向下发新版，灰度验证效果</td>
+</tr>
+<tr>
+  <td>内测外测周期</td>
+  <td>⚠️ 有限 — 可完成内测，但外测时间紧张，用户反馈收集不充分</td>
+  <td class="col-highlight">✅ 充分 — 4/20 起小范围灰度，持续收集反馈迭代优化</td>
+</tr>
+<tr>
+  <td>用户反馈质量</td>
+  <td>⚠️ 有限 — 内测可覆盖，外测深度不足，满意度数据不完整</td>
+  <td class="col-highlight">✅ 好 — 定向人群包，可主动收集深度反馈 + 满意度评分</td>
+</tr>
+<tr>
+  <td>开发成本</td>
+  <td>✅ 最低</td>
+  <td class="col-highlight">⚠️ 中等 — 需搭建人群包圈选 + IMEI 定向下发能力</td>
+</tr>
+<tr>
+  <td>发布时间</td>
+  <td>4/20 全量</td>
+  <td class="col-highlight">4/20 起针对圈选用户定向灰度</td>
+</tr>
+</tbody>
+</table>
+
+<div class="recommendation">
+  <h2>💡 项目组建议：推荐方案 B</h2>
+  <p>在不脱离 ROM 生态的前提下，通过定向人群包灰度充分验证产品质量，确保用户满意度达标后再扩大范围。4/20 准时跟随 Beta 节奏启动灰度，通过 IMEI 人群包定向下发，精准控制验证范围，灰度期间主动收集用户反馈 + 满意度数据，驱动优化迭代。</p>
+</div>
+
+</div>
+</body>
+</html>

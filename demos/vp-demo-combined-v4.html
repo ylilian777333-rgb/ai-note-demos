@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>Claw · 全场景跨端演示 v4</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F2F2F7;--card:#FFFFFF;--card2:#F8F8FA;--card3:#F0F0F5;
+  --bd:rgba(60,60,67,.08);--bd2:rgba(60,60,67,.14);
+  --tx:#1C1C1E;--su:#48484A;--mu:#8E8E93;--dm:rgba(60,60,67,.2);
+  --bl:#0A84FF;--am:#FF9F0A;--pu:#BF5AF2;--gn:#30D158;--rd:#FF453A;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.12);
+  --r-sm:10px;--r-md:16px;--r-lg:22px;--r-full:999px;
+}
+html,body{background:linear-gradient(145deg,#0D0D12,#1A1A2E 30%,#16213E 60%,#0F3460);
+  color:var(--tx);font-family:-apple-system,'Noto Sans SC',sans-serif;
+  min-height:100vh;-webkit-font-smoothing:antialiased;
+  display:flex;justify-content:center;align-items:flex-start;padding:40px 10px 60px}
+body::before,body::after{content:'';position:fixed;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none}
+body::before{width:400px;height:400px;background:#BF5AF2;top:-80px;right:-80px}
+body::after{width:350px;height:350px;background:#0A84FF;bottom:-60px;left:-60px}
+.demo-wrap{display:flex;align-items:flex-start;gap:24px;position:relative}
+.device-area{display:flex;gap:24px;align-items:flex-start}
+/* ── PHONE ── */
+.phone{width:393px;height:852px;background:var(--bg);border-radius:48px;overflow:hidden;position:relative;flex-shrink:0;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.08),0 0 0 2px #2A2A3A,0 0 0 4px #1A1A2A,0 25px 80px rgba(0,0,0,.6),0 5px 20px rgba(0,0,0,.3)}
+.phone .sbar{position:absolute;top:14px;left:28px;right:28px;display:flex;justify-content:space-between;align-items:center;z-index:20;pointer-events:none;font-size:14px;font-weight:600;color:var(--tx)}
+.sbar-icons{display:flex;gap:4px;font-size:11px;color:var(--mu)}
+.phone-label,.pad-label{position:absolute;top:-28px;left:0;color:rgba(255,255,255,.35);font-size:11px;font-weight:600;letter-spacing:.5px}
+/* ── PAD ── */
+.pad{width:540px;height:720px;background:var(--bg);border-radius:28px;overflow:hidden;position:relative;flex-shrink:0;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.08),0 0 0 2px #2A2A3A,0 0 0 4px #1A1A2A,0 25px 80px rgba(0,0,0,.6),0 5px 20px rgba(0,0,0,.3)}
+.pad .sbar{position:absolute;top:10px;left:20px;right:20px;display:flex;justify-content:space-between;align-items:center;z-index:20;pointer-events:none;font-size:12px;font-weight:600;color:var(--tx)}
+/* ── SCREEN ── */
+.screen{position:absolute;inset:0;top:48px;overflow:hidden;background:var(--card2)}
+.pad .screen{top:36px}
+.pg{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .3s,transform .3s;overflow:hidden;background:var(--card2)}
+.pg.show{opacity:1;transform:none}.pg.hide{opacity:0;transform:translateY(16px);pointer-events:none}
+.pg-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:16px}
+.pg-scroll::-webkit-scrollbar{width:2px}.pg-scroll::-webkit-scrollbar-thumb{background:var(--dm)}
+/* ═══ CLAW LINE ═══ */
+.claw-line{position:absolute;bottom:0;left:0;right:0;height:4px;z-index:50;cursor:pointer;overflow:visible;animation:claw-breathe 3s ease-in-out infinite}
+.claw-line::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#4F46E5,#7C3AED,#A855F7,#6366F1,#3B82F6,#06B6D4,#7C3AED,#4F46E5);background-size:300% 100%;animation:cf 6s linear infinite;border-radius:2px}
+.claw-line::after{content:'';position:absolute;top:-6px;bottom:-6px;left:0;right:0;background:linear-gradient(90deg,rgba(79,70,229,.3),rgba(124,58,237,.4),rgba(168,85,247,.3));background-size:300% 100%;animation:cf 6s linear infinite;filter:blur(10px);pointer-events:none}
+@keyframes cf{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+@keyframes claw-breathe{0%,100%{opacity:.65}50%{opacity:1}}
+.claw-line.recording{height:6px;animation:none;opacity:1}
+.claw-line.recording::before{animation:cf 1.5s linear infinite;background:linear-gradient(90deg,#FF2200,#FF6600,#FF9900,#FFCC00,#FF6600,#FF2200);background-size:300% 100%}
+.claw-line.recording::after{top:-10px;bottom:-10px;filter:blur(14px);animation:cf 1.5s linear infinite,cp 1s ease-in-out infinite;background:linear-gradient(90deg,rgba(255,34,0,.4),rgba(255,102,0,.4),rgba(255,153,0,.4));background-size:300% 100%}
+@keyframes cp{0%,100%{opacity:.4}50%{opacity:.9}}
+.claw-line.processing{height:5px;animation:none;opacity:1}
+.claw-line.processing::before{animation:cf .8s linear infinite;background:linear-gradient(90deg,#00ccff,#00ff88,#00ccff,#0088ff,#00ff88);background-size:300% 100%}
+.claw-line.processing::after{top:-8px;bottom:-8px;filter:blur(12px);animation:cf .8s linear infinite;background:linear-gradient(90deg,rgba(0,204,255,.3),rgba(0,255,136,.3),rgba(0,136,255,.3));background-size:300% 100%}
+/* ═══ SUPER ISLAND ═══ */
+.super-island{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:60;
+  background:rgba(28,28,30,.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-radius:28px;padding:6px 14px;display:none;align-items:center;gap:8px;
+  min-width:180px;max-width:340px;color:white;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);transition:all .4s cubic-bezier(.25,.46,.45,.94);cursor:pointer}
+.super-island.show{display:flex}
+.super-island.expanded{padding:14px 16px;border-radius:22px;flex-direction:column;gap:10px;min-width:300px;cursor:default}
+.si-mini{display:flex;align-items:center;gap:8px;width:100%}
+.si-icon{font-size:16px;flex-shrink:0}
+.si-text{font-size:12px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.si-dot{width:6px;height:6px;border-radius:50%;background:#30D158;animation:si-pulse 1.5s ease-in-out infinite;flex-shrink:0}
+@keyframes si-pulse{0%,100%{opacity:.5;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.si-expanded-content{display:none;width:100%;flex-direction:column;gap:8px}
+.super-island.expanded .si-expanded-content{display:flex}
+.super-island.expanded .si-dot{display:none}
+.si-detail{font-size:11px;color:rgba(255,255,255,.7);line-height:1.5}
+.si-btns{display:flex;gap:8px;width:100%}
+.si-btn{flex:1;padding:9px;border-radius:12px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+.si-btn-note{background:#0A84FF;color:white}
+.si-btn-claw{background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.2)}
+.si-btn:active{transform:scale(.96)}
+/* ═══ NOTIFICATION BANNER ═══ */
+.notif-banner{position:absolute;top:52px;left:10px;right:10px;z-index:55;
+  background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-radius:16px;padding:12px 14px;display:none;
+  box-shadow:0 8px 32px rgba(0,0,0,.15);cursor:pointer;
+  animation:notif-in .4s cubic-bezier(.25,.46,.45,.94) both}
+.notif-banner.show{display:flex;align-items:center;gap:10px}
+@keyframes notif-in{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:none}}
+.notif-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.notif-body{flex:1;min-width:0}
+.notif-app{font-size:9px;font-weight:700;letter-spacing:.04em;color:var(--mu)}
+.notif-title{font-size:12px;font-weight:700;color:var(--tx);margin-top:1px}
+.notif-sub{font-size:10px;color:var(--su);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.notif-time{font-size:9px;color:var(--mu);flex-shrink:0}
+/* ═══ REC / PROC PANELS ═══ */
+.rec-panel{position:absolute;bottom:14px;left:12px;right:12px;z-index:42;
+  background:rgba(255,255,255,.97);backdrop-filter:blur(24px);border-radius:20px;
+  border:1px solid rgba(255,255,255,.8);box-shadow:0 12px 40px rgba(0,0,0,.16);
+  padding:16px;display:none;flex-direction:column;align-items:center;gap:12px;
+  animation:panel-up .32s cubic-bezier(.25,.46,.45,.94) both}
+.rec-panel.show{display:flex}
+@keyframes panel-up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.proc-panel{position:absolute;bottom:14px;left:12px;right:12px;z-index:42;
+  background:rgba(255,255,255,.97);backdrop-filter:blur(24px);border-radius:20px;
+  box-shadow:0 12px 40px rgba(0,0,0,.16);padding:18px;display:none;
+  flex-direction:column;align-items:center;gap:10px;animation:panel-up .32s cubic-bezier(.25,.46,.45,.94) both}
+.proc-panel.show{display:flex}
+.proc-dots{display:flex;gap:6px}
+.proc-dot{width:7px;height:7px;border-radius:50%;background:var(--bl);animation:pd 1.2s ease-in-out infinite}
+.proc-dot:nth-child(2){animation-delay:.2s}.proc-dot:nth-child(3){animation-delay:.4s}
+@keyframes pd{0%,100%{opacity:.15;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+/* ═══ JUMP OVERLAY ═══ */
+.jump-overlay{position:absolute;inset:0;z-index:55;background:rgba(255,255,255,.96);backdrop-filter:blur(20px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.jump-overlay.show{display:flex}
+.jump-icon{font-size:32px;animation:jumpPulse 1s ease-in-out infinite}
+@keyframes jumpPulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.1);opacity:1}}
+</style>
+<style>
+/* ═══ DESKTOP HOME ═══ */
+.desk-wallpaper{position:absolute;inset:0;background:linear-gradient(160deg,#C9D6FF,#E2E2E2)}
+.desk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 10px;padding:16px 18px 10px;position:relative;z-index:1}
+.desk-app{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:default}
+.desk-icon{width:52px;height:52px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.desk-label{font-size:10px;color:#333;font-weight:500;text-shadow:0 .5px 1px rgba(255,255,255,.6)}
+.desk-dock{position:absolute;bottom:12px;left:18px;right:18px;z-index:2;background:rgba(255,255,255,.45);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:24px;padding:10px 14px;display:flex;justify-content:space-around;align-items:center}
+.desk-dock-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+/* ═══ NOTE PAGE ═══ */
+.note-hd{padding:10px 16px 11px;background:var(--card);border-bottom:1px solid var(--bd)}
+.note-hd-row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.note-back{font-size:12px;color:var(--bl);cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.note-acts{display:flex;gap:5px}
+.note-act{background:var(--card3);border-radius:8px;padding:4px 8px;font-size:10px;font-weight:600;color:var(--su);cursor:pointer;transition:all .15s}
+.note-type{font-size:10px;font-weight:700;letter-spacing:.04em;padding:2px 9px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;margin-bottom:6px}
+.note-title{font-size:16px;font-weight:700;line-height:1.3;margin-bottom:4px;letter-spacing:-.02em}
+.note-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.note-tag{font-size:10px;font-weight:600;padding:2px 9px;border-radius:7px;background:var(--card3);color:var(--su)}
+.nbody{padding:13px 16px}
+.nh1{font-size:15px;font-weight:800;margin-bottom:8px}
+.nh2{font-size:12px;font-weight:700;margin:12px 0 5px;display:flex;align-items:center;gap:5px}
+.nbd{font-size:11.5px;color:var(--su);line-height:1.8;white-space:pre-line;padding-left:12px}
+/* ═══ INLINE EDIT (核心：内联diff确认) ═══ */
+.inline-edit{margin:8px 0;padding:10px 12px;background:rgba(255,159,10,.04);border:1px solid rgba(255,159,10,.15);border-radius:12px;animation:fadeIn .35s ease both}
+.inline-edit-cmd{font-size:10px;color:var(--am);font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.inline-edit-diff{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.inline-del{font-size:11px;color:var(--rd);text-decoration:line-through;background:rgba(255,69,58,.06);padding:3px 8px;border-radius:6px;line-height:1.6}
+.inline-add{font-size:11px;color:var(--gn);font-weight:600;background:rgba(48,209,88,.06);padding:3px 8px;border-radius:6px;line-height:1.6}
+.inline-edit-btns{display:flex;gap:8px}
+.inline-edit-rej{flex:1;padding:7px;border-radius:10px;font-size:11px;font-weight:600;border:1.5px solid var(--bd2);background:transparent;color:var(--su);cursor:pointer}
+.inline-edit-acc{flex:2;padding:7px;border-radius:10px;font-size:11px;font-weight:700;border:none;background:var(--gn);color:white;cursor:pointer;box-shadow:0 4px 12px rgba(48,209,88,.3)}
+/* ═══ INLINE DISCUSS (核心：内联讨论气泡) ═══ */
+.inline-discuss{margin:8px 0;padding:10px 12px;background:rgba(191,90,242,.04);border:1px solid rgba(191,90,242,.12);border-radius:12px;animation:fadeIn .35s ease both}
+.inline-disc-hd{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.inline-disc-icon{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#BF5AF2,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:9px;color:white;flex-shrink:0}
+.inline-disc-title{font-size:10px;font-weight:700;color:var(--pu);flex:1}
+.inline-disc-thread{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.id-user{display:flex;justify-content:flex-end}
+.id-user-bub{background:linear-gradient(145deg,#BF5AF2,#9333EA);color:white;border-radius:12px 12px 4px 12px;padding:6px 10px;font-size:10.5px;line-height:1.5;max-width:85%}
+.id-ai{display:flex;gap:5px;align-items:flex-start}
+.id-ai-av{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#4F46E5);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:white;flex-shrink:0;margin-top:2px}
+.id-ai-bub{background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.1);border-radius:4px 12px 12px 12px;padding:6px 10px;font-size:10.5px;line-height:1.5;color:var(--tx);max-width:85%}
+.id-result{padding:8px 10px;background:rgba(48,209,88,.05);border:1px solid rgba(48,209,88,.12);border-radius:10px;margin-top:4px}
+.id-result-lbl{font-size:9px;font-weight:700;color:var(--gn);letter-spacing:.04em;margin-bottom:3px}
+.id-result-txt{font-size:10.5px;color:var(--tx);line-height:1.5}
+.inline-disc-btns{display:flex;gap:8px}
+.inline-disc-rej{flex:1;padding:7px;border-radius:10px;font-size:11px;font-weight:600;border:1.5px solid var(--bd2);background:transparent;color:var(--su);cursor:pointer}
+.inline-disc-acc{flex:2;padding:7px;border-radius:10px;font-size:11px;font-weight:700;border:none;background:var(--gn);color:white;cursor:pointer;box-shadow:0 4px 12px rgba(48,209,88,.3)}
+/* ═══ INPUT BAR ═══ */
+.input-bar{position:absolute;bottom:0;left:0;right:0;z-index:46;display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--bd);min-height:48px}
+.input-bar-field{flex:1;display:flex;align-items:center;gap:6px;padding:7px 12px;background:var(--card3);border:1px solid var(--bd);border-radius:12px;cursor:pointer;transition:all .2s;min-height:34px}
+.input-bar-placeholder{font-size:11px;color:var(--mu);flex:1}
+.input-bar-mic{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:12px;color:white;flex-shrink:0;cursor:pointer;box-shadow:0 2px 8px rgba(124,58,237,.3);transition:all .2s}
+.input-bar-mic:hover{transform:scale(1.08)}
+.input-bar-mic.recording{background:linear-gradient(135deg,#FF453A,#FF6B6B);box-shadow:0 2px 12px rgba(255,69,58,.4);animation:micPulse 1s ease-in-out infinite}
+@keyframes micPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+/* ═══ CHAT PAGE (Claw对话) ═══ */
+.chat-scroll{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.chat-scroll::-webkit-scrollbar{width:2px}.chat-scroll::-webkit-scrollbar-thumb{background:var(--dm)}
+.ch-user{display:flex;justify-content:flex-end}
+.ch-user-bub{background:linear-gradient(145deg,#007AFF,#0A84FF);color:white;border-radius:14px 14px 4px 14px;padding:8px 12px;font-size:11.5px;line-height:1.6;max-width:82%;box-shadow:0 2px 8px rgba(10,132,255,.2)}
+.ch-ai{display:flex;gap:6px;align-items:flex-start}
+.ch-ai-av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#4F46E5);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:white;flex-shrink:0;margin-top:2px}
+.ch-ai-bub{background:var(--card);border:1px solid var(--bd);border-radius:4px 14px 14px 14px;padding:8px 12px;font-size:11.5px;line-height:1.6;color:var(--tx);max-width:85%}
+.ch-typing{display:flex;gap:4px;padding:4px 0}
+.ch-typing-dot{width:5px;height:5px;border-radius:50%;background:var(--pu);animation:pd 1.2s ease-in-out infinite}
+.ch-typing-dot:nth-child(2){animation-delay:.2s}.ch-typing-dot:nth-child(3){animation-delay:.4s}
+/* result card in chat */
+.ch-result-card{margin:4px 0;padding:12px;background:var(--card);border:1px solid rgba(48,209,88,.15);border-radius:14px;box-shadow:var(--shadow-sm)}
+.ch-result-label{font-size:9px;font-weight:700;color:var(--gn);letter-spacing:.04em;margin-bottom:6px}
+.ch-result-title{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.ch-result-preview{font-size:10.5px;color:var(--su);line-height:1.5;margin-bottom:8px}
+.ch-result-btn{display:inline-flex;align-items:center;gap:4px;padding:7px 14px;background:var(--bl);color:white;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:inherit}
+/* ═══ SYNC ANIMATION ═══ */
+.sync-beam{position:fixed;pointer-events:none;z-index:100;display:none}
+.sync-beam.show{display:block}
+.sync-beam-line{stroke:url(#syncGrad);stroke-width:2;fill:none;stroke-dasharray:8 4;animation:syncDash 1s linear infinite}
+@keyframes syncDash{to{stroke-dashoffset:-24}}
+.sync-dot{position:fixed;width:8px;height:8px;border-radius:50%;background:var(--bl);z-index:101;display:none;box-shadow:0 0 12px rgba(10,132,255,.5)}
+.sync-dot.show{display:block;animation:syncMove .8s ease-in-out}
+@keyframes syncMove{0%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:scale(0)}}
+/* ═══ PAD NOTE VIEW ═══ */
+.pad-note-hd{padding:12px 20px;background:var(--card);border-bottom:1px solid var(--bd)}
+.pad-note-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.pad-note-meta{font-size:11px;color:var(--mu)}
+.pad-note-body{padding:16px 20px}
+.pad-note-body .nh2{font-size:14px}
+.pad-note-body .nbd{font-size:13px}
+/* ═══ SCENE PANEL ═══ */
+.scene-panel{width:260px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;max-height:852px;overflow-y:auto}
+.scene-panel::-webkit-scrollbar{width:3px}.scene-panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+.sp-group{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px 12px}
+.sp-group-title{font-size:10px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.06em;margin-bottom:8px}
+.sp-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;cursor:pointer;transition:all .2s;margin-bottom:2px}
+.sp-item:hover{background:rgba(255,255,255,.08)}
+.sp-item.active{background:rgba(10,132,255,.15);border:1px solid rgba(10,132,255,.3)}
+.sp-item-icon{font-size:16px;flex-shrink:0}
+.sp-item-name{font-size:11px;font-weight:600;color:rgba(255,255,255,.85)}
+.sp-item-sub{font-size:9px;color:rgba(255,255,255,.4);margin-top:1px}
+/* ═══ MISC ═══ */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.anim-in{animation:fadeIn .35s ease both}
+/* ── Negative-one screen card ── */
+.neg1-card{margin:8px 16px;padding:14px;background:var(--card);border-radius:16px;border:1px solid var(--bd);box-shadow:var(--shadow-sm);cursor:pointer}
+.neg1-card:active{transform:scale(.98)}
+</style>
+</head>
+<body>
+<svg style="position:absolute;width:0;height:0"><defs><linearGradient id="syncGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#0A84FF;stop-opacity:0"/><stop offset="50%" style="stop-color:#0A84FF;stop-opacity:1"/><stop offset="100%" style="stop-color:#BF5AF2;stop-opacity:0"/></linearGradient></defs></svg>
+<div class="demo-wrap">
+  <div class="device-area">
+    <div style="position:relative">
+      <div class="phone-label">📱 手机 · 393×852</div>
+      <div class="phone" id="PHONE">
+        <div class="sbar"><span id="PH_TIME">9:41</span><div class="sbar-icons">📶 📡 🔋</div></div>
+        <div class="screen" id="PH_SCR"></div>
+      </div>
+    </div>
+    <div style="position:relative">
+      <div class="pad-label">📱 平板 · 540×720</div>
+      <div class="pad" id="PAD">
+        <div class="sbar"><span>9:41</span><div class="sbar-icons">📶 🔋</div></div>
+        <div class="screen" id="PAD_SCR"></div>
+      </div>
+    </div>
+  </div>
+  <div class="scene-panel" id="SCENE_PANEL"></div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+function mk(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html)e.innerHTML=html;return e}
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+
+// ═══ SCENE DATA ═══
+const SCENES={
+// ── 被动触发 ──
+rec_end:{id:'rec_end',group:'passive',icon:'🎙',name:'录音结束',sub:'超级岛→笔记',color:'#FF453A',
+  trigger:'superIsland',triggerText:'录音已整理完成',triggerDetail:'3分钟录音 → AI结构化笔记',
+  doc:[{t:'h1',v:'产品评审会 · 会议纪要'},{t:'h2',v:'1. 参会人员'},{t:'bd',v:'张总（主持）  李工（研发）  阿雅（设计）\n小王（产品）  小陈（测试）'},{t:'h2',v:'2. 核心决策'},{t:'bd',v:'2.1 AI 功能提前至五月上线\n2.2 离线模式推迟至 Q3\n2.3 MVP 优先验证'},{t:'h2',v:'3. 行动项'},{t:'bd',v:'3.1 李工 — 技术方案初稿  截止：下周五\n3.2 阿雅 — 设计系统升级  截止：下周三\n3.3 统筹跟进汇报  截止：下周五'}],
+  edits:[
+    {type:'confirm',cmd:'李工的 deadline 改成本周五',before:'截止：下周五',after:'截止：本周五',target:'3.1 李工',fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('截止：下周五','截止：本周五')})}},
+    {type:'discuss',cmd:'风险部分需要补充一下',
+      dialog:[{role:'user',text:'我觉得应该加个风险提示，你觉得有什么风险？'},{role:'ai',text:'根据会议内容，我看到两个主要风险：\n1. AI 功能提前上线 → 测试周期被压缩\n2. 离线模式推迟 → 可能影响海外用户\n\n要都加上还是选一个？'},{role:'user',text:'第一个就行'},{role:'ai',text:'好的，我加一个风险提示。'}],
+      result:'新增风险提示：AI 功能提前上线可能压缩测试周期',
+      fn(nb){const w=mk('div','anim-in');w.style.cssText='background:rgba(255,59,48,.05);border:1px solid rgba(255,59,48,.12);border-radius:10px;padding:9px 11px;margin-top:10px';w.innerHTML='<div style="font-size:10px;font-weight:600;color:var(--rd);margin-bottom:3px">⚠ 风险提示</div><div style="font-size:11px;color:var(--su);line-height:1.6">AI 功能提前上线可能压缩测试周期</div>';nb.append(w)}}
+  ]},
+screenshot:{id:'screenshot',group:'passive',icon:'📱',name:'截图识别',sub:'通知→笔记',color:'#FF9F0A',
+  trigger:'notification',triggerText:'截图已识别并整理',triggerDetail:'识别到产品截图，已提取关键信息',
+  doc:[{t:'h1',v:'竞品截图分析 · 功能对比'},{t:'h2',v:'1. 截图来源'},{t:'bd',v:'App: 某笔记应用 v3.2\n截图时间: 刚刚\n识别内容: 功能列表页'},{t:'h2',v:'2. 功能亮点'},{t:'bd',v:'2.1 AI 摘要 — 自动生成文档摘要\n2.2 语音转文字 — 实时转录\n2.3 跨端同步 — 多设备无缝切换'},{t:'h2',v:'3. 可借鉴点'},{t:'bd',v:'· AI 摘要的交互方式值得参考\n· 跨端同步的动画反馈做得好'}],
+  edits:[
+    {type:'confirm',cmd:'加上我们的优势对比',before:'（无对比）',after:'+ 我方优势分析',fn(nb){const h=mk('div','nh2 anim-in');h.style.color='#FF9F0A';h.innerHTML='<span style="background:#FF9F0A;width:3px;height:11px;border-radius:2px;display:inline-block"></span>4. 我方优势';const b=mk('div','nbd anim-in');b.textContent='· Claw 语音交互更自然\n· 超级岛触发更智能\n· 笔记内编辑体验更好';nb.append(h,b)}}
+  ]},
+meeting_end:{id:'meeting_end',group:'passive',icon:'🎧',name:'会议结束',sub:'通知→笔记',color:'#5856D6',
+  trigger:'notification',triggerText:'会议纪要已生成',triggerDetail:'45分钟会议 → 结构化纪要',
+  doc:[{t:'h1',v:'周一产品同步会'},{t:'h2',v:'1. 议题回顾'},{t:'bd',v:'· 上周进度同步\n· 本周优先级对齐\n· 资源协调'},{t:'h2',v:'2. 决策事项'},{t:'bd',v:'2.1 首页改版本周完成设计\n2.2 后端 API 下周一联调\n2.3 灰度发布时间定在周四'},{t:'h2',v:'3. 待办分配'},{t:'bd',v:'· 设计组：首页 + 详情页\n· 前端组：组件库升级\n· 后端组：API 性能优化'}],
+  edits:[
+    {type:'confirm',cmd:'灰度发布改成周五',before:'灰度发布时间定在周四',after:'灰度发布时间定在周五',fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('定在周四','定在周五')})}}
+  ]},
+// ── 半主动 ──
+neg1_card:{id:'neg1_card',group:'semi',icon:'🏠',name:'负一屏卡片',sub:'卡片→笔记',color:'#30D158',
+  trigger:'neg1',triggerText:'今日待办 · 3项未完成',
+  doc:[{t:'h1',v:'今日任务 · 5 项'},{t:'h2',v:'工作任务'},{t:'bd',v:'☐ 发融资材料给张总 — 高\n☐ 对接 UI 新版设计稿 — 中\n☐ 准备产品会 PPT 📅 15:00 — 高'},{t:'h2',v:'个人事项'},{t:'bd',v:'☐ 给妈妈打电话 — 低\n☐ 跑步 5km — 低'}],
+  edits:[
+    {type:'confirm',cmd:'产品会改成四点半',before:'📅 15:00',after:'📅 16:30',fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('📅 15:00','📅 16:30')})}}
+  ]},
+task_card:{id:'task_card',group:'semi',icon:'✅',name:'任务卡片',sub:'提醒→笔记',color:'#FF9F0A',
+  trigger:'notification',triggerText:'任务提醒：融资材料截止今天',triggerDetail:'高优先级任务即将到期',
+  doc:[{t:'h1',v:'融资材料准备清单'},{t:'h2',v:'1. 核心文档'},{t:'bd',v:'☐ 商业计划书 v3\n☐ 财务预测表\n☐ 团队介绍 PPT'},{t:'h2',v:'2. 补充材料'},{t:'bd',v:'☐ 产品 Demo 视频\n☐ 用户增长数据\n☐ 竞品分析报告'}],
+  edits:[
+    {type:'confirm',cmd:'Demo视频已录好，打勾',before:'☐ 产品 Demo 视频',after:'☑ 产品 Demo 视频 ✓',fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('☐ 产品 Demo 视频','☑ 产品 Demo 视频 ✓')})}}
+  ]},
+// ── 主动对话 ──
+write_email:{id:'write_email',group:'active',icon:'✍️',name:'写邮件',sub:'Claw→笔记',color:'#0A84FF',
+  trigger:'claw',clawInput:'帮我写一封给投资人的跟进邮件，上周见面聊了AI笔记方向',
+  clawReply:'好的，我来帮你写这封跟进邮件。基于上周的会面内容，我会包含：\n1. 感谢上周的交流\n2. 补充产品最新进展\n3. 提出下一步合作建议',
+  doc:[{t:'h1',v:'投资人跟进邮件'},{t:'h2',v:'邮件正文'},{t:'bd',v:'陈总您好，\n\n感谢上周百忙之中与我们交流 AI 笔记方向。会后我们团队做了进一步梳理：\n\n1. 产品进展：语音交互模块已完成 MVP\n2. 数据表现：内测用户日活突破 500\n3. 下一步：计划本月底开放公测\n\n期待有机会进一步沟通合作可能。\n\n此致'},{t:'h2',v:'附件清单'},{t:'bd',v:'· 产品 Demo 链接\n· 最新 BP（v3.1）\n· 用户反馈汇总'}],
+  edits:[
+    {type:'confirm',cmd:'语气再正式一点',before:'陈总您好',after:'尊敬的陈总',fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{b.textContent=b.textContent.replace('陈总您好','尊敬的陈总')})}},
+    {type:'discuss',cmd:'要不要加上竞品对比的内容',
+      dialog:[{role:'user',text:'要不要在邮件里加上竞品对比？'},{role:'ai',text:'建议不要在邮件正文加竞品对比，原因：\n1. 邮件应简洁，突出自身优势\n2. 竞品分析可作为附件单独发\n\n建议在附件清单加一项"竞品分析报告"即可。'},{role:'user',text:'有道理，就加到附件里'},{role:'ai',text:'好的，我在附件清单补充竞品分析报告。'}],
+      result:'附件清单新增：竞品分析报告',
+      fn(nb){nb.querySelectorAll('.nbd').forEach(b=>{if(b.textContent.includes('用户反馈'))b.textContent+='\\n· 竞品分析报告'})}}
+  ]},
+deep_research:{id:'deep_research',group:'active',icon:'🔍',name:'深度研究',sub:'Claw→笔记',color:'#BF5AF2',
+  trigger:'claw',clawInput:'帮我研究一下伊拉克近期局势，梳理成一份简报',
+  clawReply:'好的，我来整理伊拉克近期局势简报。将从以下维度分析：\n1. 政治动向\n2. 安全形势\n3. 核心风险',
+  doc:[{t:'h1',v:'伊拉克局势简报'},{t:'h2',v:'1. 政治动向'},{t:'bd',v:'1.1 总理苏达尼推进重建议程\n1.2 议会联合政府博弈加剧\n1.3 库尔德自治区石油分成争议'},{t:'h2',v:'2. 安全形势'},{t:'bd',v:'2.1 ISIS 在西部零星活动抬头\n2.2 亲伊朗武装仍是关键变量\n2.3 美军基地持续遭袭'},{t:'h2',v:'3. 核心风险'},{t:'bd',v:'3.1 以巴冲突溢出风险\n3.2 油价波动影响财政'}],
+  edits:[
+    {type:'confirm',cmd:'标题改成 2025 Q1 情报简报',before:'伊拉克局势简报',after:'伊拉克 2025 Q1 情报简报',fn(nb){const t=nb.closest('.pg-scroll').querySelector('.nh1')||nb.querySelector('.nh1');if(t)t.textContent='伊拉克 2025 Q1 情报简报'}},
+    {type:'discuss',cmd:'安全形势不够全面',
+      dialog:[{role:'user',text:'安全形势这部分不够全面，还缺什么？'},{role:'ai',text:'建议补充：\n1. 土耳其在北部的军事行动\n2. 伊拉克安全部队重建进展\n\n您觉得这两个方向合适吗？'},{role:'user',text:'土耳其那个加上'},{role:'ai',text:'好的，加上土耳其北部军事行动。'}],
+      result:'新增：2.4 土耳其持续在北部开展军事行动',
+      fn(nb){const bds=nb.querySelectorAll('.nbd');if(bds[1])bds[1].textContent+='\\n2.4 土耳其持续在北部开展军事行动'}}
+  ]},
+idea_capture:{id:'idea_capture',group:'active',icon:'💡',name:'灵感捕获',sub:'Claw→笔记',color:'#FF9F0A',
+  trigger:'claw',clawInput:'我有个想法，笔记软件都太注重存储，用户需要的是执行',
+  clawReply:'这个想法很有意思。我来帮你结构化：\n1. 核心洞察：存储 vs 执行\n2. 市场机会分析\n3. 下一步验证方向',
+  doc:[{t:'h1',v:'AI 执行层笔记 · 创意概念'},{t:'h2',v:'1. 核心想法'},{t:'bd',v:'1.1 笔记不应只是存储，而应成为执行引擎\n1.2 用户说话 → AI 直接完成任务'},{t:'h2',v:'2. 机会点'},{t:'bd',v:'2.1 现有工具都在"记录"，缺少"执行"\n2.2 AI 时代用户期望降低操作门槛'},{t:'h2',v:'3. 下一步'},{t:'bd',v:'3.1 验证核心假设\n3.2 定义 MVP 功能边界'}],
+  edits:[
+    {type:'confirm',cmd:'产品名叫 ActionMemo',before:'AI 执行层笔记',after:'ActionMemo · 创意概念',fn(nb){const t=nb.closest('.pg-scroll').querySelector('.nh1')||nb.querySelector('.nh1');if(t)t.textContent='ActionMemo · 创意概念'}},
+    {type:'confirm',cmd:'提炼一句话 pitch',before:'（无 Pitch）',after:'+ 一句话 Pitch',fn(nb){const p=mk('div','anim-in');p.style.cssText='margin-top:12px;padding:10px;background:rgba(255,159,10,.06);border:1px solid rgba(255,159,10,.12);border-radius:10px';p.innerHTML='<div style="font-size:9px;font-weight:600;color:#FF9F0A;margin-bottom:4px">一句话 Pitch</div><div style="font-size:13px;font-style:italic;line-height:1.5">"说一句话，AI 帮你把它做完。"</div>';nb.append(p)}}
+  ]},
+};
+// ── 笔记内编辑场景 ──
+SCENES.edit_confirm={id:'edit_confirm',group:'noteEdit',icon:'✏️',name:'明确指令',sub:'inline diff确认',color:'#30D158',
+  trigger:'directNote',
+  doc:SCENES.deep_research.doc,
+  edits:[SCENES.deep_research.edits[0]]};
+SCENES.edit_discuss={id:'edit_discuss',group:'noteEdit',icon:'💬',name:'模糊意图',sub:'inline讨论共识',color:'#BF5AF2',
+  trigger:'directNote',
+  doc:SCENES.rec_end.doc,
+  edits:[SCENES.rec_end.edits[1]]};
+
+const SCENE_ORDER=['rec_end','screenshot','meeting_end','neg1_card','task_card','write_email','deep_research','idea_capture','edit_confirm','edit_discuss'];
+const GROUPS=[
+  {key:'passive',label:'被动触发',icon:'📡',scenes:['rec_end','screenshot','meeting_end']},
+  {key:'semi',label:'半主动',icon:'🏠',scenes:['neg1_card','task_card']},
+  {key:'active',label:'主动对话',icon:'💬',scenes:['write_email','deep_research','idea_capture']},
+  {key:'noteEdit',label:'笔记内编辑',icon:'✏️',scenes:['edit_confirm','edit_discuss']}
+];
+
+// ═══ APP STATE ═══
+let _scId=null,_editIdx=0,_timers=[],_recTimer=null,_recSec=0,_autoRunning=false;
+function clearAll(){_timers.forEach(t=>clearTimeout(t));_timers=[];if(_recTimer){clearInterval(_recTimer);_recTimer=null}}
+function pushT(fn,ms){const t=setTimeout(fn,ms);_timers.push(t);return t}
+
+// ═══ SCENE PANEL ═══
+function buildScenePanel(){
+  const p=$('#SCENE_PANEL');p.innerHTML='';
+  GROUPS.forEach(g=>{
+    const grp=mk('div','sp-group');
+    grp.innerHTML='<div class="sp-group-title">'+g.icon+' '+g.label+'</div>';
+    g.scenes.forEach(sid=>{
+      const s=SCENES[sid];
+      const item=mk('div','sp-item');item.id='SP_'+sid;
+      item.innerHTML='<div class="sp-item-icon">'+s.icon+'</div><div><div class="sp-item-name">'+s.name+'</div><div class="sp-item-sub">'+s.sub+'</div></div>';
+      item.onclick=()=>runScene(sid);
+      grp.appendChild(item);
+    });
+    p.appendChild(grp);
+  });
+  // auto-play button
+  const ab=mk('div','sp-group');
+  ab.innerHTML='<div style="text-align:center;padding:8px"><button id="AUTO_BTN" style="width:100%;padding:10px;border-radius:12px;border:none;background:linear-gradient(145deg,#0A84FF,#007AFF);color:white;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(10,132,255,.3)">▶ 自动演示全流程</button></div>';
+  p.appendChild(ab);
+  ab.querySelector('#AUTO_BTN').onclick=autoDemo;
+}
+function updateScenePanel(){
+  SCENE_ORDER.forEach(sid=>{
+    const el=$('#SP_'+sid);
+    if(el)el.className='sp-item'+(sid===_scId?' active':'');
+  });
+}
+
+// ═══ PHONE: SHOW PAGE ═══
+function showPhonePage(renderFn){
+  const scr=$('#PH_SCR');const old=scr.querySelector('.pg');
+  if(old){old.classList.add('hide');old.classList.remove('show')}
+  setTimeout(()=>{scr.innerHTML='';const pg=mk('div','pg show');renderFn(pg);
+    const cl=mk('div','claw-line');cl.id='PH_CLAW';pg.appendChild(cl);scr.appendChild(pg)},old?250:0);
+}
+
+// ═══ PAD: SHOW PAGE ═══
+function showPadPage(renderFn){
+  const scr=$('#PAD_SCR');scr.innerHTML='';
+  const pg=mk('div','pg show');renderFn(pg);scr.appendChild(pg);
+}
+function padShowEmpty(){
+  showPadPage(pg=>{
+    pg.style.background='var(--card2)';
+    pg.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;opacity:.4"><div style="font-size:40px">📝</div><div style="font-size:13px;font-weight:600;color:var(--mu)">等待手机端操作…</div><div style="font-size:11px;color:var(--dm)">笔记将自动同步到此设备</div></div>';
+  });
+}
+function padShowNote(s){
+  showPadPage(pg=>{
+    const scroll=mk('div','pg-scroll');scroll.style.paddingBottom='20px';
+    const hd=mk('div','pad-note-hd');
+    hd.innerHTML='<div class="pad-note-title">'+s.doc[0].v+'</div><div class="pad-note-meta">'+s.icon+' '+s.name+' · 来自手机 · 刚刚同步</div>';
+    scroll.appendChild(hd);
+    const body=mk('div','pad-note-body');body.id='PAD_NBODY';
+    s.doc.forEach((d,i)=>{if(i===0)return;
+      if(d.t==='h2'){const h=mk('div','nh2');h.style.color=s.color;h.innerHTML='<span style="background:'+s.color+';width:3px;height:12px;border-radius:2px;display:inline-block"></span>'+d.v;body.appendChild(h)}
+      else if(d.t==='bd'){const b=mk('div','nbd');b.textContent=d.v;body.appendChild(b)}
+    });
+    scroll.appendChild(body);pg.appendChild(scroll);
+  });
+}
+
+// ═══ SYNC ANIMATION ═══
+function showSyncAnim(){
+  const phone=$('#PHONE'),pad=$('#PAD');
+  if(!phone||!pad)return;
+  const pr=phone.getBoundingClientRect(),par=pad.getBoundingClientRect();
+  const dot=mk('div','sync-dot show');
+  dot.style.cssText='left:'+(pr.right+4)+'px;top:'+(pr.top+pr.height/2)+'px;position:fixed;';
+  document.body.appendChild(dot);
+  dot.animate([
+    {left:pr.right+'px',top:(pr.top+pr.height/2)+'px',opacity:1},
+    {left:par.left+'px',top:(par.top+par.height/2)+'px',opacity:1}
+  ],{duration:600,easing:'ease-in-out'});
+  setTimeout(()=>dot.remove(),700);
+}
+
+// ═══ PHONE HOME (桌面) ═══
+function phoneHome(){
+  $('#PH_TIME').textContent='9:41';
+  showPhonePage(pg=>{
+    pg.style.background='transparent';
+    const wp=mk('div','desk-wallpaper');pg.appendChild(wp);
+    const grid=mk('div','desk-grid');
+    [{icon:'💬',label:'信息',bg:'#34C759'},{icon:'📞',label:'电话',bg:'#30D158'},
+     {icon:'📷',label:'相机',bg:'#636366'},{icon:'🖼',label:'照片',bg:'linear-gradient(135deg,#FF6B6B,#FF8E53)'},
+     {icon:'⚙️',label:'设置',bg:'#8E8E93'},{icon:'🗺',label:'地图',bg:'#30D158'},
+     {icon:'🎵',label:'音乐',bg:'#FF2D55'},{icon:'📅',label:'日历',bg:'#FF3B30'},
+     {icon:'🌐',label:'浏览器',bg:'#007AFF'},{icon:'📧',label:'邮件',bg:'#007AFF'},
+     {icon:'📝',label:'笔记',bg:'#FFD60A'},{icon:'🛒',label:'商店',bg:'#5856D6'}
+    ].forEach(a=>{const d=mk('div','desk-app');
+      d.innerHTML='<div class="desk-icon" style="background:'+a.bg+'">'+a.icon+'</div><div class="desk-label">'+a.label+'</div>';
+      grid.appendChild(d)});
+    pg.appendChild(grid);
+    const dock=mk('div','desk-dock');
+    [{icon:'📞',bg:'#30D158'},{icon:'💬',bg:'#34C759'},{icon:'🌐',bg:'#007AFF'},{icon:'🎵',bg:'#FF2D55'}].forEach(a=>{
+      const d=mk('div','desk-dock-icon');d.style.background=a.bg;d.textContent=a.icon;dock.appendChild(d)});
+    pg.appendChild(dock);
+  });
+}
+
+// ═══ PHONE: NOTE PAGE ═══
+function phoneOpenNote(s){
+  _editIdx=0;
+  $('#PH_TIME').textContent=s.icon+' '+s.name;
+  showPhonePage(pg=>{
+    const scroll=mk('div','pg-scroll');scroll.id='PH_SCROLL';scroll.style.paddingBottom='60px';
+    // header
+    const hd=mk('div','note-hd');
+    hd.innerHTML='<div class="note-hd-row1"><div class="note-back" id="PH_BACK">‹ 返回</div><div class="note-acts"><div class="note-act">导出</div><div class="note-act">···</div></div></div><div class="note-type" style="background:'+s.color+'15;color:'+s.color+'">'+s.icon+' '+s.name+'</div><div class="note-title nh1">'+s.doc[0].v+'</div><div class="note-meta"><span class="note-tag" style="background:'+s.color+'15;color:'+s.color+'">'+s.icon+' '+s.name+'</span><span class="note-tag" style="font-size:9px;color:var(--mu)">AI 生成 · 刚刚</span></div>';
+    scroll.appendChild(hd);
+    // body
+    const body=mk('div','nbody');body.id='PH_NBODY';
+    s.doc.forEach((d,i)=>{if(i===0)return;
+      if(d.t==='h2'){const h=mk('div','nh2');h.style.color=s.color;h.innerHTML='<span style="background:'+s.color+';width:3px;height:11px;border-radius:2px;display:inline-block"></span>'+d.v;body.appendChild(h)}
+      else if(d.t==='bd'){const b=mk('div','nbd');b.textContent=d.v;body.appendChild(b)}
+    });
+    scroll.appendChild(body);
+    pg.appendChild(scroll);
+    // input bar
+    const ib=mk('div','input-bar');ib.id='PH_INPUT';
+    ib.innerHTML='<div class="input-bar-field" id="PH_IB_FIELD"><span class="input-bar-placeholder">说出想法，AI 帮你改…</span></div><div class="input-bar-mic" id="PH_IB_MIC">🎤</div>';
+    pg.appendChild(ib);
+    setTimeout(()=>{
+      const back=$('#PH_BACK');if(back)back.onclick=()=>{clearAll();phoneHome();padShowEmpty()};
+      const mic=$('#PH_IB_MIC');if(mic)mic.onclick=()=>startNoteEdit();
+      const field=$('#PH_IB_FIELD');if(field)field.onclick=()=>startNoteEdit();
+    },300);
+  });
+}
+
+// ═══ NOTE EDIT: RECORDING → APPLY ═══
+function startNoteEdit(){
+  if(!_scId)return;const s=SCENES[_scId];if(_editIdx>=s.edits.length)return;
+  const cl=$('#PH_CLAW');if(cl)cl.classList.add('recording');
+  const mic=$('#PH_IB_MIC');if(mic){mic.classList.add('recording');mic.textContent='⏹'}
+  const field=$('#PH_IB_FIELD');if(field)field.innerHTML='<span style="font-size:11px;color:var(--rd);font-weight:600;flex:1">录入编辑指令…</span>';
+  _recSec=0;
+  const pg=$('#PH_SCR .pg');if(!pg)return;
+  let rp=pg.querySelector('.rec-panel');
+  if(!rp){rp=mk('div','rec-panel');
+    rp.innerHTML='<div style="font-size:11px;font-weight:600;color:var(--su)">录入编辑指令…</div><div style="font-size:24px;font-weight:300;color:var(--rd);font-variant-numeric:tabular-nums" id="PH_REC_TIME">0:00</div><div style="display:flex;align-items:center;gap:2.5px;height:28px" id="PH_REC_WAVE">'+Array.from({length:24},()=>'<div class="wvb" style="width:2.5px;border-radius:2px;background:var(--rd);height:4px;transition:height .1s"></div>').join('')+'</div><button class="rec-stop" id="PH_REC_STOP"></button>';
+    pg.insertBefore(rp,pg.querySelector('.claw-line'))}
+  setTimeout(()=>rp.classList.add('show'),10);
+  _recTimer=setInterval(()=>{_recSec++;const m=Math.floor(_recSec/60),sec=_recSec%60;
+    const rt=$('#PH_REC_TIME');if(rt)rt.textContent=m+':'+(sec<10?'0':'')+sec;
+    pg.querySelectorAll('#PH_REC_WAVE .wvb').forEach(b=>{b.style.height=(4+Math.random()*22)+'px'})},200);
+  const stop=$('#PH_REC_STOP');if(stop)stop.onclick=()=>stopNoteEdit();
+}
+function stopNoteEdit(){
+  if(_recTimer){clearInterval(_recTimer);_recTimer=null}
+  const cl=$('#PH_CLAW');if(cl){cl.classList.remove('recording');cl.classList.add('processing')}
+  const mic=$('#PH_IB_MIC');if(mic){mic.classList.remove('recording');mic.textContent='🎤'}
+  const field=$('#PH_IB_FIELD');if(field)field.innerHTML='<span class="input-bar-placeholder">说出想法，AI 帮你改…</span>';
+  const pg=$('#PH_SCR .pg');if(!pg)return;
+  const rp=pg.querySelector('.rec-panel');if(rp)rp.classList.remove('show');
+  pushT(()=>{if(cl)cl.classList.remove('processing');applyEdit()},700);
+}
+
+// ═══ APPLY EDIT: INLINE in note body ═══
+function applyEdit(){
+  if(!_scId)return;const s=SCENES[_scId];if(_editIdx>=s.edits.length)return;
+  const edit=s.edits[_editIdx];
+  const nb=$('#PH_NBODY');if(!nb)return;
+  const scroll=$('#PH_SCROLL');
+  if(edit.type==='confirm'){showInlineConfirm(edit,nb,scroll)}
+  else if(edit.type==='discuss'){showInlineDiscuss(edit,nb,scroll)}
+}
+
+// ═══ INLINE CONFIRM (内联diff) ═══
+function showInlineConfirm(edit,nb,scroll){
+  const block=mk('div','inline-edit anim-in');
+  block.innerHTML='<div class="inline-edit-cmd">🎙 "'+edit.cmd+'"</div><div class="inline-edit-diff"><div class="inline-del">− '+edit.before+'</div><div class="inline-add">+ '+edit.after+'</div></div><div class="inline-edit-btns"><button class="inline-edit-rej">放弃</button><button class="inline-edit-acc">✓ 应用修改</button></div>';
+  nb.appendChild(block);
+  if(scroll)scroll.scrollTop=scroll.scrollHeight;
+  block.querySelector('.inline-edit-acc').onclick=()=>{
+    edit.fn(nb);block.remove();_editIdx++;
+    // sync to pad
+    syncEditToPad();
+  };
+  block.querySelector('.inline-edit-rej').onclick=()=>{block.remove();_editIdx++};
+}
+
+// ═══ INLINE DISCUSS (内联讨论气泡) ═══
+function showInlineDiscuss(edit,nb,scroll){
+  const block=mk('div','inline-discuss anim-in');
+  block.innerHTML='<div class="inline-disc-hd"><div class="inline-disc-icon">💬</div><div class="inline-disc-title">深入讨论</div></div><div class="inline-disc-thread" id="ID_THREAD"></div><div class="inline-disc-btns" id="ID_BTNS" style="display:none"><button class="inline-disc-rej">放弃</button><button class="inline-disc-acc">✓ 应用方案</button></div>';
+  nb.appendChild(block);
+  if(scroll)scroll.scrollTop=scroll.scrollHeight;
+  const thread=block.querySelector('#ID_THREAD');
+  const dialog=edit.dialog;let idx=0;
+  // initial user command
+  const cmdRow=mk('div','id-user anim-in');cmdRow.innerHTML='<div class="id-user-bub">🎙 '+edit.cmd+'</div>';
+  thread.appendChild(cmdRow);
+  function showNext(){
+    if(idx>=dialog.length){
+      pushT(()=>{
+        const res=mk('div','id-result anim-in');
+        res.innerHTML='<div class="id-result-lbl">✓ 达成共识</div><div class="id-result-txt">'+edit.result+'</div>';
+        thread.appendChild(res);
+        if(scroll)scroll.scrollTop=scroll.scrollHeight;
+        const btns=block.querySelector('#ID_BTNS');if(btns)btns.style.display='flex';
+      },400);return;
+    }
+    const msg=dialog[idx];
+    if(msg.role==='ai'){
+      const typing=mk('div','id-ai anim-in');typing.innerHTML='<div class="id-ai-av">AI</div><div class="ch-typing"><div class="ch-typing-dot"></div><div class="ch-typing-dot"></div><div class="ch-typing-dot"></div></div>';
+      thread.appendChild(typing);if(scroll)scroll.scrollTop=scroll.scrollHeight;
+      pushT(()=>{typing.remove();
+        const row=mk('div','id-ai anim-in');row.innerHTML='<div class="id-ai-av">AI</div><div class="id-ai-bub">'+msg.text.replace(/\n/g,'<br>')+'</div>';
+        thread.appendChild(row);if(scroll)scroll.scrollTop=scroll.scrollHeight;idx++;
+        pushT(showNext,600);
+      },800);
+    } else {
+      const row=mk('div','id-user anim-in');row.innerHTML='<div class="id-user-bub">'+msg.text+'</div>';
+      thread.appendChild(row);if(scroll)scroll.scrollTop=scroll.scrollHeight;idx++;
+      pushT(showNext,500);
+    }
+  }
+  pushT(()=>{
+    const aiIntro=mk('div','id-ai anim-in');aiIntro.innerHTML='<div class="id-ai-av">AI</div><div class="id-ai-bub" style="color:var(--pu);font-weight:500;font-size:10px">这个指令比较模糊，我们先讨论一下？</div>';
+    thread.appendChild(aiIntro);if(scroll)scroll.scrollTop=scroll.scrollHeight;
+    pushT(showNext,600);
+  },500);
+  // buttons
+  pushT(()=>{
+    const accBtn=block.querySelector('.inline-disc-acc');
+    const rejBtn=block.querySelector('.inline-disc-rej');
+    if(accBtn)accBtn.onclick=()=>{edit.fn(nb);block.remove();_editIdx++;syncEditToPad()};
+    if(rejBtn)rejBtn.onclick=()=>{block.remove();_editIdx++};
+  },100);
+}
+
+function syncEditToPad(){
+  if(!_scId)return;
+  showSyncAnim();
+  pushT(()=>padShowNote(SCENES[_scId]),500);
+}
+
+// ═══ TRIGGER: SUPER ISLAND ═══
+function showSuperIsland(s,onNote,onClaw){
+  const pg=$('#PH_SCR .pg');if(!pg)return;
+  let si=pg.querySelector('.super-island');
+  if(!si){si=mk('div','super-island');pg.appendChild(si)}
+  si.className='super-island show';
+  si.innerHTML='<div class="si-mini"><div class="si-icon">'+s.icon+'</div><div class="si-text">'+s.triggerText+'</div><div class="si-dot"></div></div><div class="si-expanded-content"><div class="si-detail">'+s.triggerDetail+'</div><div class="si-btns"><button class="si-btn si-btn-note">📝 查看笔记</button><button class="si-btn si-btn-claw">💬 进入Claw</button></div></div>';
+  si.onclick=()=>{
+    si.classList.add('expanded');si.onclick=null;
+    const noteBtn=si.querySelector('.si-btn-note');
+    const clawBtn=si.querySelector('.si-btn-claw');
+    if(noteBtn)noteBtn.onclick=(e)=>{e.stopPropagation();si.classList.remove('show');pushT(()=>{if(onNote)onNote()},300)};
+    if(clawBtn)clawBtn.onclick=(e)=>{e.stopPropagation();si.classList.remove('show');pushT(()=>{if(onClaw)onClaw()},300)};
+  };
+  // auto expand after 1.5s
+  pushT(()=>{if(si.classList.contains('show')&&!si.classList.contains('expanded')){si.classList.add('expanded');si.onclick=null;
+    const noteBtn=si.querySelector('.si-btn-note');
+    const clawBtn=si.querySelector('.si-btn-claw');
+    if(noteBtn)noteBtn.onclick=(e)=>{e.stopPropagation();si.classList.remove('show');pushT(()=>{if(onNote)onNote()},300)};
+    if(clawBtn)clawBtn.onclick=(e)=>{e.stopPropagation();si.classList.remove('show');pushT(()=>{if(onClaw)onClaw()},300)};
+  }},1500);
+}
+
+// ═══ TRIGGER: NOTIFICATION ═══
+function showNotification(s,onTap){
+  const pg=$('#PH_SCR .pg');if(!pg)return;
+  let nb=pg.querySelector('.notif-banner');
+  if(!nb){nb=mk('div','notif-banner');pg.appendChild(nb)}
+  nb.className='notif-banner show';
+  nb.innerHTML='<div class="notif-icon" style="background:'+s.color+'15">'+s.icon+'</div><div class="notif-body"><div class="notif-app">CLAW · 笔记</div><div class="notif-title">'+s.triggerText+'</div><div class="notif-sub">'+(s.triggerDetail||'')+'</div></div><div class="notif-time">刚刚</div>';
+  nb.onclick=()=>{nb.classList.remove('show');pushT(()=>{if(onTap)onTap()},300)};
+  // auto dismiss after 4s
+  pushT(()=>{if(nb.classList.contains('show')){nb.classList.remove('show');pushT(()=>{if(onTap)onTap()},300)}},4000);
+}
+
+// ═══ TRIGGER: NEG-1 SCREEN ═══
+function showNeg1Screen(s,onTap){
+  showPhonePage(pg=>{
+    pg.style.background='linear-gradient(180deg,#1a1a2e 0%,#16213e 100%)';
+    // neg-1 screen header
+    const hdr=mk('div','');hdr.style.cssText='padding:20px 18px 10px;color:white';
+    hdr.innerHTML='<div style="font-size:10px;opacity:.5;font-weight:600;letter-spacing:.06em">负一屏 · 智能卡片</div><div style="font-size:22px;font-weight:700;margin-top:6px">下午好 👋</div><div style="font-size:12px;opacity:.5;margin-top:4px">今天有 3 项待办</div>';
+    pg.appendChild(hdr);
+    // cards
+    const cards=mk('div','');cards.style.cssText='padding:8px 16px;display:flex;flex-direction:column;gap:10px';
+    // main card
+    const mainCard=mk('div','neg1-card');
+    mainCard.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:32px;height:32px;border-radius:9px;background:'+s.color+'15;display:flex;align-items:center;justify-content:center;font-size:16px">'+s.icon+'</div><div><div style="font-size:12px;font-weight:700;color:var(--tx)">'+s.triggerText+'</div><div style="font-size:10px;color:var(--mu);margin-top:1px">点击查看详情</div></div></div><div style="font-size:11px;color:var(--su);line-height:1.6">'+s.doc[0].v+'</div>';
+    mainCard.onclick=()=>{if(onTap)onTap()};
+    cards.appendChild(mainCard);
+    // filler cards
+    ['�� 天气 · 晴 26°C','📅 日程 · 下午3点产品会','🎵 最近播放 · 周杰伦'].forEach(t=>{
+      const c=mk('div','neg1-card');c.style.opacity='.5';c.innerHTML='<div style="font-size:11px;color:var(--su)">'+t+'</div>';cards.appendChild(c)});
+    pg.appendChild(cards);
+  });
+}
+
+// ═══ TRIGGER: CLAW CHAT ═══
+function showClawChat(s,onResultTap){
+  $('#PH_TIME').textContent='💬 Claw';
+  showPhonePage(pg=>{
+    const scroll=mk('div','chat-scroll');scroll.id='PH_CHAT_SCROLL';
+    pg.appendChild(scroll);
+    // input bar
+    const ib=mk('div','input-bar');
+    ib.innerHTML='<div class="input-bar-field"><span class="input-bar-placeholder">继续对话…</span></div><div class="input-bar-mic">🎤</div>';
+    pg.appendChild(ib);
+    // animate chat
+    pushT(()=>{
+      // user message
+      const u=mk('div','ch-user anim-in');u.innerHTML='<div class="ch-user-bub">🎙 '+s.clawInput+'</div>';
+      scroll.appendChild(u);scroll.scrollTop=scroll.scrollHeight;
+      pushT(()=>{
+        // typing
+        const typing=mk('div','ch-ai anim-in');typing.innerHTML='<div class="ch-ai-av">AI</div><div class="ch-typing"><div class="ch-typing-dot"></div><div class="ch-typing-dot"></div><div class="ch-typing-dot"></div></div>';
+        scroll.appendChild(typing);scroll.scrollTop=scroll.scrollHeight;
+        pushT(()=>{
+          typing.remove();
+          const ai=mk('div','ch-ai anim-in');ai.innerHTML='<div class="ch-ai-av">AI</div><div class="ch-ai-bub">'+s.clawReply.replace(/\n/g,'<br>')+'</div>';
+          scroll.appendChild(ai);scroll.scrollTop=scroll.scrollHeight;
+          pushT(()=>{
+            // processing
+            const proc=mk('div','ch-ai anim-in');proc.innerHTML='<div class="ch-ai-av">AI</div><div class="ch-ai-bub" style="color:var(--bl)">正在生成笔记…</div>';
+            scroll.appendChild(proc);scroll.scrollTop=scroll.scrollHeight;
+            pushT(()=>{
+              proc.remove();
+              // result card
+              const card=mk('div','ch-result-card anim-in');
+              card.innerHTML='<div class="ch-result-label">✓ 笔记已生成</div><div class="ch-result-title">'+s.doc[0].v+'</div><div class="ch-result-preview">'+s.doc.filter(d=>d.t==='h2').map(d=>d.v).join(' · ')+'</div><button class="ch-result-btn" id="CH_GO_NOTE">📝 查看笔记</button>';
+              scroll.appendChild(card);scroll.scrollTop=scroll.scrollHeight;
+              pushT(()=>{
+                const btn=$('#CH_GO_NOTE');if(btn)btn.onclick=()=>{if(onResultTap)onResultTap()};
+              },100);
+            },1200);
+          },800);
+        },1000);
+      },500);
+    },300);
+  });
+}
+
+// ═══ JUMP TRANSITION ═══
+function showJump(text,cb){
+  if(cb)cb();return;
+  const pg=$('#PH_SCR .pg');if(!pg)return;
+  let ov=pg.querySelector('.jump-overlay');
+  if(!ov){ov=mk('div','jump-overlay');pg.appendChild(ov)}
+  ov.innerHTML='<div class="jump-icon">📝</div><div style="font-size:13px;font-weight:600;color:var(--su)">'+(text||'正在跳转到笔记…')+'</div><div style="font-size:10px;color:var(--mu)">Claw → Notes</div>';
+  ov.classList.add('show');
+  pushT(()=>{ov.classList.remove('show');if(cb)cb()},800);
+}
+
+// ═══ TRIGGER FLOWS ═══
+
+// -- Super Island (录音结束等) --
+function showSuperIsland(s,cb){
+  const pg=$('#PH_SCR .pg');if(!pg)return;
+  let si=pg.querySelector('.super-island');
+  if(!si){si=mk('div','super-island');si.id='PH_SI';
+    si.innerHTML='<div class="si-mini"><div class="si-icon"></div><div class="si-text"></div><div class="si-dot"></div></div><div class="si-expanded-content"><div class="si-detail"></div><div class="si-btns"><button class="si-btn si-btn-note">📝 查看笔记</button><button class="si-btn si-btn-claw">✦ 进入 Claw</button></div></div>';
+    pg.appendChild(si)}
+  si.querySelector('.si-icon').textContent=s.icon;
+  si.querySelector('.si-text').textContent=s.triggerText;
+  si.querySelector('.si-detail').textContent=s.triggerDetail||'';
+  si.className='super-island show';
+  // click mini → expand
+  pushT(()=>{
+    si.classList.add('expanded');
+    const noteBtn=si.querySelector('.si-btn-note');
+    const clawBtn=si.querySelector('.si-btn-claw');
+    if(noteBtn)noteBtn.onclick=()=>{si.classList.remove('show');pushT(()=>cb('note'),200)};
+    if(clawBtn)clawBtn.onclick=()=>{si.classList.remove('show');pushT(()=>cb('claw'),200)};
+  },800);
+}
+
+// -- Notification Banner --
+function showNotification(s,cb){
+  const pg=$('#PH_SCR .pg');if(!pg)return;
+  let nb=pg.querySelector('.notif-banner');
+  if(!nb){nb=mk('div','notif-banner');nb.id='PH_NOTIF';pg.appendChild(nb)}
+  nb.innerHTML='<div class="notif-icon" style="background:'+s.color+'20">'+s.icon+'</div><div class="notif-body"><div class="notif-app">CLAW · 笔记</div><div class="notif-title">'+s.triggerText+'</div><div class="notif-sub">'+(s.triggerDetail||'')+'</div></div><div class="notif-time">刚刚</div>';
+  nb.className='notif-banner show';
+  nb.onclick=()=>{nb.classList.remove('show');pushT(()=>cb(),300)};
+  // auto-tap after 1.5s
+  pushT(()=>{if(nb.classList.contains('show')){nb.classList.remove('show');pushT(()=>cb(),300)}},1500);
+}
+
+// -- Neg-1 Screen --
+function showNeg1Screen(s,cb){
+  showPhonePage(pg=>{
+    pg.style.background='linear-gradient(180deg,#1a1a2e,#16213e)';
+    const scroll=mk('div','pg-scroll');scroll.style.padding='16px';
+    // search bar
+    scroll.innerHTML='<div style="padding:8px 14px;background:rgba(255,255,255,.1);border-radius:14px;margin-bottom:16px;display:flex;align-items:center;gap:8px"><span style="font-size:12px;opacity:.5">🔍</span><span style="font-size:12px;color:rgba(255,255,255,.4)">搜索</span></div>';
+    // Claw card
+    const card=mk('div','neg1-card anim-in');
+    card.style.cssText='background:rgba(255,255,255,.95);border:none';
+    card.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:14px;color:white">✦</div><div style="font-size:11px;font-weight:700;color:var(--tx)">Claw · 智能助手</div><div style="margin-left:auto;font-size:9px;color:var(--mu)">刚刚</div></div><div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:4px">'+s.triggerText+'</div><div style="font-size:11px;color:var(--su);line-height:1.5">点击查看详情 →</div>';
+    card.onclick=()=>cb();
+    scroll.appendChild(card);
+    // other cards
+    ['天气 · 北京 22°C 晴','日历 · 下午3点产品会','音乐 · 最近播放'].forEach(t=>{
+      const c=mk('div','neg1-card');c.style.opacity='.5';
+      c.innerHTML='<div style="font-size:11px;color:var(--su)">'+t+'</div>';
+      scroll.appendChild(c);
+    });
+    pg.appendChild(scroll);
+  });
+}
+
+// -- Claw Chat Page --
+function showClawChat(s,cb){
+  $('#PH_TIME').textContent='✦ Claw';
+  showPhonePage(pg=>{
+    // header
+    const hd=mk('div','');hd.style.cssText='padding:10px 16px;background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px';
+    hd.innerHTML='<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#4F46E5);display:flex;align-items:center;justify-content:center;font-size:12px;color:white">✦</div><div style="flex:1"><div style="font-size:13px;font-weight:700">Claw</div><div style="font-size:9px;color:var(--mu)">AI 助手</div></div>';
+    pg.appendChild(hd);
+    // chat area
+    const chat=mk('div','chat-scroll');chat.id='PH_CHAT';pg.appendChild(chat);
+    // input bar
+    const ib=mk('div','input-bar');
+    ib.innerHTML='<div class="input-bar-field"><span class="input-bar-placeholder">输入消息…</span></div><div class="input-bar-mic">🎤</div>';
+    pg.appendChild(ib);
+    // animate conversation
+    pushT(()=>{
+      // user message
+      const u=mk('div','ch-user anim-in');u.innerHTML='<div class="ch-user-bub">'+s.clawInput+'</div>';
+      chat.appendChild(u);chat.scrollTop=chat.scrollHeight;
+      pushT(()=>{
+        // typing
+        const tp=mk('div','ch-ai anim-in');tp.innerHTML='<div class="ch-ai-av">AI</div><div class="ch-typing"><div class="ch-typing-dot"></div><div class="ch-typing-dot"></div><div class="ch-typing-dot"></div></div>';
+        chat.appendChild(tp);chat.scrollTop=chat.scrollHeight;
+        pushT(()=>{
+          tp.remove();
+          const ai=mk('div','ch-ai anim-in');ai.innerHTML='<div class="ch-ai-av">AI</div><div class="ch-ai-bub">'+s.clawReply.replace(/\n/g,'<br>')+'</div>';
+          chat.appendChild(ai);chat.scrollTop=chat.scrollHeight;
+          pushT(()=>{
+            // result card
+            const rc=mk('div','ch-result-card anim-in');
+            rc.innerHTML='<div class="ch-result-label">✓ 笔记已生成</div><div class="ch-result-title">'+s.doc[0].v+'</div><div class="ch-result-preview">'+s.doc.filter(d=>d.t==='h2').map(d=>d.v).join(' · ')+'</div><button class="ch-result-btn" id="CH_GO_NOTE">📝 查看笔记</button>';
+            chat.appendChild(rc);chat.scrollTop=chat.scrollHeight;
+            pushT(()=>{
+              const btn=$('#CH_GO_NOTE');if(btn)btn.onclick=()=>cb();
+            },100);
+          },600);
+        },1000);
+      },500);
+    },300);
+  });
+}
+
+// ═══ RUN SCENE ═══
+function runScene(sid){
+  clearAll();_scId=sid;_editIdx=0;updateScenePanel();
+  const s=SCENES[sid];
+  phoneHome();padShowEmpty();
+
+  pushT(()=>{
+    if(s.trigger==='superIsland'){
+      // 被动：超级岛 → 笔记
+      showSuperIsland(s,(choice)=>{
+        if(choice==='note'){
+          showJump(()=>{phoneOpenNote(s);pushT(()=>{showSyncAnim();pushT(()=>padShowNote(s),500);pushT(()=>autoChainEdits(s),1000)},500)});
+        } else {
+          showClawChat(s,()=>showJump(()=>{phoneOpenNote(s);pushT(()=>{showSyncAnim();pushT(()=>padShowNote(s),500)},500)}));
+        }
+      });
+      // auto-click note after 2.5s
+      pushT(()=>{const si=$('#PH_SI');if(si&&si.classList.contains('show')){const nb=si.querySelector('.si-btn-note');if(nb)nb.click()}},2500);
+    }
+    else if(s.trigger==='notification'){
+      // 被动/半主动：通知 → 笔记
+      showNotification(s,()=>{
+        showJump(()=>{phoneOpenNote(s);pushT(()=>{showSyncAnim();pushT(()=>padShowNote(s),500);pushT(()=>autoChainEdits(s),1000)},500)});
+      });
+    }
+    else if(s.trigger==='neg1'){
+      // 半主动：负一屏 → 笔记
+      showNeg1Screen(s,()=>{
+        showJump(()=>{phoneOpenNote(s);pushT(()=>{showSyncAnim();pushT(()=>padShowNote(s),500);pushT(()=>autoChainEdits(s),1000)},500)});
+      });
+    }
+    else if(s.trigger==='claw'){
+      // 主动：Claw对话 → 结果卡片 → 笔记
+      showClawChat(s,()=>{
+        showJump(()=>{phoneOpenNote(s);pushT(()=>{showSyncAnim();pushT(()=>padShowNote(s),500);pushT(()=>autoChainEdits(s),1000)},500)});
+      });
+      // auto-click result card after 4s
+      pushT(()=>{const btn=$('#CH_GO_NOTE');if(btn)btn.click()},4000);
+    }
+    else if(s.trigger==='directNote'){
+      // 笔记内编辑：直接打开笔记
+      phoneOpenNote(s);pushT(()=>{showSyncAnim();pushT(()=>padShowNote(s),500);pushT(()=>autoChainEdits(s),1000)},500);
+    }
+  },400);
+}
+
+function showJump(cb){
+  if(cb)cb();return;
+  const pg=$('#PH_SCR .pg');if(!pg){cb();return}
+  let ov=pg.querySelector('.jump-overlay');
+  if(!ov){ov=mk('div','jump-overlay');ov.innerHTML='<div class="jump-icon">📝</div><div style="font-size:13px;font-weight:600;color:var(--su)">正在跳转到笔记…</div><div style="font-size:10px;color:var(--mu)">Claw → Notes</div>';pg.appendChild(ov)}
+  ov.classList.add('show');
+  pushT(()=>{ov.classList.remove('show');cb()},700);
+}
+
+// ═══ AUTO CHAIN EDITS ═══
+async function autoChainEdits(s){
+  if(!s||!s.edits)return;
+  for(let i=_editIdx;i<s.edits.length;i++){
+    _editIdx=i;
+    startNoteEdit();await delay(900);stopNoteEdit();await delay(800);
+    const edit=s.edits[i];
+    if(edit.type==='discuss'){
+      await delay(edit.dialog.length*1000+2000);
+      const accBtn=$('.inline-disc-acc');if(accBtn)accBtn.click();await delay(400);
+    } else {
+      await delay(600);
+      const accBtn=$('.inline-edit-acc');if(accBtn)accBtn.click();await delay(400);
+    }
+  }
+}
+
+// ═══ AUTO DEMO ═══
+async function autoDemo(){
+  if(_autoRunning)return;_autoRunning=true;
+  const btn=$('#AUTO_BTN');if(btn)btn.textContent='⏳ 演示中…';
+  const demoScenes=['rec_end','screenshot','write_email','deep_research','edit_confirm','edit_discuss'];
+  for(const sid of demoScenes){
+    clearAll();_scId=sid;_editIdx=0;updateScenePanel();
+    const s=SCENES[sid];
+    phoneHome();padShowEmpty();await delay(400);
+
+    if(s.trigger==='superIsland'){
+      await new Promise(resolve=>{
+        showSuperIsland(s,(choice)=>{
+          showJump(()=>{phoneOpenNote(s);pushT(()=>{showSyncAnim();pushT(()=>padShowNote(s),500)},500);pushT(()=>resolve(),1200)});
+        });
+        pushT(()=>{const nb=$('#PH_SI .si-btn-note');if(nb)nb.click()},2000);
+      });
+      await autoChainEdits(s);await delay(600);
+    }
+    else if(s.trigger==='notification'){
+      await new Promise(resolve=>{
+        showNotification(s,()=>{
+          showJump(()=>{phoneOpenNote(s);pushT(()=>{showSyncAnim();pushT(()=>padShowNote(s),500)},500);pushT(()=>resolve(),1200)});
+        });
+      });
+      await autoChainEdits(s);await delay(600);
+    }
+    else if(s.trigger==='claw'){
+      await new Promise(resolve=>{
+        showClawChat(s,()=>{
+          showJump(()=>{phoneOpenNote(s);pushT(()=>{showSyncAnim();pushT(()=>padShowNote(s),500)},500);pushT(()=>resolve(),1200)});
+        });
+        pushT(()=>{const b=$('#CH_GO_NOTE');if(b)b.click()},3500);
+      });
+      await autoChainEdits(s);await delay(600);
+    }
+    else if(s.trigger==='directNote'){
+      phoneOpenNote(s);await delay(300);showSyncAnim();pushT(()=>padShowNote(s),500);
+      await delay(1200);await autoChainEdits(s);await delay(600);
+    }
+  }
+  _autoRunning=false;if(btn)btn.textContent='▶ 自动演示全流程';
+}
+
+// ═══ INIT ═══
+document.addEventListener('DOMContentLoaded',()=>{
+  buildScenePanel();phoneHome();padShowEmpty();
+});
+</script>
+</body>
+</html>
