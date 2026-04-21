@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI笔记 Markdown排版规范</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f0f0f0;font-family:'Noto Sans SC','Inter',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* Header */
+.hdr{background:#fff;border-bottom:1px solid #e0e0e0;padding:12px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.hdr h1{font-size:14px;font-weight:700}
+.hdr .ver{font-size:10px;color:#999;background:#f5f5f5;padding:2px 8px;border-radius:4px}
+.tabs{display:flex;gap:6px;margin-left:auto;overflow-x:auto;flex-shrink:1;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:6px 14px;font-size:11px;font-weight:600;color:#666;cursor:pointer;border-radius:8px;transition:all .15s;background:#f5f5f5;white-space:nowrap;flex-shrink:0}
+.tab:hover{background:#eee}
+.tab.active{background:#1a1a1a;color:#fff}
+
+/* Main */
+.main{flex:1;display:flex;gap:0;overflow:hidden}
+
+/* Left: Markdown */
+.left{width:50%;background:#1e1e1e;display:flex;flex-direction:column;border-right:1px solid #333}
+.left-label{font-size:10px;color:#666;padding:8px 16px;background:#252525;border-bottom:1px solid #333;font-weight:600;letter-spacing:1px;flex-shrink:0}
+.left-scroll{flex:1;overflow-y:auto}
+.md-src{padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.7;color:#d4d4d4;white-space:pre-wrap;word-break:break-all;display:none}
+.md-src.active{display:block}
+.md-src .c{color:#6a9955}
+.md-src .h{color:#569cd6;font-weight:700}
+.md-src .b{color:#ce9178}
+.md-src .l{color:#d7ba7d}
+.md-src .t{color:#9cdcfe}
+.md-src .lk{color:#4ec9b0}
+
+/* Right: Phone */
+.right{flex:1;display:flex;align-items:center;justify-content:center;background:#e8e8e8;padding:20px}
+
+.phone{width:375px;height:calc(100vh - 100px);max-height:780px;background:#fff;border-radius:40px;border:6px solid #1a1a1a;box-shadow:0 20px 60px rgba(0,0,0,.15);overflow:hidden;display:flex;flex-direction:column;position:relative}
+.phone-sbar{display:flex;justify-content:space-between;padding:10px 24px 0;font-size:10px;font-weight:600;color:#1a1a1a;flex-shrink:0}
+.phone-nav{display:flex;align-items:center;gap:8px;padding:8px 16px;flex-shrink:0}
+.phone-back{width:28px;height:28px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:14px;color:#666}
+.phone-nav-title{font-size:14px;font-weight:600;flex:1}
+.phone-nav-more{font-size:16px;color:#999}
+.phone-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.phone-content{display:none}
+.phone-content.active{display:block}
+
+/* Preview styles inside phone */
+.pv{padding:0 20px 30px}
+.pv-source{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:4px;margin-bottom:6px}
+.pv-s1{background:rgba(52,120,246,.08);color:#3478f6}
+.pv-s2{background:rgba(52,199,89,.08);color:#34c759}
+.pv-s3{background:rgba(245,166,35,.08);color:#f5a623}
+.pv-s4{background:rgba(175,82,222,.08);color:#af52de}
+.pv-title{font-size:19px;font-weight:700;color:#1a1a1a;line-height:1.3;margin-bottom:3px}
+.pv-meta{font-size:11px;color:#999;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f0f0f0}
+.pv h2{font-size:16px;font-weight:700;color:#1a1a1a;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid #f0f0f0}
+.pv h3{font-size:14px;font-weight:600;color:#1a1a1a;margin:14px 0 6px}
+.pv p{font-size:13.5px;line-height:1.75;color:#444;margin-bottom:8px}
+.pv strong{font-weight:600;color:#1a1a1a}
+.pv em{color:#666}
+.pv ul,.pv ol{padding-left:18px;margin-bottom:10px}
+.pv li{font-size:13.5px;line-height:1.7;color:#444;margin-bottom:3px}
+.pv li::marker{color:#d0d0d0}
+.pv table{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:12px}
+.pv th{background:#f8f8f8;padding:8px 10px;text-align:left;font-weight:600;color:#333;border-bottom:2px solid #e0e0e0}
+.pv td{padding:7px 10px;border-bottom:1px solid #f0f0f0;color:#444}
+.pv blockquote{border-left:3px solid #e0e0e0;padding:8px 12px;margin:8px 0;background:#fafafa;border-radius:0 6px 6px 0;font-size:12px;color:#666;line-height:1.6}
+.co{display:flex;gap:8px;align-items:flex-start;border-radius:8px;padding:10px 12px;margin:8px 0;font-size:12px;line-height:1.5}
+.co-t{background:rgba(52,199,89,.04);border:1px solid rgba(52,199,89,.1);color:#444}
+.co-w{background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.1);color:#444}
+.co-i{background:rgba(52,120,246,.04);border:1px solid rgba(52,120,246,.1);color:#444}
+.co-r{background:rgba(255,59,48,.04);border:1px solid rgba(255,59,48,.1);color:#444}
+.co span:first-child{font-size:14px;flex-shrink:0}
+.tc{background:#fafafa;border:1px solid #f0f0f0;border-radius:10px;padding:10px 12px;margin:8px 0}
+.ti{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5}
+.ti:last-child{border:none}
+.ck{width:16px;height:16px;border:1.5px solid #d0d0d0;border-radius:4px;flex-shrink:0;margin-top:1px}
+.ck.done{background:#34c759;border-color:#34c759}
+.tc-c{flex:1}
+.tc-t{font-size:13px;color:#333;line-height:1.4}
+.tc-t.done{text-decoration:line-through;color:#bbb}
+.tc-m{font-size:10px;color:#999;margin-top:1px}
+.sc{background:rgba(52,120,246,.03);border:1px solid rgba(52,120,246,.08);border-radius:10px;padding:10px 12px;margin:8px 0}
+.si{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;color:#333}
+.si-t{font-size:11px;color:#3478f6;font-weight:500;margin-left:auto}
+.tags{display:flex;gap:5px;margin-top:14px;padding-top:10px;border-top:1px solid #f0f0f0;flex-wrap:wrap}
+.tg{font-size:10px;color:#999;background:#f5f5f5;padding:3px 7px;border-radius:4px}
+mark{background:rgba(245,166,35,.15);padding:1px 3px;border-radius:2px}
+code{background:#f5f5f5;padding:1px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#c0392b}
+pre.code-block{background:#1e1e1e;color:#d4d4d4;padding:12px 14px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.6;margin:8px 0;overflow-x:auto}
+/* news item card */
+.news-item{padding:10px 0;border-bottom:1px solid #f0f0f0}
+.news-item:last-child{border:none}
+.news-cat{font-size:10px;font-weight:600;padding:1px 6px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.news-cat-tech{background:rgba(52,120,246,.08);color:#3478f6}
+.news-cat-world{background:rgba(255,59,48,.08);color:#ff3b30}
+.news-cat-biz{background:rgba(245,166,35,.08);color:#f5a623}
+.news-cat-life{background:rgba(52,199,89,.08);color:#34c759}
+.news-cat-fin{background:rgba(175,82,222,.08);color:#af52de}
+.news-title-sm{font-size:13.5px;font-weight:600;color:#1a1a1a;line-height:1.4;margin-bottom:2px}
+.news-desc{font-size:12px;color:#888;line-height:1.5}
+/* metric card */
+.metric-row{display:flex;gap:8px;margin:8px 0}
+.metric-card{flex:1;background:#fafafa;border:1px solid #f0f0f0;border-radius:8px;padding:10px;text-align:center}
+.metric-val{font-size:18px;font-weight:700;color:#1a1a1a}
+.metric-label{font-size:10px;color:#999;margin-top:2px}
+.metric-chg{font-size:10px;margin-top:2px}
+.up{color:#34c759}
+.down{color:#ff3b30}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>AI笔记 Markdown排版规范</h1>
+  <span class="ver">v2.0</span>
+  <div class="tabs" id="tabsContainer"></div>
+</div>
+
+<div class="main">
+<div class="left">
+  <div class="left-label">MARKDOWN 源码</div>
+  <div class="left-scroll">
+
+<!-- MD 0: Meeting -->
+<pre class="md-src active" id="md0"><span class="c">&lt;!-- 来源：会议纪要 | 日期+参会人 --&gt;</span>
+
+<span class="h"># 产品评审会纪要</span>
+2026-04-13 · 参会人：张三、李四、王五、赵六
+
+<span class="h">## 会议共识</span>
+
+<span class="l">-</span> 首页采用<span class="b">**A方案（卡片流）**</span>，合集入口改为横滑卡片
+<span class="l">-</span> AI推荐tab点击率<span class="b">**12%**</span>，目标30%，本周出方案
+<span class="l">-</span> 录音转写准确率<span class="b">**85%**</span>，接入自定义词库
+
+<span class="h">## 关键决策</span>
+
+<span class="t">| 议题 | 决策 | 负责人 |</span>
+<span class="t">|------|------|--------|</span>
+<span class="t">| 首页改版 | 采用A方案，优化合集入口 | 赵六 |</span>
+<span class="t">| AI推荐 | 出混合排序方案 | 李四 |</span>
+<span class="t">| 录音转写 | 接入自定义词库 | 王五 |</span>
+
+<span class="h">## 议题详情</span>
+
+<span class="h">### 1. 首页改版方案</span>
+
+设计提供了两版方案：
+<span class="l">-</span> <span class="b">**A方案**</span>：保留卡片流，用户已习惯
+<span class="l">-</span> <span class="b">**B方案**</span>：改为信息流，改动成本高
+
+<span class="c">&gt; 💡 最终决定采用A方案，合集入口改为横滑卡片。</span>
+
+<span class="h">### 2. AI推荐算法</span>
+
+当前点击率<span class="b">**12%**</span>，目标<span class="b">**30%**</span>。
+<span class="c">&gt; 方案：编辑时间+内容相似度混合排序</span>
+
+<span class="h">### 3. 录音转写准确率</span>
+
+准确率约<span class="b">**85%**</span>，专有名词识别错误。
+
+<span class="h">## 待办事项</span>
+
+<span class="l">- [ ]</span> 李四：出AI推荐排序方案 📅 周五前
+<span class="l">- [ ]</span> 王五：完成自定义词库接入 📅 两周内
+<span class="l">- [x]</span> 赵六：完成合集入口设计稿 📅 下周一
+
+<span class="h">## 日程</span>
+
+<span class="l">-</span> 📅 下周二 线下评审会
+
+<span class="c">#产品设计 #首页改版 #AI推荐</span></pre>
+
+<!-- MD 1: Call -->
+<pre class="md-src" id="md1"><span class="c">&lt;!-- 来源：通话摘要 | 联系人+时长 --&gt;</span>
+
+<span class="h"># 与张总通话 · 方案确认</span>
+2026-04-12 17:22 · 通话 8分32秒
+
+<span class="h">## 核心结论</span>
+
+张总<span class="b">**确认了首页改版方向**</span>，要求<span class="b">**周五前**</span>提交完整方案。
+
+<span class="h">## 通话要点</span>
+
+<span class="l">1.</span> 张总对A方案整体认可，希望看到<span class="b">**数据支撑**</span>
+<span class="l">2.</span> AI推荐需要和用户最近编辑的笔记<span class="b">**强关联**</span>
+<span class="l">3.</span> <span class="b">**下周二**</span>安排一次线下评审
+
+<span class="h">## 待跟进</span>
+
+<span class="l">- [ ]</span> 周五前发送完整首页改版方案给张总 📅 周五
+<span class="l">- [ ]</span> 准备AI推荐的数据支撑材料
+
+<span class="c">&gt; 💡 张总特别强调了数据支撑的重要性</span>
+
+<span class="c">#张总 #首页改版 #方案确认</span></pre>
+
+<!-- MD 2: Voice -->
+<pre class="md-src" id="md2"><span class="c">&lt;!-- 来源：语音速记 | 录音时长 --&gt;</span>
+
+<span class="h"># 首页可以加个AI推荐区</span>
+2026-04-12 12:30 · 语音速记 · 0:42
+
+走路时想到的，首页除了时间线还可以有一个
+AI推荐区，根据用户最近的笔记内容推荐相关
+的历史笔记。
+
+比如用户刚写了一篇会议纪要，推荐区可以展
+示上次同主题的纪要。
+
+<span class="h">## 关键想法</span>
+
+<span class="l">-</span> 首页增加<span class="b">**AI推荐区**</span>
+<span class="l">-</span> 基于<span class="b">**最近编辑内容**</span>推荐历史笔记
+<span class="l">-</span> 推荐区展示<span class="b">**同主题/同项目**</span>的关联笔记
+
+<span class="h">## 待办</span>
+
+<span class="l">- [ ]</span> 和设计讨论推荐区的位置和样式
+
+<span class="c">#灵感 #产品设计 #首页改版</span></pre>
+
+<!-- MD 3: AI Report -->
+<pre class="md-src" id="md3"><span class="c">&lt;!-- 来源：MiClaw生成 --&gt;</span>
+
+<span class="h"># 美伊战争情况报告（2026年4月）</span>
+2026-04-21 12:40 · 1230字 · 来自MiClaw
+
+<span class="h">## 一、总体态势</span>
+
+对峙白热化，停火濒临失效。当前美伊冲突已从外交经济博弈全面升级为军事封锁与武力威慑的全方位对抗。
+
+<span class="h">## 二、军事对峙与封锁</span>
+
+<span class="h">### 1. 美军行动</span>
+
+<span class="l">-</span> <span class="b">**兵力部署**</span>：美军中央司令部已在中东集结超5万兵力
+<span class="l">-</span> 部署"布什"号航母打击群、16艘主力战舰
+<span class="l">-</span> 形成三层打击体系
+
+<span class="h">### 2. 伊朗反制</span>
+
+<span class="l">-</span> <span class="b">**武力部署**</span>：伊朗革命卫队在波斯湾部署
+<span class="l">-</span> 海军小型快艇编队加强巡逻
+
+<span class="h">## 三、经济制裁</span>
+
+<span class="t">| 制裁领域 | 具体措施 | 影响 |</span>
+<span class="t">|---------|---------|------|</span>
+<span class="t">| 石油出口 | 全面禁运 | 出口近乎归零 |</span>
+<span class="t">| 金融 | 切断SWIFT | 国际结算受阻 |</span>
+<span class="t">| 航运 | 海上封锁 | 运量暴跌70% |</span>
+
+<span class="c">#国际局势 #美伊关系 #军事分析</span></pre>
+
+<!-- MD 4: News Brief (FIXED) -->
+<pre class="md-src" id="md4"><span class="c">&lt;!-- 来源：每日新闻简报（AI聚合） --&gt;</span>
+
+<span class="h"># 每日简报 · 4月21日</span>
+2026-04-21 08:00 · AI聚合 · 12条资讯
+
+<span class="h">## 🔥 今日头条</span>
+
+<span class="b">**OpenAI发布GPT-5：多模态推理能力突破**</span>
+OpenAI正式发布GPT-5，在数学推理、代码生成
+和多模态理解上全面超越前代，API价格下降40%。
+
+<span class="h">## 科技</span>
+
+<span class="l">-</span> <span class="b">**苹果WWDC提前至5月**</span>：预计发布iOS 20和全新Siri
+<span class="l">-</span> <span class="b">**小米汽车月交付破3万**</span>：SU7 Ultra版本开启预售
+<span class="l">-</span> 英伟达H200芯片量产延期至Q3
+
+<span class="h">## 国际</span>
+
+<span class="l">-</span> <span class="b">**美伊谈判破裂**</span>：双方互相驱逐外交官
+<span class="l">-</span> 欧盟通过AI监管法案最终版本
+<span class="l">-</span> 日本央行维持利率不变，日元跌破160
+
+<span class="h">## 财经</span>
+
+<span class="l">-</span> A股三大指数集体收涨，AI板块领涨
+<span class="l">-</span> <span class="b">**比特币突破10万美元**</span>，创历史新高
+<span class="l">-</span> 央行：5月LPR大概率下调
+
+<span class="h">## 生活</span>
+
+<span class="l">-</span> 五一假期火车票今日开售，热门线路秒光
+<span class="l">-</span> 南京今日晴 18-26°C，适合户外
+
+<span class="c">#每日简报 #新闻 #资讯</span></pre>
+
+<!-- MD 5: Weekly Report -->
+<pre class="md-src" id="md5"><span class="c">&lt;!-- 来源：周报（AI生成） --&gt;</span>
+
+<span class="h"># 本周工作周报（2026年4月7日）</span>
+2026-04-18 · 汇报人：杨李莲
+
+<span class="h">## 周报摘要</span>
+
+本周完成AI笔记420版本进版，推进二期需求方案输出。
+
+<span class="h">## 一、本周完成工作</span>
+
+<span class="l">-</span> 支持通过Agent对话创建笔记（语音、键盘、上传）
+<span class="l">-</span> 支持通过Agent对话修改笔记内容
+<span class="l">-</span> 会议录音支持AI自动生成纪要
+<span class="l">-</span> 文档解析支持文字提取和摘要
+
+<span class="h">## 二、待办事项与问题</span>
+
+<span class="l">- [ ]</span> 邮件管理接入推进 📅 5月中旬交付
+<span class="l">- [ ]</span> 金山WPS团队本轮版本未交付
+
+<span class="c">#周报 #AI笔记 #工作总结</span></pre>
+
+<!-- MD 6: Web Summary -->
+<pre class="md-src" id="md6"><span class="c">&lt;!-- 来源：网页/文章摘要 --&gt;</span>
+
+<span class="h"># Claude 3.5发布：AI编程能力大幅提升</span>
+2026-04-20 · 来源：<span class="lk">[sspai.com](https://sspai.com)</span>
+
+<span class="h">## 核心要点</span>
+
+<span class="l">-</span> Claude 3.5 Sonnet在编程任务上<span class="b">**超越GPT-4**</span>
+<span class="l">-</span> 推理速度提升<span class="b">**2倍**</span>，成本降低<span class="b">**80%**</span>
+<span class="l">-</span> 新增Artifacts功能，支持实时预览代码
+
+<span class="h">## 详细内容</span>
+
+Anthropic发布了Claude 3.5系列模型...
+
+<span class="c">&gt; 💡 值得关注：Artifacts功能可能改变AI编程的交互方式</span>
+
+<span class="c">#AI #Claude #技术资讯</span></pre>
+
+<!-- MD 7: Screenshot OCR -->
+<pre class="md-src" id="md7"><span class="c">&lt;!-- 来源：截图OCR整理 --&gt;</span>
+
+<span class="h"># 聊天记录整理 · 项目排期确认</span>
+2026-04-19 · 截图识别
+
+<span class="h">## 关键信息</span>
+
+<span class="l">-</span> <span class="b">**时间**</span>：下周三下午2点
+<span class="l">-</span> <span class="b">**地点**</span>：望京SOHO T1 3层会议室
+<span class="l">-</span> <span class="b">**参会人**</span>：张总、李四、王五
+<span class="l">-</span> <span class="b">**议题**</span>：Q2产品排期确认
+
+<span class="h">## 待办</span>
+
+<span class="l">- [ ]</span> 提前准备Q2排期表 📅 下周三前
+<span class="l">- [ ]</span> 预订会议室
+
+<span class="h">## 日程</span>
+
+<span class="l">-</span> 📅 下周三 14:00 Q2排期确认会
+
+<span class="c">#聊天记录 #排期 #会议</span></pre>
+
+<!-- MD 8: Class Notes -->
+<pre class="md-src" id="md8"><span class="c">&lt;!-- 来源：课堂笔记（录音转写） --&gt;</span>
+
+<span class="h"># 课堂笔记 · 机器学习基础</span>
+2026-04-11 14:20 · 录音 32:15
+
+<span class="h">## 核心知识点</span>
+
+<span class="h">### 1. 监督学习 vs 非监督学习</span>
+
+<span class="l">-</span> <span class="b">**监督学习**</span>：有标签数据，预测目标明确
+<span class="l">-</span> <span class="b">**非监督学习**</span>：无标签，发现数据内在结构
+
+<span class="h">### 2. 梯度下降算法</span>
+
+核心思想：沿着损失函数梯度的反方向更新参数。
+
+<span class="c">&gt; 学习率太大会震荡，太小会收敛慢</span>
+
+<span class="h">### 3. 过拟合解决方案</span>
+
+<span class="l">-</span> 增加训练数据
+<span class="l">-</span> 正则化（L1/L2）
+<span class="l">-</span> Dropout
+<span class="l">-</span> 早停（Early Stopping）
+
+<span class="c">#学习 #机器学习 #课堂笔记</span></pre>
+
+<!-- MD 9: Todo List -->
+<pre class="md-src" id="md9"><span class="c">&lt;!-- 来源：纯待办清单 --&gt;</span>
+
+<span class="h"># 本周待办</span>
+2026-04-21
+
+<span class="l">- [ ]</span> 完成AI推荐排序方案 📅 周五前 <span class="b">**@李四**</span>
+<span class="l">- [ ]</span> 自定义词库接入 📅 两周内 <span class="b">**@王五**</span>
+<span class="l">- [ ]</span> 准备数据支撑材料 📅 周五
+<span class="l">- [x]</span> 合集入口设计稿 📅 下周一 <span class="b">**@赵六**</span>
+<span class="l">- [x]</span> 420版本合入ROM
+<span class="l">- [ ]</span> 和设计讨论推荐区位置
+
+<span class="c">#待办 #本周</span></pre>
+
+<!-- MD 10: Finance Brief -->
+<pre class="md-src" id="md10"><span class="c">&lt;!-- 来源：金融简报（AI聚合） --&gt;</span>
+
+<span class="h"># 金融早报 · 4月21日</span>
+2026-04-21 07:00 · AI聚合
+
+<span class="h">## 市场概览</span>
+
+<span class="t">| 指数 | 收盘 | 涨跌幅 |</span>
+<span class="t">|------|------|--------|</span>
+<span class="t">| 上证指数 | 3,412.56 | +1.23% |</span>
+<span class="t">| 深证成指 | 10,856.32 | +1.67% |</span>
+<span class="t">| 创业板指 | 2,156.78 | +2.15% |</span>
+<span class="t">| 恒生指数 | 22,345.12 | +0.89% |</span>
+
+<span class="h">## 热点板块</span>
+
+<span class="l">-</span> <span class="b">**AI算力**</span> 领涨，中科曙光涨停
+<span class="l">-</span> <span class="b">**新能源车**</span> 集体走强，宁德时代+5.2%
+<span class="l">-</span> 房地产板块回调，万科跌3.1%
+
+<span class="h">## 重要资讯</span>
+
+<span class="l">-</span> 央行：5月LPR大概率下调<span class="b">**10个基点**</span>
+<span class="l">-</span> 美联储会议纪要：年内降息预期升温
+<span class="l">-</span> 比特币突破<span class="b">**10万美元**</span>，24h涨幅8.3%
+
+<span class="c">&gt; ⚠️ 以上信息仅供参考，不构成投资建议</span>
+
+<span class="c">#金融 #股市 #早报</span></pre>
+
+<!-- MD 11: Book Notes -->
+<pre class="md-src" id="md11"><span class="c">&lt;!-- 来源：读书笔记（手动+AI整理） --&gt;</span>
+
+<span class="h"># 《纳瓦尔宝典》读书笔记</span>
+2026-04-15 · 阅读进度 68%
+
+<span class="h">## 核心观点</span>
+
+<span class="l">-</span> <span class="b">**财富**</span>：用杠杆（代码、媒体、资本）创造被动收入
+<span class="l">-</span> <span class="b">**幸福**</span>：幸福是一种技能，可以通过训练获得
+<span class="l">-</span> <span class="b">**决策**</span>：长期主义者在短期内看起来像疯子
+
+<span class="h">## 精彩摘录</span>
+
+<span class="c">&gt; "如果你不能决定，答案就是否定。"</span>
+
+<span class="c">&gt; "给自己设定一个很高的时薪，然后按照这个标准做决策。"</span>
+
+<span class="h">## 我的思考</span>
+
+纳瓦尔关于"特定知识"的定义很有启发——
+它是你通过追随自己的好奇心和热情而积累的
+知识，无法被培训，只能被发现。
+
+<span class="h">## 行动清单</span>
+
+<span class="l">- [ ]</span> 梳理自己的"特定知识"是什么
+<span class="l">- [ ]</span> 重新评估时间分配，减少低杠杆工作
+
+<span class="c">#读书笔记 #纳瓦尔 #个人成长</span></pre>
+
+<!-- MD 12: Podcast Notes -->
+<pre class="md-src" id="md12"><span class="c">&lt;!-- 来源：播客笔记（录音转写+AI整理） --&gt;</span>
+
+<span class="h"># 播客笔记 · 硬地骇客 EP128</span>
+2026-04-18 · 时长 1:23:45
+
+<span class="h">## 节目信息</span>
+
+<span class="l">-</span> <span class="b">**节目**</span>：硬地骇客
+<span class="l">-</span> <span class="b">**嘉宾**</span>：张鑫旭（CSS专家）
+<span class="l">-</span> <span class="b">**主题**</span>：独立开发者如何做到年入百万
+
+<span class="h">## 核心观点</span>
+
+<span class="h">### 1. 选品策略</span>
+
+<span class="l">-</span> 做<span class="b">**工具类产品**</span>，不做内容类
+<span class="l">-</span> 找到一个<span class="b">**足够小但付费意愿强**</span>的市场
+<span class="l">-</span> 先验证需求再写代码
+
+<span class="h">### 2. 增长方法</span>
+
+<span class="l">-</span> SEO是独立开发者最好的获客渠道
+<span class="l">-</span> 写技术博客建立个人品牌
+<span class="l">-</span> 口碑传播 > 付费投放
+
+<span class="h">## 时间戳</span>
+
+<span class="l">-</span> 05:30 嘉宾背景介绍
+<span class="l">-</span> 18:20 选品方法论
+<span class="l">-</span> 42:15 技术栈选择
+<span class="l">-</span> 1:05:00 变现策略
+
+<span class="c">#播客 #独立开发 #硬地骇客</span></pre>
+
+<!-- MD 13: Travel Guide -->
+<pre class="md-src" id="md13"><span class="c">&lt;!-- 来源：旅行攻略（AI整理） --&gt;</span>
+
+<span class="h"># 五一京都3日攻略</span>
+2026-04-20 · 来自MiClaw
+
+<span class="h">## 行程概览</span>
+
+<span class="t">| 日期 | 上午 | 下午 | 晚上 |</span>
+<span class="t">|------|------|------|------|</span>
+<span class="t">| Day1 | 伏见稻荷 | 清水寺 | 祇园花见小路 |</span>
+<span class="t">| Day2 | 金阁寺 | 岚山竹林 | 锦市场 |</span>
+<span class="t">| Day3 | 二条城 | 哲学之道 | 京都站购物 |</span>
+
+<span class="h">## Day1 详细路线</span>
+
+<span class="h">### 🏛️ 伏见稻荷大社</span>
+
+<span class="l">-</span> <span class="b">**建议时间**</span>：2-3小时
+<span class="l">-</span> <span class="b">**交通**</span>：JR奈良线 稻荷站
+<span class="l">-</span> <span class="b">**Tips**</span>：早上7点前到，避开人流
+
+<span class="h">### 🏛️ 清水寺</span>
+
+<span class="l">-</span> <span class="b">**门票**</span>：400日元
+<span class="l">-</span> <span class="b">**交通**</span>：巴士206路 清水道站
+
+<span class="c">&gt; 💡 买一日巴士券（700日元），当天无限次乘坐</span>
+
+<span class="h">## 预算</span>
+
+<span class="t">| 项目 | 预算 |</span>
+<span class="t">|------|------|</span>
+<span class="t">| 机票 | ¥3,200 |</span>
+<span class="t">| 住宿 | ¥1,800/3晚 |</span>
+<span class="t">| 交通 | ¥500 |</span>
+<span class="t">| 餐饮 | ¥1,500 |</span>
+
+<span class="c">#旅行 #京都 #五一攻略</span></pre>
+
+<!-- MD 14: Email Summary -->
+<pre class="md-src" id="md14"><span class="c">&lt;!-- 来源：邮件摘要（AI提取） --&gt;</span>
+
+<span class="h"># 邮件摘要 · 4月21日</span>
+2026-04-21 09:00 · 5封重要邮件
+
+<span class="h">## 需要回复</span>
+
+<span class="l">1.</span> <span class="b">**[紧急] Q2预算审批**</span>
+   发件人：财务部 王芳
+   需要在<span class="b">**周三前**</span>确认笔记项目Q2预算
+
+<span class="l">2.</span> <span class="b">**穿戴设备接口文档**</span>
+   发件人：IoT部 陈工
+   已发送蓝牙录音传输接口文档，需确认
+
+<span class="h">## 仅通知</span>
+
+<span class="l">3.</span> 全员邮件：五一放假通知（5.1-5.5）
+<span class="l">4.</span> HR：4月考勤确认，截止4月25日
+<span class="l">5.</span> IT：VPN升级通知，周六凌晨维护
+
+<span class="h">## 待办</span>
+
+<span class="l">- [ ]</span> 回复Q2预算审批 📅 周三前
+<span class="l">- [ ]</span> 确认穿戴设备接口文档 📅 本周
+<span class="l">- [ ]</span> 提交4月考勤 📅 4月25日
+
+<span class="c">#邮件 #待办 #工作</span></pre>
+
+<!-- MD 15: All Elements -->
+<pre class="md-src" id="md15"><span class="c">&lt;!-- 所有Markdown元素穷举 --&gt;</span>
+
+<span class="h"># H1 笔记标题（PageTitle）</span>
+<span class="h">## H2 章节标题</span>
+<span class="h">### H3 子标题</span>
+
+正文段落，<span class="b">**加粗**</span>，*斜体*，~~删除线~~，
+==高亮==，<span class="lk">[链接](url)</span>
+
+<span class="l">-</span> 无序列表项1
+<span class="l">-</span> 无序列表项2
+  <span class="l">-</span> 嵌套列表项
+
+<span class="l">1.</span> 有序列表项1
+<span class="l">2.</span> 有序列表项2
+
+<span class="l">- [ ]</span> 未完成待办
+<span class="l">- [x]</span> 已完成待办
+
+<span class="t">| 列1 | 列2 | 列3 |</span>
+<span class="t">|-----|-----|-----|</span>
+<span class="t">| 内容 | 内容 | 内容 |</span>
+
+<span class="c">&gt; 引用块：用于标注来源或补充说明</span>
+
+<span class="c">&gt; 💡 提示块（绿色）</span>
+<span class="c">&gt; ⚠️ 警告块（黄色）</span>
+<span class="c">&gt; ℹ️ 信息块（蓝色）</span>
+
+`行内代码`
+
+```javascript
+function example() {
+  return "hello";
+}
+```
+
+---
+
+<span class="c">#标签1 #标签2 #标签3</span></pre>
+
+  </div>
+</div>
+
+<div class="right">
+  <div class="phone">
+    <div class="phone-sbar"><span>11:24</span><span>86%</span></div>
+    <div class="phone-nav"><div class="phone-back">‹</div><div class="phone-nav-title" id="navTitle">产品评审会纪要</div><div class="phone-nav-more">⋯</div></div>
+    <div class="phone-body">
+
+<!-- PV 0: Meeting -->
+<div class="phone-content active" id="pv0"><div class="pv">
+  <span class="pv-source pv-s1">📋 会议纪要</span>
+  <div class="pv-title">产品评审会纪要</div>
+  <div class="pv-meta">2026-04-13 · 参会人：张三、李四、王五、赵六</div>
+  <h2>会议共识</h2>
+  <ul><li>首页采用<strong>A方案（卡片流）</strong>，合集入口改为横滑卡片</li><li>AI推荐tab点击率<strong>12%</strong>，目标30%，本周出方案</li><li>录音转写准确率<strong>85%</strong>，接入自定义词库</li></ul>
+  <h2>关键决策</h2>
+  <table><tr><th>议题</th><th>决策</th><th>负责人</th></tr><tr><td>首页改版</td><td>采用A方案</td><td>赵六</td></tr><tr><td>AI推荐</td><td>混合排序方案</td><td>李四</td></tr><tr><td>录音转写</td><td>自定义词库</td><td>王五</td></tr></table>
+  <h2>议题详情</h2>
+  <h3>1. 首页改版方案</h3>
+  <p>设计提供了两版方案：</p>
+  <ul><li><strong>A方案</strong>：保留卡片流，用户已习惯</li><li><strong>B方案</strong>：改为信息流，改动成本高</li></ul>
+  <div class="co co-t"><span>💡</span><span>最终决定采用A方案，合集入口改为横滑卡片。</span></div>
+  <h3>2. AI推荐算法</h3>
+  <p>当前点击率<strong>12%</strong>，目标<strong>30%</strong>。</p>
+  <blockquote>方案：编辑时间+内容相似度混合排序</blockquote>
+  <h3>3. 录音转写准确率</h3>
+  <p>准确率约<strong>85%</strong>，专有名词识别错误。</p>
+  <h2>待办事项</h2>
+  <div class="tc"><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">李四：出AI推荐排序方案</div><div class="tc-m">📅 周五前</div></div></div><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">王五：完成自定义词库接入</div><div class="tc-m">📅 两周内</div></div></div><div class="ti"><div class="ck done"></div><div class="tc-c"><div class="tc-t done">赵六：完成合集入口设计稿</div><div class="tc-m">📅 下周一 · 已完成</div></div></div></div>
+  <h2>日程</h2>
+  <div class="sc"><div class="si"><span>📅</span><span>线下评审会</span><span class="si-t">下周二</span></div></div>
+
+</div></div>
+
+<!-- PV 1: Call -->
+<div class="phone-content" id="pv1"><div class="pv">
+  <span class="pv-source pv-s2">📞 通话摘要</span>
+  <div class="pv-title">与张总通话 · 方案确认</div>
+  <div class="pv-meta">2026-04-12 17:22 · 通话 8分32秒</div>
+  <h2>核心结论</h2>
+  <p>张总<strong>确认了首页改版方向</strong>，要求<strong>周五前</strong>提交完整方案。</p>
+  <h2>通话要点</h2>
+  <ol><li>张总对A方案整体认可，希望看到<strong>数据支撑</strong></li><li>AI推荐需要和用户最近编辑的笔记<strong>强关联</strong></li><li><strong>下周二</strong>安排一次线下评审</li></ol>
+  <h2>待跟进</h2>
+  <div class="tc"><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">周五前发送完整首页改版方案给张总</div><div class="tc-m">📅 周五</div></div></div><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">准备AI推荐的数据支撑材料</div></div></div></div>
+  <div class="co co-t"><span>💡</span><span>张总特别强调了数据支撑的重要性</span></div>
+
+</div></div>
+
+<!-- PV 2: Voice -->
+<div class="phone-content" id="pv2"><div class="pv">
+  <span class="pv-source pv-s3">🎙️ 语音速记</span>
+  <div class="pv-title">首页可以加个AI推荐区</div>
+  <div class="pv-meta">2026-04-12 12:30 · 语音速记 · 0:42</div>
+  <p>走路时想到的，首页除了时间线还可以有一个AI推荐区，根据用户最近的笔记内容推荐相关的历史笔记。</p>
+  <p>比如用户刚写了一篇会议纪要，推荐区可以展示上次同主题的纪要。</p>
+  <h2>关键想法</h2>
+  <ul><li>首页增加<strong>AI推荐区</strong></li><li>基于<strong>最近编辑内容</strong>推荐历史笔记</li><li>推荐区展示<strong>同主题/同项目</strong>的关联笔记</li></ul>
+  <h2>待办</h2>
+  <div class="tc"><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">和设计讨论推荐区的位置和样式</div></div></div></div>
+
+</div></div>
+
+<!-- PV 3: AI Report -->
+<div class="phone-content" id="pv3"><div class="pv">
+  <span class="pv-source pv-s4">🤖 MiClaw生成</span>
+  <div class="pv-title">美伊战争情况报告（2026年4月）</div>
+  <div class="pv-meta">2026-04-21 12:40 · 1230字 · 来自MiClaw</div>
+  <h2>一、总体态势</h2>
+  <p>对峙白热化，停火濒临失效。当前美伊冲突已从外交经济博弈全面升级为军事封锁与武力威慑的全方位对抗。</p>
+  <h2>二、军事对峙与封锁</h2>
+  <h3>1. 美军行动</h3>
+  <ul><li><strong>兵力部署</strong>：美军中央司令部已在中东集结超5万兵力</li><li>部署"布什"号航母打击群、16艘主力战舰</li><li>形成三层打击体系</li></ul>
+  <h3>2. 伊朗反制</h3>
+  <ul><li><strong>武力部署</strong>：伊朗革命卫队在波斯湾部署</li><li>海军小型快艇编队加强巡逻</li></ul>
+  <h2>三、经济制裁</h2>
+  <table><tr><th>制裁领域</th><th>具体措施</th><th>影响</th></tr><tr><td>石油出口</td><td>全面禁运</td><td>出口近乎归零</td></tr><tr><td>金融</td><td>切断SWIFT</td><td>国际结算受阻</td></tr><tr><td>航运</td><td>海上封锁</td><td>运量暴跌70%</td></tr></table>
+
+</div></div>
+
+<!-- PV 4: News Brief (FIXED) -->
+<div class="phone-content" id="pv4"><div class="pv">
+  <span class="pv-source" style="background:rgba(255,59,48,.08);color:#ff3b30">📰 每日简报</span>
+  <div class="pv-title">每日简报 · 4月21日</div>
+  <div class="pv-meta">2026-04-21 08:00 · AI聚合 · 12条资讯</div>
+  <h2>🔥 今日头条</h2>
+  <p><strong>OpenAI发布GPT-5：多模态推理能力突破</strong></p>
+  <p>OpenAI正式发布GPT-5，在数学推理、代码生成和多模态理解上全面超越前代，API价格下降40%。</p>
+  <h2>科技</h2>
+  <ul><li><strong>苹果WWDC提前至5月</strong>：预计发布iOS 20和全新Siri，AI功能大幅增强</li><li><strong>小米汽车月交付破3万</strong>：SU7 Ultra版本开启预售，续航突破900km</li><li>英伟达H200芯片量产延期至Q3，供应链问题导致算力市场短期承压</li></ul>
+  <h2>国际</h2>
+  <ul><li><strong>美伊谈判破裂</strong>：双方互相驱逐外交官，油价应声上涨3.2%</li><li>欧盟通过AI监管法案最终版本，2027年全面生效</li><li>日本央行维持利率不变，日元跌破160</li></ul>
+  <h2>财经</h2>
+  <ul><li>A股三大指数集体收涨，AI板块领涨，沪指+1.23%</li><li><strong>比特币突破10万美元</strong>，创历史新高，24h涨幅8.3%</li><li>央行：5月LPR大概率下调</li></ul>
+  <h2>生活</h2>
+  <ul><li>五一假期火车票今日开售，热门线路秒光</li><li>南京今日晴 18-26°C，适合户外</li></ul>
+
+</div></div>
+
+<!-- PV 5: Weekly Report -->
+<div class="phone-content" id="pv5"><div class="pv">
+  <span class="pv-source pv-s1">📊 周报</span>
+  <div class="pv-title">本周工作周报</div>
+  <div class="pv-meta">2026-04-18 · 汇报人：杨李莲</div>
+  <h2>周报摘要</h2>
+  <p>本周完成AI笔记420版本进版，推进二期需求方案输出。</p>
+  <h2>一、本周完成工作</h2>
+  <ul><li>支持通过Agent对话创建笔记</li><li>支持通过Agent对话修改笔记内容</li><li>会议录音支持AI自动生成纪要</li><li>文档解析支持文字提取和摘要</li></ul>
+  <h2>二、待办事项与问题</h2>
+  <div class="tc"><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">邮件管理接入推进</div><div class="tc-m">📅 5月中旬交付</div></div></div><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">金山WPS团队本轮版本未交付</div></div></div></div>
+
+</div></div>
+
+<!-- PV 6: Web Summary -->
+<div class="phone-content" id="pv6"><div class="pv">
+  <span class="pv-source" style="background:rgba(90,200,250,.08);color:#5ac8fa">🔗 网页摘要</span>
+  <div class="pv-title">Claude 3.5发布：AI编程能力大幅提升</div>
+  <div class="pv-meta">2026-04-20 · 来源：<a href="#" style="color:#3478f6;text-decoration:none">sspai.com</a></div>
+  <h2>核心要点</h2>
+  <ul><li>Claude 3.5 Sonnet在编程任务上<strong>超越GPT-4</strong></li><li>推理速度提升<strong>2倍</strong>，成本降低<strong>80%</strong></li><li>新增Artifacts功能，支持实时预览代码</li></ul>
+  <h2>详细内容</h2>
+  <p>Anthropic发布了Claude 3.5系列模型，在编程、推理和多模态理解方面取得显著进步...</p>
+  <div class="co co-t"><span>💡</span><span>值得关注：Artifacts功能可能改变AI编程的交互方式</span></div>
+
+</div></div>
+
+<!-- PV 7: Screenshot OCR -->
+<div class="phone-content" id="pv7"><div class="pv">
+  <span class="pv-source" style="background:rgba(255,59,48,.08);color:#ff3b30">📸 截图整理</span>
+  <div class="pv-title">聊天记录整理 · 项目排期确认</div>
+  <div class="pv-meta">2026-04-19 · 截图识别</div>
+  <h2>关键信息</h2>
+  <ul><li><strong>时间</strong>：下周三下午2点</li><li><strong>地点</strong>：望京SOHO T1 3层会议室</li><li><strong>参会人</strong>：张总、李四、王五</li><li><strong>议题</strong>：Q2产品排期确认</li></ul>
+  <h2>待办</h2>
+  <div class="tc"><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">提前准备Q2排期表</div><div class="tc-m">📅 下周三前</div></div></div><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">预订会议室</div></div></div></div>
+  <h2>日程</h2>
+  <div class="sc"><div class="si"><span>📅</span><span>Q2排期确认会</span><span class="si-t">下周三 14:00</span></div></div>
+
+</div></div>
+
+<!-- PV 8: Class Notes -->
+<div class="phone-content" id="pv8"><div class="pv">
+  <span class="pv-source" style="background:rgba(90,200,250,.08);color:#5ac8fa">🎓 课堂笔记</span>
+  <div class="pv-title">课堂笔记 · 机器学习基础</div>
+  <div class="pv-meta">2026-04-11 14:20 · 录音 32:15</div>
+  <h2>核心知识点</h2>
+  <h3>1. 监督学习 vs 非监督学习</h3>
+  <ul><li><strong>监督学习</strong>：有标签数据，预测目标明确</li><li><strong>非监督学习</strong>：无标签，发现数据内在结构</li></ul>
+  <h3>2. 梯度下降算法</h3>
+  <p>核心思想：沿着损失函数梯度的反方向更新参数。</p>
+  <blockquote>学习率太大会震荡，太小会收敛慢</blockquote>
+  <h3>3. 过拟合解决方案</h3>
+  <ul><li>增加训练数据</li><li>正则化（L1/L2）</li><li>Dropout</li><li>早停（Early Stopping）</li></ul>
+
+</div></div>
+
+<!-- PV 9: Todo List -->
+<div class="phone-content" id="pv9"><div class="pv">
+  <span class="pv-source" style="background:rgba(255,59,48,.08);color:#ff3b30">✅ 待办清单</span>
+  <div class="pv-title">本周待办</div>
+  <div class="pv-meta">2026-04-21</div>
+  <div class="tc"><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">完成AI推荐排序方案</div><div class="tc-m">📅 周五前 · @李四</div></div></div><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">自定义词库接入</div><div class="tc-m">📅 两周内 · @王五</div></div></div><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">准备数据支撑材料</div><div class="tc-m">📅 周五</div></div></div><div class="ti"><div class="ck done"></div><div class="tc-c"><div class="tc-t done">合集入口设计稿</div><div class="tc-m">📅 下周一 · @赵六 · 已完成</div></div></div><div class="ti"><div class="ck done"></div><div class="tc-c"><div class="tc-t done">420版本合入ROM</div></div></div><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">和设计讨论推荐区位置</div></div></div></div>
+
+</div></div>
+
+<!-- PV 10: Finance Brief -->
+<div class="phone-content" id="pv10"><div class="pv">
+  <span class="pv-source" style="background:rgba(175,82,222,.08);color:#af52de">💰 金融简报</span>
+  <div class="pv-title">金融早报 · 4月21日</div>
+  <div class="pv-meta">2026-04-21 07:00 · AI聚合</div>
+  <h2>市场概览</h2>
+  <div class="metric-row">
+    <div class="metric-card"><div class="metric-val">3,412</div><div class="metric-label">上证指数</div><div class="metric-chg up">+1.23%</div></div>
+    <div class="metric-card"><div class="metric-val">10,856</div><div class="metric-label">深证成指</div><div class="metric-chg up">+1.67%</div></div>
+    <div class="metric-card"><div class="metric-val">2,156</div><div class="metric-label">创业板指</div><div class="metric-chg up">+2.15%</div></div>
+  </div>
+  <div class="metric-row">
+    <div class="metric-card"><div class="metric-val">22,345</div><div class="metric-label">恒生指数</div><div class="metric-chg up">+0.89%</div></div>
+    <div class="metric-card"><div class="metric-val" style="color:#ff3b30">$100,234</div><div class="metric-label">比特币</div><div class="metric-chg up">+8.3%</div></div>
+    <div class="metric-card"><div class="metric-val">¥7.12</div><div class="metric-label">美元/人民币</div><div class="metric-chg down">-0.15%</div></div>
+  </div>
+  <h2>热点板块</h2>
+  <ul><li><strong>AI算力</strong> 领涨，中科曙光涨停</li><li><strong>新能源车</strong> 集体走强，宁德时代+5.2%</li><li>房地产板块回调，万科跌3.1%</li></ul>
+  <h2>重要资讯</h2>
+  <ul><li>央行：5月LPR大概率下调<strong>10个基点</strong></li><li>美联储会议纪要：年内降息预期升温</li><li>比特币突破<strong>10万美元</strong>，24h涨幅8.3%</li></ul>
+  <div class="co co-w"><span>⚠️</span><span>以上信息仅供参考，不构成投资建议</span></div>
+
+</div></div>
+
+<!-- PV 11: Book Notes -->
+<div class="phone-content" id="pv11"><div class="pv">
+  <span class="pv-source" style="background:rgba(245,166,35,.08);color:#f5a623">📖 读书笔记</span>
+  <div class="pv-title">《纳瓦尔宝典》读书笔记</div>
+  <div class="pv-meta">2026-04-15 · 阅读进度 68%</div>
+  <h2>核心观点</h2>
+  <ul><li><strong>财富</strong>：用杠杆（代码、媒体、资本）创造被动收入</li><li><strong>幸福</strong>：幸福是一种技能，可以通过训练获得</li><li><strong>决策</strong>：长期主义者在短期内看起来像疯子</li></ul>
+  <h2>精彩摘录</h2>
+  <blockquote>"如果你不能决定，答案就是否定。"</blockquote>
+  <blockquote>"给自己设定一个很高的时薪，然后按照这个标准做决策。"</blockquote>
+  <h2>我的思考</h2>
+  <p>纳瓦尔关于"特定知识"的定义很有启发——它是你通过追随自己的好奇心和热情而积累的知识，无法被培训，只能被发现。</p>
+  <h2>行动清单</h2>
+  <div class="tc"><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">梳理自己的"特定知识"是什么</div></div></div><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">重新评估时间分配，减少低杠杆工作</div></div></div></div>
+
+</div></div>
+
+<!-- PV 12: Podcast Notes -->
+<div class="phone-content" id="pv12"><div class="pv">
+  <span class="pv-source" style="background:rgba(175,82,222,.08);color:#af52de">🎧 播客笔记</span>
+  <div class="pv-title">硬地骇客 EP128</div>
+  <div class="pv-meta">2026-04-18 · 时长 1:23:45</div>
+  <h2>节目信息</h2>
+  <ul><li><strong>节目</strong>：硬地骇客</li><li><strong>嘉宾</strong>：张鑫旭（CSS专家）</li><li><strong>主题</strong>：独立开发者如何做到年入百万</li></ul>
+  <h2>核心观点</h2>
+  <h3>1. 选品策略</h3>
+  <ul><li>做<strong>工具类产品</strong>，不做内容类</li><li>找到一个<strong>足够小但付费意愿强</strong>的市场</li><li>先验证需求再写代码</li></ul>
+  <h3>2. 增长方法</h3>
+  <ul><li>SEO是独立开发者最好的获客渠道</li><li>写技术博客建立个人品牌</li><li>口碑传播 > 付费投放</li></ul>
+  <h2>时间戳</h2>
+  <div class="sc"><div class="si"><span>▶️</span><span>嘉宾背景介绍</span><span class="si-t">05:30</span></div><div class="si"><span>▶️</span><span>选品方法论</span><span class="si-t">18:20</span></div><div class="si"><span>▶️</span><span>技术栈选择</span><span class="si-t">42:15</span></div><div class="si"><span>▶️</span><span>变现策略</span><span class="si-t">1:05:00</span></div></div>
+
+</div></div>
+
+<!-- PV 13: Travel Guide -->
+<div class="phone-content" id="pv13"><div class="pv">
+  <span class="pv-source" style="background:rgba(52,199,89,.08);color:#34c759">✈️ 旅行攻略</span>
+  <div class="pv-title">五一京都3日攻略</div>
+  <div class="pv-meta">2026-04-20 · 来自MiClaw</div>
+  <h2>行程概览</h2>
+  <table><tr><th>日期</th><th>上午</th><th>下午</th><th>晚上</th></tr><tr><td>Day1</td><td>伏见稻荷</td><td>清水寺</td><td>祇园花见小路</td></tr><tr><td>Day2</td><td>金阁寺</td><td>岚山竹林</td><td>锦市场</td></tr><tr><td>Day3</td><td>二条城</td><td>哲学之道</td><td>京都站购物</td></tr></table>
+  <h2>Day1 详细路线</h2>
+  <h3>🏛️ 伏见稻荷大社</h3>
+  <ul><li><strong>建议时间</strong>：2-3小时</li><li><strong>交通</strong>：JR奈良线 稻荷站</li><li><strong>Tips</strong>：早上7点前到，避开人流</li></ul>
+  <h3>🏛️ 清水寺</h3>
+  <ul><li><strong>门票</strong>：400日元</li><li><strong>交通</strong>：巴士206路 清水道站</li></ul>
+  <div class="co co-t"><span>💡</span><span>买一日巴士券（700日元），当天无限次乘坐</span></div>
+  <h2>预算</h2>
+  <table><tr><th>项目</th><th>预算</th></tr><tr><td>机票</td><td>¥3,200</td></tr><tr><td>住宿</td><td>¥1,800/3晚</td></tr><tr><td>交通</td><td>¥500</td></tr><tr><td>餐饮</td><td>¥1,500</td></tr></table>
+
+</div></div>
+
+<!-- PV 14: Email Summary -->
+<div class="phone-content" id="pv14"><div class="pv">
+  <span class="pv-source" style="background:rgba(52,120,246,.08);color:#3478f6">📧 邮件摘要</span>
+  <div class="pv-title">邮件摘要 · 4月21日</div>
+  <div class="pv-meta">2026-04-21 09:00 · 5封重要邮件</div>
+  <h2>需要回复</h2>
+  <div class="co co-r"><span>🔴</span><span><strong>[紧急] Q2预算审批</strong><br/>发件人：财务部 王芳<br/>需要在<strong>周三前</strong>确认笔记项目Q2预算</span></div>
+  <div class="co co-w"><span>🟡</span><span><strong>穿戴设备接口文档</strong><br/>发件人：IoT部 陈工<br/>已发送蓝牙录音传输接口文档，需确认</span></div>
+  <h2>仅通知</h2>
+  <ul><li>全员邮件：五一放假通知（5.1-5.5）</li><li>HR：4月考勤确认，截止4月25日</li><li>IT：VPN升级通知，周六凌晨维护</li></ul>
+  <h2>待办</h2>
+  <div class="tc"><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">回复Q2预算审批</div><div class="tc-m">📅 周三前 · 紧急</div></div></div><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">确认穿戴设备接口文档</div><div class="tc-m">📅 本周</div></div></div><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">提交4月考勤</div><div class="tc-m">📅 4月25日</div></div></div></div>
+
+</div></div>
+
+<!-- PV 15: All Elements -->
+<div class="phone-content" id="pv15"><div class="pv">
+  <span class="pv-source pv-s4">🔧 元素穷举</span>
+  <div class="pv-title" style="font-size:21px">笔记标题 (PageTitle)</div>
+  <div class="pv-meta">所有Markdown渲染元素对照</div>
+  <h2>H2 章节标题</h2>
+  <h3>H3 子标题</h3>
+  <p>正文段落，<strong>加粗</strong>，<em>斜体</em>，<del>删除线</del>，<mark>高亮</mark>，<a href="#" style="color:#3478f6;text-decoration:none">链接</a></p>
+  <ul><li>无序列表项1</li><li>无序列表项2<ul><li>嵌套列表项</li></ul></li></ul>
+  <ol><li>有序列表项1</li><li>有序列表项2</li></ol>
+  <div class="tc"><div class="ti"><div class="ck"></div><div class="tc-c"><div class="tc-t">未完成待办</div></div></div><div class="ti"><div class="ck done"></div><div class="tc-c"><div class="tc-t done">已完成待办</div></div></div></div>
+  <table><tr><th>列1</th><th>列2</th><th>列3</th></tr><tr><td>内容</td><td>内容</td><td>内容</td></tr></table>
+  <blockquote>引用块：用于标注来源或补充说明</blockquote>
+  <div class="co co-t"><span>💡</span><span>提示块（绿色）</span></div>
+  <div class="co co-w"><span>⚠️</span><span>警告块（黄色）</span></div>
+  <div class="co co-i"><span>ℹ️</span><span>信息块（蓝色）</span></div>
+  <p><code>行内代码</code></p>
+  <pre class="code-block">function example() {
+  return "hello";
+}</pre>
+  <hr style="border:none;border-top:1px solid #f0f0f0;margin:16px 0"/>
+
+</div></div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const scenes = [
+  {tab:'会议纪要', title:'产品评审会纪要'},
+  {tab:'通话摘要', title:'与张总通话 · 方案确认'},
+  {tab:'语音速记', title:'首页可以加个AI推荐区'},
+  {tab:'AI报告', title:'美伊战争情况报告'},
+  {tab:'新闻简报', title:'每日简报 · 4月21日'},
+  {tab:'周报', title:'本周工作周报'},
+  {tab:'网页摘要', title:'Claude 3.5发布'},
+  {tab:'截图整理', title:'聊天记录整理'},
+  {tab:'课堂笔记', title:'机器学习基础'},
+  {tab:'待办清单', title:'本周待办'},
+  {tab:'金融简报', title:'金融早报 · 4月21日'},
+  {tab:'读书笔记', title:'《纳瓦尔宝典》'},
+  {tab:'播客笔记', title:'硬地骇客 EP128'},
+  {tab:'旅行攻略', title:'五一京都3日攻略'},
+  {tab:'邮件摘要', title:'邮件摘要 · 4月21日'},
+  {tab:'元素穷举', title:'元素穷举'}
+];
+
+// Build tabs
+const tabsEl = document.getElementById('tabsContainer');
+scenes.forEach((s,i) => {
+  const d = document.createElement('div');
+  d.className = 'tab' + (i===0?' active':'');
+  d.textContent = s.tab;
+  d.onclick = () => show(i);
+  tabsEl.appendChild(d);
+});
+
+function show(i) {
+  document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', j===i));
+  document.querySelectorAll('.md-src').forEach((m,j) => m.classList.toggle('active', j===i));
+  document.querySelectorAll('.phone-content').forEach((p,j) => p.classList.toggle('active', j===i));
+  document.getElementById('navTitle').textContent = scenes[i].title;
+  document.querySelector('.left-scroll').scrollTop = 0;
+  document.querySelector('.phone-body').scrollTop = 0;
+}
+</script>
+</body>
+</html>

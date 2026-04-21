@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>笔记Markdown排版 · 优化前后对比</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f5f5;font-family:'Noto Sans SC','Inter',sans-serif;min-height:100vh}
+
+.header{background:#fff;border-bottom:1px solid #e5e5e5;padding:16px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.header h1{font-size:16px;font-weight:700;color:#1a1a1a}
+.header .badge{font-size:11px;background:#f0f0f0;color:#666;padding:3px 8px;border-radius:4px}
+.tabs{display:flex;gap:0;margin-left:auto}
+.tab{padding:8px 16px;font-size:13px;font-weight:500;color:#999;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+
+.container{display:flex;gap:0;max-width:1200px;margin:0 auto;min-height:calc(100vh - 56px)}
+
+/* Phone mockup */
+.phone-col{flex:1;padding:24px;display:flex;flex-direction:column;align-items:center}
+.phone-col h3{font-size:12px;color:#999;margin-bottom:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+
+.phone{width:375px;min-height:700px;background:#fff;border-radius:36px;border:6px solid #1a1a1a;box-shadow:0 16px 48px rgba(0,0,0,.12);overflow:hidden;position:relative}
+
+/* Phone status bar */
+.phone-sbar{display:flex;justify-content:space-between;align-items:center;padding:12px 24px 0;font-size:11px;font-weight:600;color:#1a1a1a}
+
+/* Note header */
+.note-header{padding:12px 20px 8px}
+.note-back{display:flex;align-items:center;gap:6px;font-size:13px;color:#666;margin-bottom:12px}
+.note-meta{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.note-source{font-size:10px;font-weight:500;padding:2px 8px;border-radius:4px;background:rgba(52,120,246,.08);color:#3478f6}
+.note-time{font-size:11px;color:#999}
+
+/* Note content - BAD (before) */
+.note-bad{padding:0 20px 24px;font-size:14px;line-height:1.6;color:#333}
+.note-bad p{margin-bottom:6px}
+.note-bad .wall{font-size:13px;line-height:1.5;color:#444}
+
+/* Note content - GOOD (after) */
+.note-good{padding:0 20px 24px}
+.note-good h2{font-size:17px;font-weight:700;color:#1a1a1a;margin-top:20px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #f0f0f0}
+.note-good h3{font-size:15px;font-weight:600;color:#1a1a1a;margin-top:16px;margin-bottom:6px}
+.note-good p{font-size:14px;line-height:1.75;color:#444;margin-bottom:10px}
+.note-good ul{padding-left:18px;margin-bottom:12px}
+.note-good li{font-size:14px;line-height:1.7;color:#444;margin-bottom:4px;list-style-type:disc}
+.note-good li::marker{color:#ccc}
+.note-good strong{font-weight:600;color:#1a1a1a}
+.note-good .todo-card{background:#fafafa;border:1px solid #f0f0f0;border-radius:10px;padding:12px 14px;margin:10px 0}
+.note-good .todo-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:13px;color:#444;line-height:1.5}
+.note-good .todo-check{width:16px;height:16px;border:1.5px solid #ccc;border-radius:4px;flex-shrink:0;margin-top:2px}
+.note-good .todo-check.done{background:#34c759;border-color:#34c759}
+.note-good .todo-time{font-size:11px;color:#999;margin-left:auto;flex-shrink:0}
+.note-good .quote{border-left:3px solid #e0e0e0;padding:8px 12px;margin:10px 0;background:#fafafa;border-radius:0 6px 6px 0;font-size:13px;color:#666;line-height:1.6}
+.note-good .tag-row{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.note-good .tag{font-size:10px;color:#999;background:#f5f5f5;padding:3px 8px;border-radius:4px}
+
+/* Divider */
+.divider{width:1px;background:#e5e5e5;flex-shrink:0}
+
+/* Label */
+.label-bad{display:inline-block;font-size:10px;font-weight:600;color:#ff3b30;background:rgba(255,59,48,.08);padding:3px 10px;border-radius:6px;margin-bottom:8px}
+.label-good{display:inline-block;font-size:10px;font-weight:600;color:#34c759;background:rgba(52,199,89,.08);padding:3px 10px;border-radius:6px;margin-bottom:8px}
+.label-best{display:inline-block;font-size:10px;font-weight:600;color:#3478f6;background:rgba(52,120,246,.08);padding:3px 10px;border-radius:6px;margin-bottom:8px}
+
+/* Note content - DOC style (AI document) */
+.note-doc{padding:0 20px 24px}
+.note-doc .doc-title{font-size:19px;font-weight:700;color:#1a1a1a;margin-bottom:2px;line-height:1.3}
+.note-doc .doc-subtitle{font-size:11px;color:#999;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #f0f0f0}
+.note-doc h2{font-size:16px;font-weight:700;color:#1a1a1a;margin-top:20px;margin-bottom:8px;letter-spacing:-.01em}
+.note-doc h3{font-size:14px;font-weight:600;color:#333;margin-top:14px;margin-bottom:6px}
+.note-doc p{font-size:13px;line-height:1.75;color:#444;margin-bottom:8px}
+.note-doc ul{padding-left:16px;margin-bottom:8px}
+.note-doc li{font-size:13px;line-height:1.7;color:#444;margin-bottom:3px}
+.note-doc li::marker{color:#ccc}
+.note-doc strong{font-weight:600;color:#1a1a1a}
+.note-doc table{width:100%;border-collapse:collapse;margin:8px 0 12px;font-size:12px}
+.note-doc th{background:#f8f8f8;padding:8px 10px;text-align:left;font-weight:600;color:#333;border-bottom:1.5px solid #e0e0e0}
+.note-doc td{padding:7px 10px;border-bottom:1px solid #f0f0f0;color:#444}
+.note-doc blockquote{border-left:3px solid #3478f6;padding:8px 12px;margin:8px 0;background:rgba(52,120,246,.03);border-radius:0 6px 6px 0;font-size:12px;color:#555;line-height:1.6}
+.note-doc .doc-callout{display:flex;gap:8px;align-items:flex-start;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.12);border-radius:8px;padding:10px 12px;margin:8px 0;font-size:12px;color:#555;line-height:1.5}
+.note-doc .callout-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.note-doc .todo-card{background:#fafafa;border:1px solid #f0f0f0;border-radius:10px;padding:10px 12px;margin:8px 0}
+.note-doc .todo-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f5}
+.note-doc .todo-item:last-child{border:none}
+.note-doc .todo-check{width:16px;height:16px;border:1.5px solid #ccc;border-radius:4px;flex-shrink:0;margin-top:2px}
+.note-doc .todo-check.done{background:#34c759;border-color:#34c759}
+.note-doc .todo-content{flex:1}
+.note-doc .todo-text{font-size:13px;color:#333;line-height:1.4}
+.note-doc .todo-meta{font-size:10px;color:#999;margin-top:2px}
+.note-doc .doc-footer{display:flex;gap:6px;margin-top:16px;padding-top:12px;border-top:1px solid #f0f0f0;flex-wrap:wrap}
+.note-doc .tag{font-size:10px;color:#999;background:#f5f5f5;padding:3px 8px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>笔记Markdown排版</h1>
+  <span class="badge">优化前后对比</span>
+  <div class="tabs">
+    <div class="tab active">会议纪要</div>
+    <div class="tab">通话摘要</div>
+    <div class="tab">语音速记</div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- LEFT: Before -->
+<div class="phone-col">
+<span class="label-bad">❌ 优化前：一坨文字</span>
+<div class="phone">
+  <div class="phone-sbar"><span>11:24</span><span>86%</span></div>
+  <div class="note-header">
+    <div class="note-back">← 返回</div>
+    <div class="note-meta">
+      <span class="note-source">会议纪要</span>
+      <span class="note-time">今天 10:35 · 来自MiClaw</span>
+    </div>
+  </div>
+  <div class="note-bad">
+    <p style="font-size:18px;font-weight:700;margin-bottom:12px">产品评审会纪要 · 2026-04-13</p>
+    <div class="wall">
+      参会人：张三、李四、王五、赵六。会议讨论了三个议题。议题一：笔记首页改版方案。设计出了两版方案，A方案保留卡片流，B方案改成信息流。经过讨论，决定采用A方案，理由是用户已经习惯了卡片流的操作方式，改动成本太高。但需要在A方案基础上优化合集入口，改为横滑卡片释放纵向空间。议题二：AI推荐算法。目前AI推荐tab的点击率只有12%，远低于预期的30%。李四分析原因是推荐内容和用户最近编辑的笔记关联度不够。决定本周内出一版基于编辑时间+内容相似度的混合排序方案。议题三：录音转写准确率。内测用户反馈转写准确率大约85%，主要问题是专有名词识别错误。王五提出接入自定义词库的方案，预计两周内完成。待办：李四本周五前出AI推荐排序方案。王五两周内完成自定义词库接入。赵六下周一前完成A方案的合集入口设计稿。
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- RIGHT: After -->
+<div class="phone-col">
+<span class="label-good">✅ 优化后：结构清晰</span>
+<div class="phone">
+  <div class="phone-sbar"><span>11:24</span><span>86%</span></div>
+  <div class="note-header">
+    <div class="note-back">← 返回</div>
+    <div class="note-meta">
+      <span class="note-source">会议纪要</span>
+      <span class="note-time">今天 10:35 · 来自MiClaw</span>
+    </div>
+  </div>
+  <div class="note-good">
+    <p style="font-size:18px;font-weight:700;margin-bottom:4px">产品评审会纪要</p>
+    <p style="font-size:12px;color:#999;margin-bottom:0">2026-04-13 · 参会人：张三、李四、王五、赵六</p>
+
+    <h2>会议共识</h2>
+    <ul>
+      <li>首页采用<strong>A方案（卡片流）</strong>，合集入口改为横滑卡片释放纵向空间</li>
+      <li>AI推荐tab点击率<strong>12%</strong>，目标30%，本周出混合排序方案</li>
+      <li>录音转写准确率<strong>85%</strong>，接入自定义词库，两周内完成</li>
+    </ul>
+
+    <h2>议题详情</h2>
+
+    <h3>首页改版方案</h3>
+    <p>设计出了A/B两版方案。A方案保留卡片流，B方案改成信息流。决定采用A方案，用户已习惯卡片流，改动成本高。需在A方案基础上优化合集入口。</p>
+
+    <h3>AI推荐算法</h3>
+    <p>推荐内容和用户最近编辑的笔记关联度不够。<strong>李四</strong>本周内出一版基于编辑时间+内容相似度的混合排序方案。</p>
+
+    <h3>录音转写准确率</h3>
+    <p>主要问题是专有名词识别错误。<strong>王五</strong>提出接入自定义词库，预计两周内完成。</p>
+
+    <h2>待办事项</h2>
+    <div class="todo-card">
+      <div class="todo-item"><div class="todo-check"></div><div>李四：出AI推荐排序方案</div><div class="todo-time">周五前</div></div>
+      <div class="todo-item"><div class="todo-check"></div><div>王五：完成自定义词库接入</div><div class="todo-time">两周内</div></div>
+      <div class="todo-item"><div class="todo-check done"></div><div style="text-decoration:line-through;color:#999">赵六：完成A方案合集入口设计稿</div><div class="todo-time">下周一</div></div>
+    </div>
+
+    <div class="tag-row">
+      <span class="tag">产品设计</span>
+      <span class="tag">首页改版</span>
+      <span class="tag">3条待办</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- RIGHT 2: AI Document Style -->
+<div class="phone-col">
+<span class="label-best">🔷 方案C：AI文档风格</span>
+<div class="phone">
+  <div class="phone-sbar"><span>11:24</span><span>86%</span></div>
+  <div class="note-header">
+    <div class="note-back">← 返回</div>
+    <div class="note-meta">
+      <span class="note-source">会议纪要</span>
+      <span class="note-time">今天 10:35 · 来自MiClaw</span>
+    </div>
+  </div>
+  <div class="note-doc">
+    <p class="doc-title">产品评审会纪要</p>
+    <p class="doc-subtitle">2026-04-13 · 参会人：张三、李四、王五、赵六</p>
+
+    <h2>概述</h2>
+    <p>本次评审会讨论了三个议题，围绕首页改版、AI推荐算法和录音转写准确率展开。以下是关键结论和后续行动项。</p>
+
+    <h2>关键决策</h2>
+    <table>
+      <tr><th>议题</th><th>决策</th><th>负责人</th></tr>
+      <tr><td>首页改版</td><td>采用A方案（卡片流），优化合集入口</td><td>赵六</td></tr>
+      <tr><td>AI推荐</td><td>出混合排序方案，目标点击率30%</td><td>李四</td></tr>
+      <tr><td>录音转写</td><td>接入自定义词库，提升专有名词识别</td><td>王五</td></tr>
+    </table>
+
+    <h2>议题详情</h2>
+
+    <h3>1. 首页改版方案</h3>
+    <p>设计提供了两版方案：</p>
+    <ul>
+      <li><strong>A方案</strong>：保留卡片流，用户已习惯</li>
+      <li><strong>B方案</strong>：改为信息流，改动成本高</li>
+    </ul>
+    <div class="doc-callout">
+      <span class="callout-icon">💡</span>
+      <span>最终决定采用A方案，在此基础上将合集入口改为横滑卡片，释放纵向空间。</span>
+    </div>
+
+    <h3>2. AI推荐算法</h3>
+    <p>当前点击率 <strong>12%</strong>，距目标 <strong>30%</strong> 差距较大。原因是推荐内容与用户最近编辑的笔记关联度不够。</p>
+    <blockquote>方案：基于编辑时间 + 内容相似度的混合排序，本周内出方案。</blockquote>
+
+    <h3>3. 录音转写准确率</h3>
+    <p>内测反馈准确率约 <strong>85%</strong>，主要问题是专有名词识别错误。计划接入自定义词库。</p>
+
+    <h2>待办事项</h2>
+    <div class="todo-card">
+      <div class="todo-item"><div class="todo-check"></div><div class="todo-content"><div class="todo-text">李四：出AI推荐排序方案</div><div class="todo-meta">📅 本周五前</div></div></div>
+      <div class="todo-item"><div class="todo-check"></div><div class="todo-content"><div class="todo-text">王五：完成自定义词库接入</div><div class="todo-meta">📅 两周内</div></div></div>
+      <div class="todo-item"><div class="todo-check done"></div><div class="todo-content"><div class="todo-text" style="text-decoration:line-through;color:#999">赵六：完成合集入口设计稿</div><div class="todo-meta" style="color:#bbb">📅 下周一 · 已完成</div></div></div>
+    </div>
+
+    <div class="doc-footer">
+      <span class="tag">产品设计</span>
+      <span class="tag">首页改版</span>
+      <span class="tag">AI推荐</span>
+    </div>
+  </div>
+</div>
+</div>
+
+</div>
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI笔记 Markdown排版规范 · 全场景对照</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f5f5;font-family:'Noto Sans SC','Inter',sans-serif;min-height:100vh}
+
+/* Header */
+.header{background:#fff;border-bottom:1px solid #e5e5e5;padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.header h1{font-size:15px;font-weight:700;color:#1a1a1a}
+.header .ver{font-size:11px;color:#999}
+.tabs{display:flex;gap:0;margin-left:auto}
+.tab{padding:7px 14px;font-size:12px;font-weight:500;color:#999;cursor:pointer;border:1px solid #e5e5e5;background:#fff;transition:all .15s}
+.tab:first-child{border-radius:6px 0 0 6px}
+.tab:last-child{border-radius:0 6px 6px 0}
+.tab.active{background:#f5a623;color:#fff;border-color:#f5a623}
+
+/* Main layout */
+.main{display:flex;min-height:calc(100vh - 50px)}
+.col-md{flex:1;border-right:1px solid #e5e5e5;overflow-y:auto;background:#1e1e1e}
+.col-preview{flex:1;overflow-y:auto;background:#fff}
+.col-label{font-size:10px;color:#999;padding:8px 16px;background:#f8f8f8;border-bottom:1px solid #eee;font-weight:600;letter-spacing:1px;text-transform:uppercase;position:sticky;top:0;z-index:5}
+.col-label-dark{background:#2d2d2d;color:#666;border-bottom:1px solid #333}
+
+/* Markdown source */
+.md-src{padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;color:#d4d4d4;white-space:pre-wrap;word-break:break-all}
+.md-src .comment{color:#6a9955}
+.md-src .heading{color:#569cd6;font-weight:700}
+.md-src .bold{color:#ce9178}
+.md-src .list{color:#d7ba7d}
+.md-src .link{color:#4ec9b0}
+.md-src .table{color:#9cdcfe}
+.md-src .divider{color:#666;display:block;margin:8px 0}
+
+/* Preview styles */
+.preview{padding:20px 24px 40px}
+
+/* Note title area */
+.p-source{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:4px;margin-bottom:8px}
+.p-source-meeting{background:rgba(52,120,246,.08);color:#3478f6}
+.p-source-call{background:rgba(52,199,89,.08);color:#34c759}
+.p-source-voice{background:rgba(245,166,35,.08);color:#f5a623}
+.p-title{font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:4px;line-height:1.3}
+.p-meta{font-size:11px;color:#999;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #f0f0f0}
+
+/* Typography */
+.preview h2{font-size:17px;font-weight:700;color:#1a1a1a;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid #f0f0f0}
+.preview h3{font-size:15px;font-weight:600;color:#1a1a1a;margin:18px 0 8px}
+.preview p{font-size:14px;line-height:1.75;color:#444;margin-bottom:10px}
+.preview strong{font-weight:600;color:#1a1a1a}
+.preview em{font-style:italic;color:#666}
+.preview ul,.preview ol{padding-left:20px;margin-bottom:12px}
+.preview li{font-size:14px;line-height:1.7;color:#444;margin-bottom:4px}
+.preview li::marker{color:#ccc}
+
+/* Table */
+.preview table{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:13px}
+.preview th{background:#f8f8f8;padding:9px 12px;text-align:left;font-weight:600;color:#333;border-bottom:2px solid #e0e0e0}
+.preview td{padding:8px 12px;border-bottom:1px solid #f0f0f0;color:#444}
+.preview tr:last-child td{border:none}
+
+/* Blockquote */
+.preview blockquote{border-left:3px solid #e0e0e0;padding:10px 14px;margin:10px 0;background:#fafafa;border-radius:0 8px 8px 0;font-size:13px;color:#666;line-height:1.6}
+
+/* Callout */
+.callout{display:flex;gap:8px;align-items:flex-start;border-radius:10px;padding:12px 14px;margin:10px 0;font-size:13px;line-height:1.6}
+.callout-info{background:rgba(52,120,246,.04);border:1px solid rgba(52,120,246,.1);color:#444}
+.callout-warn{background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.1);color:#444}
+.callout-tip{background:rgba(52,199,89,.04);border:1px solid rgba(52,199,89,.1);color:#444}
+.callout-icon{font-size:15px;flex-shrink:0}
+
+/* Todo card */
+.todo-card{background:#fafafa;border:1px solid #f0f0f0;border-radius:12px;padding:12px 14px;margin:10px 0}
+.todo-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f5f5f5}
+.todo-item:last-child{border:none}
+.todo-check{width:18px;height:18px;border:1.5px solid #d0d0d0;border-radius:5px;flex-shrink:0;margin-top:1px}
+.todo-check.done{background:#34c759;border-color:#34c759}
+.todo-content{flex:1}
+.todo-text{font-size:13px;color:#333;line-height:1.4}
+.todo-text.done{text-decoration:line-through;color:#bbb}
+.todo-time{font-size:10px;color:#999;margin-top:2px}
+
+/* Schedule card */
+.schedule-card{background:rgba(52,120,246,.03);border:1px solid rgba(52,120,246,.08);border-radius:12px;padding:12px 14px;margin:10px 0}
+.schedule-item{display:flex;align-items:center;gap:10px;padding:6px 0}
+.schedule-icon{font-size:14px}
+.schedule-text{font-size:13px;color:#333;flex:1}
+.schedule-time{font-size:11px;color:#3478f6;font-weight:500}
+
+/* Tags */
+.tag-row{display:flex;gap:6px;margin-top:16px;padding-top:12px;border-top:1px solid #f0f0f0;flex-wrap:wrap}
+.tag{font-size:10px;color:#999;background:#f5f5f5;padding:3px 8px;border-radius:4px}
+
+/* Section divider in markdown */
+.scene-divider{padding:12px 16px;background:#2d2d2d;color:#f5a623;font-size:12px;font-weight:600;border-top:1px solid #444;border-bottom:1px solid #444;position:sticky;top:28px;z-index:4}
+.scene-divider-light{padding:12px 24px;background:#fff8e6;color:#c88a1a;font-size:12px;font-weight:600;border-top:1px solid #f0e0b0;border-bottom:1px solid #f0e0b0;position:sticky;top:28px;z-index:4}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>AI笔记 Markdown排版规范</h1>
+  <span class="ver">v1.0 · 全场景对照</span>
+  <div class="tabs">
+    <div class="tab active">会议纪要</div>
+    <div class="tab">通话摘要</div>
+    <div class="tab">语音速记</div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- LEFT: Markdown Source -->
+<div class="col-md">
+<div class="col-label col-label-dark">Markdown 源码</div>
+
+<!-- Scene 1: Meeting Notes -->
+<div class="scene-divider">📋 场景一：会议纪要</div>
+<pre class="md-src"><span class="comment"><!-- 来源标识：会议纪要 --></span>
+<span class="comment"><!-- 元信息：日期+参会人 --></span>
+
+<span class="heading"># 产品评审会纪要</span>
+2026-04-13 · 参会人：张三、李四、王五、赵六
+
+<span class="heading">## 会议共识</span>
+
+<span class="list">-</span> 首页采用<span class="bold">**A方案（卡片流）**</span>，合集入口改为横滑卡片
+<span class="list">-</span> AI推荐tab点击率<span class="bold">**12%**</span>，目标30%，本周出方案
+<span class="list">-</span> 录音转写准确率<span class="bold">**85%**</span>，接入自定义词库
+
+<span class="heading">## 关键决策</span>
+
+<span class="table">| 议题 | 决策 | 负责人 |</span>
+<span class="table">|------|------|--------|</span>
+<span class="table">| 首页改版 | 采用A方案，优化合集入口 | 赵六 |</span>
+<span class="table">| AI推荐 | 出混合排序方案 | 李四 |</span>
+<span class="table">| 录音转写 | 接入自定义词库 | 王五 |</span>
+
+<span class="heading">## 议题详情</span>
+
+<span class="heading">### 1. 首页改版方案</span>
+
+设计提供了两版方案：
+
+<span class="list">-</span> <span class="bold">**A方案**</span>：保留卡片流，用户已习惯
+<span class="list">-</span> <span class="bold">**B方案**</span>：改为信息流，改动成本高
+
+<span class="comment">&gt; 💡 最终决定采用A方案，合集入口改为横滑卡片。</span>
+
+<span class="heading">### 2. AI推荐算法</span>
+
+当前点击率<span class="bold">**12%**</span>，目标<span class="bold">**30%**</span>。
+
+<span class="comment">&gt; 方案：编辑时间+内容相似度混合排序</span>
+
+<span class="heading">### 3. 录音转写准确率</span>
+
+准确率约<span class="bold">**85%**</span>，专有名词识别错误。
+
+<span class="heading">## 待办事项</span>
+
+<span class="list">- [ ]</span> 李四：出AI推荐排序方案 📅 周五前
+<span class="list">- [ ]</span> 王五：完成自定义词库接入 📅 两周内
+<span class="list">- [x]</span> 赵六：完成合集入口设计稿 📅 下周一
+
+<span class="heading">## 日程</span>
+
+<span class="list">-</span> 📅 下周二 线下评审会
+<span class="divider">---</span>
+<span class="comment">#产品设计 #首页改版 #AI推荐</span>
+</pre>
+
+<!-- Scene 2: Call Summary -->
+<div class="scene-divider">📞 场景二：通话摘要</div>
+<pre class="md-src"><span class="comment"><!-- 来源标识：通话摘要 --></span>
+<span class="comment"><!-- 元信息：联系人+通话时长 --></span>
+
+<span class="heading"># 与张总通话 · 方案确认</span>
+2026-04-12 17:22 · 通话 8分32秒
+
+<span class="heading">## 核心结论</span>
+
+张总<span class="bold">**确认了首页改版方向**</span>，要求<span class="bold">**周五前**</span>提交完整方案。
+
+<span class="heading">## 通话要点</span>
+
+<span class="list">1.</span> 张总对A方案整体认可，希望看到<span class="bold">**数据支撑**</span>
+<span class="list">2.</span> AI推荐需要和用户最近编辑的笔记<span class="bold">**强关联**</span>
+<span class="list">3.</span> <span class="bold">**下周二**</span>安排一次线下评审
+
+<span class="heading">## 待跟进</span>
+
+<span class="list">- [ ]</span> 周五前发送完整首页改版方案给张总 📅 周五
+<span class="list">- [ ]</span> 准备AI推荐的数据支撑材料
+
+<span class="comment">&gt; 💡 张总特别强调了数据支撑的重要性</span>
+<span class="divider">---</span>
+<span class="comment">#张总 #首页改版 #方案确认</span>
+</pre>
+
+<!-- Scene 3: Voice Memo -->
+<div class="scene-divider">🎙️ 场景三：语音速记</div>
+<pre class="md-src"><span class="comment"><!-- 来源标识：语音速记 --></span>
+<span class="comment"><!-- 元信息：录音时长 --></span>
+
+<span class="heading"># 首页可以加个AI推荐区</span>
+2026-04-12 12:30 · 语音速记 · 0:42
+
+走路时想到的，首页除了时间线还可以有一个
+AI推荐区，根据用户最近的笔记内容推荐相关
+的历史笔记。
+
+比如用户刚写了一篇会议纪要，推荐区可以展
+示上次同主题的纪要。
+
+<span class="heading">## 关键想法</span>
+
+<span class="list">-</span> 首页增加<span class="bold">**AI推荐区**</span>
+<span class="list">-</span> 基于<span class="bold">**最近编辑内容**</span>推荐历史笔记
+<span class="list">-</span> 推荐区展示<span class="bold">**同主题/同项目**</span>的关联笔记
+
+<span class="heading">## 待办</span>
+
+<span class="list">- [ ]</span> 和设计讨论推荐区的位置和样式
+<span class="divider">---</span>
+<span class="comment">#灵感 #产品设计 #首页改版</span>
+</pre>
+
+<!-- Scene 4: All Markdown Elements -->
+<div class="scene-divider">🔧 所有Markdown元素穷举</div>
+<pre class="md-src"><span class="heading"># H1 笔记标题（PageTitle）</span>
+<span class="heading">## H2 章节标题</span>
+<span class="heading">### H3 子标题</span>
+
+正文段落，<span class="bold">**加粗**</span>，*斜体*，~~删除线~~，
+==高亮==，<span class="link">[链接](url)</span>
+
+<span class="list">-</span> 无序列表项1
+<span class="list">-</span> 无序列表项2
+  <span class="list">-</span> 嵌套列表项
+
+<span class="list">1.</span> 有序列表项1
+<span class="list">2.</span> 有序列表项2
+
+<span class="list">- [ ]</span> 未完成待办
+<span class="list">- [x]</span> 已完成待办
+
+<span class="table">| 列1 | 列2 | 列3 |</span>
+<span class="table">|-----|-----|-----|</span>
+<span class="table">| 内容 | 内容 | 内容 |</span>
+
+<span class="comment">&gt; 引用块：用于标注来源或补充说明</span>
+
+<span class="comment">&gt; 💡 提示块：用于标注关键结论</span>
+<span class="comment">&gt; ⚠️ 警告块：用于标注注意事项</span>
+<span class="comment">&gt; ✅ 成功块：用于标注已完成事项</span>
+
+`行内代码`
+
+```
+代码块
+```
+<span class="divider">---</span>
+<span class="comment">#标签1 #标签2 #标签3</span>
+</pre>
+</div>
+
+<!-- RIGHT: Preview -->
+<div class="col-preview">
+<div class="col-label">渲染预览</div>
+
+<!-- Scene 1: Meeting Notes Preview -->
+<div class="scene-divider-light">📋 场景一：会议纪要</div>
+<div class="preview">
+  <span class="p-source p-source-meeting">📋 会议纪要</span>
+  <div class="p-title">产品评审会纪要</div>
+  <div class="p-meta">2026-04-13 · 参会人：张三、李四、王五、赵六</div>
+
+  <h2>会议共识</h2>
+  <ul>
+    <li>首页采用<strong>A方案（卡片流）</strong>，合集入口改为横滑卡片</li>
+    <li>AI推荐tab点击率<strong>12%</strong>，目标30%，本周出方案</li>
+    <li>录音转写准确率<strong>85%</strong>，接入自定义词库</li>
+  </ul>
+
+  <h2>关键决策</h2>
+  <table>
+    <tr><th>议题</th><th>决策</th><th>负责人</th></tr>
+    <tr><td>首页改版</td><td>采用A方案，优化合集入口</td><td>赵六</td></tr>
+    <tr><td>AI推荐</td><td>出混合排序方案</td><td>李四</td></tr>
+    <tr><td>录音转写</td><td>接入自定义词库</td><td>王五</td></tr>
+  </table>
+
+  <h2>议题详情</h2>
+
+  <h3>1. 首页改版方案</h3>
+  <p>设计提供了两版方案：</p>
+  <ul>
+    <li><strong>A方案</strong>：保留卡片流，用户已习惯</li>
+    <li><strong>B方案</strong>：改为信息流，改动成本高</li>
+  </ul>
+  <div class="callout callout-tip">
+    <span class="callout-icon">💡</span>
+    <span>最终决定采用A方案，合集入口改为横滑卡片。</span>
+  </div>
+
+  <h3>2. AI推荐算法</h3>
+  <p>当前点击率<strong>12%</strong>，目标<strong>30%</strong>。</p>
+  <blockquote>方案：编辑时间+内容相似度混合排序</blockquote>
+
+  <h3>3. 录音转写准确率</h3>
+  <p>准确率约<strong>85%</strong>，专有名词识别错误。</p>
+
+  <h2>待办事项</h2>
+  <div class="todo-card">
+    <div class="todo-item"><div class="todo-check"></div><div class="todo-content"><div class="todo-text">李四：出AI推荐排序方案</div><div class="todo-time">📅 周五前</div></div></div>
+    <div class="todo-item"><div class="todo-check"></div><div class="todo-content"><div class="todo-text">王五：完成自定义词库接入</div><div class="todo-time">📅 两周内</div></div></div>
+    <div class="todo-item"><div class="todo-check done"></div><div class="todo-content"><div class="todo-text done">赵六：完成合集入口设计稿</div><div class="todo-time">📅 下周一 · 已完成</div></div></div>
+  </div>
+
+  <h2>日程</h2>
+  <div class="schedule-card">
+    <div class="schedule-item"><span class="schedule-icon">📅</span><span class="schedule-text">线下评审会</span><span class="schedule-time">下周二</span></div>
+  </div>
+
+  <div class="tag-row">
+    <span class="tag">#产品设计</span>
+    <span class="tag">#首页改版</span>
+    <span class="tag">#AI推荐</span>
+  </div>
+</div>
+
+<!-- Scene 2: Call Summary Preview -->
+<div class="scene-divider-light">📞 场景二：通话摘要</div>
+<div class="preview">
+  <span class="p-source p-source-call">📞 通话摘要</span>
+  <div class="p-title">与张总通话 · 方案确认</div>
+  <div class="p-meta">2026-04-12 17:22 · 通话 8分32秒</div>
+
+  <h2>核心结论</h2>
+  <p>张总<strong>确认了首页改版方向</strong>，要求<strong>周五前</strong>提交完整方案。</p>
+
+  <h2>通话要点</h2>
+  <ol>
+    <li>张总对A方案整体认可，希望看到<strong>数据支撑</strong></li>
+    <li>AI推荐需要和用户最近编辑的笔记<strong>强关联</strong></li>
+    <li><strong>下周二</strong>安排一次线下评审</li>
+  </ol>
+
+  <h2>待跟进</h2>
+  <div class="todo-card">
+    <div class="todo-item"><div class="todo-check"></div><div class="todo-content"><div class="todo-text">周五前发送完整首页改版方案给张总</div><div class="todo-time">📅 周五</div></div></div>
+    <div class="todo-item"><div class="todo-check"></div><div class="todo-content"><div class="todo-text">准备AI推荐的数据支撑材料</div></div></div>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">💡</span>
+    <span>张总特别强调了数据支撑的重要性</span>
+  </div>
+
+  <div class="tag-row">
+    <span class="tag">#张总</span>
+    <span class="tag">#首页改版</span>
+    <span class="tag">#方案确认</span>
+  </div>
+</div>
+
+<!-- Scene 3: Voice Memo Preview -->
+<div class="scene-divider-light">🎙️ 场景三：语音速记</div>
+<div class="preview">
+  <span class="p-source p-source-voice">🎙️ 语音速记</span>
+  <div class="p-title">首页可以加个AI推荐区</div>
+  <div class="p-meta">2026-04-12 12:30 · 语音速记 · 0:42</div>
+
+  <p>走路时想到的，首页除了时间线还可以有一个AI推荐区，根据用户最近的笔记内容推荐相关的历史笔记。</p>
+  <p>比如用户刚写了一篇会议纪要，推荐区可以展示上次同主题的纪要。</p>
+
+  <h2>关键想法</h2>
+  <ul>
+    <li>首页增加<strong>AI推荐区</strong></li>
+    <li>基于<strong>最近编辑内容</strong>推荐历史笔记</li>
+    <li>推荐区展示<strong>同主题/同项目</strong>的关联笔记</li>
+  </ul>
+
+  <h2>待办</h2>
+  <div class="todo-card">
+    <div class="todo-item"><div class="todo-check"></div><div class="todo-content"><div class="todo-text">和设计讨论推荐区的位置和样式</div></div></div>
+  </div>
+
+  <div class="tag-row">
+    <span class="tag">#灵感</span>
+    <span class="tag">#产品设计</span>
+    <span class="tag">#首页改版</span>
+  </div>
+</div>
+
+<!-- Scene 4: All Elements Preview -->
+<div class="scene-divider-light">🔧 所有Markdown元素穷举</div>
+<div class="preview">
+  <div class="p-title" style="font-size:22px">笔记标题 (PageTitle)</div>
+
+  <h2>H2 章节标题</h2>
+  <h3>H3 子标题</h3>
+
+  <p>正文段落，<strong>加粗</strong>，<em>斜体</em>，<del>删除线</del>，<mark style="background:rgba(245,166,35,.15);padding:1px 4px;border-radius:2px">高亮</mark>，<a href="#" style="color:#3478f6;text-decoration:none">链接</a></p>
+
+  <ul>
+    <li>无序列表项1</li>
+    <li>无序列表项2
+      <ul><li>嵌套列表项</li></ul>
+    </li>
+  </ul>
+
+  <ol>
+    <li>有序列表项1</li>
+    <li>有序列表项2</li>
+  </ol>
+
+  <div class="todo-card">
+    <div class="todo-item"><div class="todo-check"></div><div class="todo-content"><div class="todo-text">未完成待办</div></div></div>
+    <div class="todo-item"><div class="todo-check done"></div><div class="todo-content"><div class="todo-text done">已完成待办</div></div></div>
+  </div>
+
+  <table>
+    <tr><th>列1</th><th>列2</th><th>列3</th></tr>
+    <tr><td>内容</td><td>内容</td><td>内容</td></tr>
+  </table>
+
+  <blockquote>引用块：用于标注来源或补充说明</blockquote>
+
+  <div class="callout callout-tip"><span class="callout-icon">💡</span><span>提示块：用于标注关键结论</span></div>
+  <div class="callout callout-warn"><span class="callout-icon">⚠️</span><span>警告块：用于标注注意事项</span></div>
+  <div class="callout callout-info"><span class="callout-icon">✅</span><span>成功块：用于标注已完成事项</span></div>
+
+  <p><code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#c0392b">行内代码</code></p>
+
+  <pre style="background:#1e1e1e;color:#d4d4d4;padding:14px 16px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;overflow-x:auto;margin:10px 0">代码块
+function example() {
+  return "hello";
+}</pre>
+
+  <hr style="border:none;border-top:1px solid #f0f0f0;margin:20px 0"/>
+
+  <div class="tag-row">
+    <span class="tag">#标签1</span>
+    <span class="tag">#标签2</span>
+    <span class="tag">#标签3</span>
+  </div>
+</div>
+
+</div>
+</div>
+
+</body>
+</html>
