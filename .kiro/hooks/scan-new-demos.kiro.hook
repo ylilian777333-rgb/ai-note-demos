@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "🔄 一键同步 Demo 到管理后台",
+  "description": "一键扫描所有常用目录，自动发现新 demo，更新管理后台 index.html，部署到 GitHub Pages。全自动，无需确认。",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "用户点击了「一键同步」按钮。请立即执行以下全自动流程，不要询问用户确认：\n\n1. 运行 `bash scripts/sync-demos.sh` 扫描所有常用目录（~/Downloads、~/Desktop/飞书文档助手/MiClaw产品、~/演示效果demo、~/项目时间），找出新 HTML demo 文件并自动复制到 demos/ 目录\n\n2. 如果发现了新文件，对每个新文件：\n   - 读取文件内容，提取 <title> 和关键特征\n   - 智能判断分类（交互演示bl/产品定义am/严肃创作pu/完整版gn/Claw光线cy/项目管理rd）\n   - 在 index.html 的 DEMOS 数组末尾 ]; 之前添加新条目\n\n3. 同步部署：\n   - cp index.html /tmp/demo-hub/index.html\n   - 把新的 demo 文件也 cp 到 /tmp/demo-hub/demos/\n   - git -C /tmp/demo-hub add -A && git -C /tmp/demo-hub commit -m 'sync: add N new demos' && git -C /tmp/demo-hub push origin main\n\n4. 告知用户同步结果：新增了几个 demo，分别是什么，链接 https://ylilian777333-rgb.github.io/ai-notes-demo-hub/\n\n如果没有新文件，直接告知用户「已是最新，没有新 demo 需要同步」。"
+  }
+}

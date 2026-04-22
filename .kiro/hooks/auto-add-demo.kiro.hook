@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "自动识别新 Demo",
+  "description": "当工作区内创建了新的 HTML 文件时，自动识别并提示将其添加到 Demo 管理后台，包括提取标题、分类建议和自动部署。",
+  "version": "1",
+  "when": {
+    "type": "fileCreated",
+    "patterns": [
+      "**/*.html"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "一个新的 HTML 文件被创建了。请检查这个文件是否是一个 demo 页面（包含 title 标签、有实际页面内容）。如果是，自动执行以下操作：1) 将文件复制到 demos/ 目录；2) 提取标题和修改时间；3) 根据内容智能判断分类（交互演示/产品定义/严肃创作/完整版/Claw光线/项目管理）；4) 更新 index.html 中的 DEMOS 数组，添加新条目；5) 更新统计数字；6) 同步到 /tmp/demo-hub 并 git push 部署。完成后告知用户新 demo 已自动添加到管理后台。"
+  }
+}
