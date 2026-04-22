@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>笔记导入生成流程 · 交互Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'SF Pro Display','PingFang SC','Helvetica Neue',sans-serif;background:#f5f5f7;-webkit-font-smoothing:antialiased}
+.page-header{padding:32px;background:#fff;border-bottom:1px solid #eee}
+.page-header h1{font-size:24px;font-weight:800}
+.page-header p{font-size:13px;color:#999;margin-top:4px}
+/* Tabs */
+.tab-bar{display:flex;gap:0;background:#fff;border-bottom:1px solid #eee;padding:0 32px;position:sticky;top:0;z-index:100}
+.tab{padding:14px 24px;font-size:14px;font-weight:600;color:#999;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+.tab:hover{color:#666}
+/* Section */
+.section{padding:32px;display:none}
+.section.active{display:block}
+.section-title{font-size:16px;font-weight:700;margin-bottom:6px;color:#1a1a1a}
+.section-desc{font-size:12px;color:#999;margin-bottom:20px}
+.phone-row{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:40px}
+.phone-wrap{flex-shrink:0}
+.phone-label{text-align:center;margin-top:10px;font-size:12px;font-weight:600;color:#666}
+/* Phone */
+.phone{width:375px;height:780px;background:#fff;border-radius:44px;border:8px solid #1a1a1a;overflow:hidden;position:relative;box-shadow:0 12px 40px rgba(0,0,0,.1)}
+.phone-inner{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+/* Status bar */
+.sbar{display:flex;justify-content:space-between;align-items:center;padding:12px 28px 0;font-size:13px;font-weight:600;color:#1a1a1a}
+.sbar-right{display:flex;align-items:center;gap:4px;font-size:11px}
+/* Nav */
+.nav{display:flex;align-items:center;padding:8px 20px;gap:12px}
+.nav-back{font-size:22px;color:#1a1a1a;cursor:pointer;width:32px}
+.nav-title{flex:1}
+.nav-actions{display:flex;gap:16px;font-size:18px;color:#666}
+/* Content area */
+.content-area{padding:0 20px 100px}
+.note-title{font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
+.note-meta{font-size:12px;color:#bbb;margin-bottom:16px}
+/* Source card */
+.source-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:#f8f8f8;margin-bottom:16px}
+.source-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.source-icon.pdf{background:#fee2e2;color:#ef4444}
+.source-icon.audio{background:#fef3c7;color:#f59e0b}
+.source-icon.link{background:#dbeafe;color:#3b82f6}
+.source-icon.img{background:#e0e7ff;color:#6366f1}
+.source-info{flex:1;min-width:0}
+.source-name{font-size:13px;font-weight:600;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.source-size{font-size:11px;color:#999;margin-top:1px}
+/* Link preview */
+.link-preview{border-radius:12px;background:#f8f8f8;padding:12px;margin-bottom:16px;display:flex;gap:12px}
+.link-preview-text{flex:1}
+.link-preview-title{font-size:13px;font-weight:600;color:#3b82f6;margin-bottom:2px}
+.link-preview-url{font-size:11px;color:#999;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.link-preview-desc{font-size:12px;color:#666;line-height:1.4}
+.link-preview-img{width:60px;height:60px;border-radius:8px;background:#dbeafe;flex-shrink:0}
+/* Image placeholder */
+.img-placeholder{width:100%;height:200px;border-radius:12px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:13px;margin-bottom:16px}
+/* Progress bar */
+.progress-area{display:flex;align-items:center;gap:10px;margin-top:8px}
+.progress-text{font-size:12px;color:#999;white-space:nowrap}
+.progress-bar{flex:1;height:4px;border-radius:2px;background:#eee;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#1a1a1a,#666);transition:width 1s ease}
+.progress-dot{width:8px;height:8px;border-radius:50%;background:#1a1a1a;flex-shrink:0;cursor:pointer}
+/* Skeleton */
+.skeleton{margin-top:16px}
+.sk-line{height:10px;border-radius:5px;background:linear-gradient(90deg,#f0f0f0,#e0e0e0,#f0f0f0);background-size:200% 100%;animation:shimmer 1.5s ease infinite;margin-bottom:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* Generated content */
+.gen-content{margin-top:0}
+.gen-content h3{font-size:15px;font-weight:700;color:#1a1a1a;margin:16px 0 6px}
+.gen-content p{font-size:13px;color:#444;line-height:1.7;margin-bottom:6px}
+.gen-content .highlight{background:rgba(255,200,0,.15);padding:1px 3px;border-radius:2px}
+/* Typing cursor */
+.cursor{display:inline-block;width:2px;height:14px;background:#1a1a1a;vertical-align:middle;animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+/* Bottom bar */
+.bottom-bar{position:absolute;bottom:0;left:0;right:0;padding:12px 20px 28px;background:linear-gradient(transparent,#fff 30%)}
+.bottom-bar-inner{display:flex;align-items:center;gap:10px}
+.gen-status{font-size:12px;color:#999;flex:1;display:flex;align-items:center;gap:6px}
+.gen-status .dot{width:6px;height:6px;border-radius:50%;background:#1a1a1a;animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+.stop-btn{width:28px;height:28px;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.stop-btn .sq{width:10px;height:10px;border-radius:2px;background:#fff}
+/* Complete state */
+.complete-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;background:#f0fdf4;color:#16a34a;font-size:11px;font-weight:600;margin-bottom:12px}
+/* Stop state */
+.stop-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;background:#f8f8f8;margin-top:16px}
+.stop-bar-text{font-size:12px;color:#999;flex:1}
+.stop-bar-actions{display:flex;gap:8px}
+.stop-bar-btn{font-size:12px;font-weight:500;padding:6px 14px;border-radius:8px;cursor:pointer;border:none}
+.stop-bar-btn.primary{background:#1a1a1a;color:#fff}
+.stop-bar-btn.secondary{background:#eee;color:#666}
+/* Stage label */
+.stage-label{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;margin-bottom:16px}
+.stage-label.loading{background:#fff7ed;color:#f59e0b}
+.stage-label.generating{background:#eff6ff;color:#3b82f6}
+.stage-label.done{background:#f0fdf4;color:#16a34a}
+.stage-label.stopped{background:#fef2f2;color:#ef4444}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>笔记导入生成流程</h1>
+  <p>四种导入类型 × 三个阶段 + 停止生成 · 完整交互Demo</p>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="showTab(0)">📄 文档</div>
+  <div class="tab" onclick="showTab(1)">🎵 音频</div>
+  <div class="tab" onclick="showTab(2)">🔗 网址</div>
+  <div class="tab" onclick="showTab(3)">🖼️ 图片</div>
+</div>
+
+<!-- ========== 文档 ========== -->
+<div class="section active" id="sec0">
+  <div class="section-title">文档导入流程</div>
+  <div class="section-desc">PDF/Word 文档 → 解析 → AI生成笔记</div>
+  <div class="phone-row">
+
+    <!-- 文档: 初始加载 -->
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">未命名标题</div>
+        <div class="note-meta">2026年4月22日 · 1页</div>
+        <div class="source-card">
+          <div class="source-icon pdf">📄</div>
+          <div class="source-info"><div class="source-name">大学物理课件.pdf</div><div class="source-size">正在解析文档... 12/30页</div></div>
+        </div>
+        <div class="skeleton">
+          <div class="sk-line" style="width:100%"></div>
+          <div class="sk-line" style="width:85%"></div>
+          <div class="sk-line" style="width:92%"></div>
+          <div class="sk-line" style="width:70%"></div>
+          <div class="sk-line" style="width:60%;opacity:.5"></div>
+          <div class="sk-line" style="width:40%;opacity:.3"></div>
+        </div>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <div class="gen-status"><span class="dot"></span>生成笔记中...</div>
+        <div class="stop-btn"><div class="sq"></div></div>
+      </div></div>
+    </div></div>
+    <div class="phone-label">① 初始加载</div></div>
+
+    <!-- 文档: 生成中 -->
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">未命名标题</div>
+        <div class="note-meta">2026年4月22日 · 1页</div>
+        <div class="source-card">
+          <div class="source-icon pdf">📄</div>
+          <div class="source-info"><div class="source-name">大学物理课件.pdf</div><div class="source-size">正在解析文档... 12/30页</div></div>
+        </div>
+        <div class="gen-content">
+          <p><strong>课程：</strong>大学物理（力学与热学）</p>
+          <h3>摘要</h3>
+          <p>课件涵盖了经典力学的基本原理与热力学定律。从牛顿运动定律出发，系统讲解了质点运动学、动量守恒、能量守恒等核心概念。</p>
+          <h3>第一章 · 质点运动学</h3>
+          <p>• 位移、速度、加速度的矢量描述</p>
+          <p>• 匀变速直线运动公式推导</p>
+          <p>• 抛体运动与圆周运动分析</p>
+          <h3>第二章 · 牛顿运动定律</h3>
+          <p>• 惯性参考系与非惯性参考系<span class="cursor"></span></p>
+        </div>
+        <div class="skeleton" style="margin-top:12px">
+          <div class="sk-line" style="width:90%"></div>
+          <div class="sk-line" style="width:75%"></div>
+          <div class="sk-line" style="width:50%;opacity:.4"></div>
+        </div>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <div class="gen-status"><span class="dot"></span>生成笔记中...</div>
+        <div class="stop-btn"><div class="sq"></div></div>
+      </div></div>
+    </div></div>
+    <div class="phone-label">② 生成中</div></div>
+
+    <!-- 文档: 生成完成 -->
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">大学物理课件笔记</div>
+        <div class="note-meta">2026年4月22日 · 3页</div>
+        <div class="source-card">
+          <div class="source-icon pdf">📄</div>
+          <div class="source-info"><div class="source-name">大学物理课件.pdf</div><div class="source-size">30页 · 2.4MB</div></div>
+        </div>
+        <div class="gen-content">
+          <p><strong>课程：</strong>大学物理（力学与热学）</p>
+          <h3>摘要</h3>
+          <p>课件涵盖了经典力学的基本原理与热力学定律。从牛顿运动定律出发，系统讲解了质点运动学、动量守恒、能量守恒等核心概念。</p>
+          <h3>第一章 · 质点运动学</h3>
+          <p>• 位移、速度、加速度的矢量描述</p>
+          <p>• 匀变速直线运动公式推导</p>
+          <p>• 抛体运动与圆周运动分析</p>
+          <h3>第二章 · 牛顿运动定律</h3>
+          <p>• 惯性参考系与非惯性参考系</p>
+          <p>• 牛顿第一、第二、第三定律</p>
+          <p>• 摩擦力与弹力的应用</p>
+          <h3>第三章 · 动量与能量</h3>
+          <p>• 动量定理与动量守恒定律</p>
+          <p>• 功与动能定理</p>
+          <p>• 势能与机械能守恒</p>
+          <h3>重点公式</h3>
+          <p>• F = ma（牛顿第二定律）</p>
+          <p>• p = mv（动量定义）</p>
+          <p>• E = ½mv²（动能公式）</p>
+        </div>
+        <div class="complete-badge" style="margin-top:16px">✓ 笔记已生成</div>
+      </div>
+    </div></div>
+    <div class="phone-label">③ 生成完成</div></div>
+
+  </div>
+</div>
+
+<!-- ========== 音频 ========== -->
+<div class="section" id="sec1">
+  <div class="section-title">音频导入流程</div>
+  <div class="section-desc">录音文件 → 转录 → AI生成笔记</div>
+  <div class="phone-row">
+
+    <!-- 音频: 初始加载 -->
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">未命名标题</div>
+        <div class="note-meta">2026年4月21日 10:49</div>
+        <div class="source-card">
+          <div class="source-icon audio">🎵</div>
+          <div class="source-info"><div class="source-name">产品评审会录音.m4a</div><div class="source-size">正在转录音频... 05:32/12:35</div></div>
+        </div>
+        <div class="progress-area" style="margin-bottom:16px">
+          <div class="progress-text">正在转录中...</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:44%"></div></div>
+        </div>
+        <div class="skeleton">
+          <div class="sk-line" style="width:100%"></div>
+          <div class="sk-line" style="width:88%"></div>
+          <div class="sk-line" style="width:95%"></div>
+          <div class="sk-line" style="width:72%"></div>
+          <div class="sk-line" style="width:55%;opacity:.5"></div>
+          <div class="sk-line" style="width:35%;opacity:.3"></div>
+        </div>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <div class="gen-status"><span class="dot"></span>生成笔记中...</div>
+        <div class="stop-btn"><div class="sq"></div></div>
+      </div></div>
+    </div></div>
+    <div class="phone-label">① 初始加载</div></div>
+
+    <!-- 音频: 生成中 -->
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">未命名标题</div>
+        <div class="note-meta">2026年4月21日 10:49</div>
+        <div class="source-card">
+          <div class="source-icon audio">🎵</div>
+          <div class="source-info"><div class="source-name">产品评审会录音.m4a</div><div class="source-size">12:35 · 已转录完成</div></div>
+        </div>
+        <div class="gen-content">
+          <h3>会议要点</h3>
+          <p><strong>参会人员：</strong>张三、李四、王五、赵六</p>
+          <h3>1. V2.0 核心功能优先级</h3>
+          <p>• 语音转写优化（P0）——准确率目标从85%提升到95%</p>
+          <p>• AI摘要增强（P0）——支持多轮对话式修改</p>
+          <p>• 多端同步（P1）——手机/平板/手表三端</p>
+          <h3>2. 里程碑规划</h3>
+          <p>• 4月底：语音转写2.0上线</p>
+          <p>• 5月中：AI摘要+编辑器升级<span class="cursor"></span></p>
+        </div>
+        <div class="skeleton" style="margin-top:12px">
+          <div class="sk-line" style="width:85%"></div>
+          <div class="sk-line" style="width:60%;opacity:.4"></div>
+        </div>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <div class="gen-status"><span class="dot"></span>生成笔记中...</div>
+        <div class="stop-btn"><div class="sq"></div></div>
+      </div></div>
+    </div></div>
+    <div class="phone-label">② 生成中</div></div>
+
+    <!-- 音频: 生成完成 -->
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">产品评审会纪要</div>
+        <div class="note-meta">2026年4月21日 10:49 · 会议纪要</div>
+        <div class="source-card">
+          <div class="source-icon audio">🎵</div>
+          <div class="source-info"><div class="source-name">产品评审会录音.m4a</div><div class="source-size">12:35 · 已转录完成</div></div>
+        </div>
+        <div class="gen-content">
+          <h3>会议要点</h3>
+          <p><strong>参会人员：</strong>张三、李四、王五、赵六</p>
+          <h3>1. V2.0 核心功能优先级</h3>
+          <p>• 语音转写优化（P0）——准确率目标从85%提升到95%</p>
+          <p>• AI摘要增强（P0）——支持多轮对话式修改</p>
+          <p>• 多端同步（P1）——手机/平板/手表三端</p>
+          <h3>2. 里程碑规划</h3>
+          <p>• 4月底：语音转写2.0上线</p>
+          <p>• 5月中：AI摘要+编辑器升级</p>
+          <p>• 6月初：多端同步Beta</p>
+          <h3>3. 待办事项</h3>
+          <p>☐ 整理需求文档 @李四 · 本周五前</p>
+          <p>☐ 设计稿评审 @王五 · 下周一</p>
+          <p>☑ 技术方案确认 @赵六 · 已完成</p>
+        </div>
+        <div class="complete-badge" style="margin-top:16px">✓ 笔记已生成</div>
+      </div>
+    </div></div>
+    <div class="phone-label">③ 生成完成</div></div>
+
+  </div>
+</div>
+
+<!-- ========== 网址 ========== -->
+<div class="section" id="sec2">
+  <div class="section-title">网址导入流程</div>
+  <div class="section-desc">URL链接 → 抓取网页 → AI生成笔记</div>
+  <div class="phone-row">
+
+    <!-- 网址: 初始加载 -->
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">未命名标题</div>
+        <div class="note-meta">2026年4月22日</div>
+        <div class="link-preview">
+          <div class="link-preview-text">
+            <div class="link-preview-title">Figma入门到精通MasterClass完全指南</div>
+            <div class="link-preview-url">https://sspai.com/post/figma-masterclass-guide...</div>
+            <div class="link-preview-desc">从零开始学习Figma设计工具，涵盖界面设计、原型制作、组件系统...</div>
+          </div>
+          <div class="link-preview-img" style="display:flex;align-items:center;justify-content:center;font-size:20px">🎨</div>
+        </div>
+        <div class="progress-area" style="margin-bottom:16px">
+          <div class="progress-text">正在解析网页...</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:30%"></div></div>
+        </div>
+        <div class="skeleton">
+          <div class="sk-line" style="width:100%"></div>
+          <div class="sk-line" style="width:90%"></div>
+          <div class="sk-line" style="width:80%"></div>
+          <div class="sk-line" style="width:65%;opacity:.5"></div>
+          <div class="sk-line" style="width:45%;opacity:.3"></div>
+        </div>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <div class="gen-status"><span class="dot"></span>生成笔记中...</div>
+        <div class="stop-btn"><div class="sq"></div></div>
+      </div></div>
+    </div></div>
+    <div class="phone-label">① 初始加载</div></div>
+
+    <!-- 网址: 生成中 -->
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">未命名标题</div>
+        <div class="note-meta">2026年4月22日</div>
+        <div class="link-preview">
+          <div class="link-preview-text">
+            <div class="link-preview-title">Figma入门到精通MasterClass完全指南</div>
+            <div class="link-preview-url">https://sspai.com/post/figma-masterclass-guide...</div>
+          </div>
+          <div class="link-preview-img" style="display:flex;align-items:center;justify-content:center;font-size:20px">🎨</div>
+        </div>
+        <div class="gen-content">
+          <h3>文章摘要</h3>
+          <p>本文是一篇Figma设计工具的完整学习指南，从基础操作到高级技巧，适合零基础到进阶用户。</p>
+          <h3>核心要点</h3>
+          <p>• <strong>界面布局</strong>：工具栏、图层面板、属性面板的功能详解</p>
+          <p>• <strong>组件系统</strong>：创建可复用组件，建立设计系统</p>
+          <p>• <strong>Auto Layout</strong>：自适应布局的核心概念与实践</p>
+          <p>• <strong>原型制作</strong>：交互动效与页面跳转设置<span class="cursor"></span></p>
+        </div>
+        <div class="skeleton" style="margin-top:12px">
+          <div class="sk-line" style="width:80%"></div>
+          <div class="sk-line" style="width:55%;opacity:.4"></div>
+        </div>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <div class="gen-status"><span class="dot"></span>生成笔记中...</div>
+        <div class="stop-btn"><div class="sq"></div></div>
+      </div></div>
+    </div></div>
+    <div class="phone-label">② 生成中</div></div>
+
+    <!-- 网址: 生成完成 -->
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">Figma完全指南笔记</div>
+        <div class="note-meta">2026年4月22日 · 来源：sspai.com</div>
+        <div class="link-preview">
+          <div class="link-preview-text">
+            <div class="link-preview-title">Figma入门到精通MasterClass完全指南</div>
+            <div class="link-preview-url">https://sspai.com/post/figma-masterclass-guide...</div>
+          </div>
+          <div class="link-preview-img" style="display:flex;align-items:center;justify-content:center;font-size:20px">🎨</div>
+        </div>
+        <div class="gen-content">
+          <h3>文章摘要</h3>
+          <p>本文是一篇Figma设计工具的完整学习指南，从基础操作到高级技巧，适合零基础到进阶用户。</p>
+          <h3>核心要点</h3>
+          <p>• <strong>界面布局</strong>：工具栏、图层面板、属性面板的功能详解</p>
+          <p>• <strong>组件系统</strong>：创建可复用组件，建立设计系统</p>
+          <p>• <strong>Auto Layout</strong>：自适应布局的核心概念与实践</p>
+          <p>• <strong>原型制作</strong>：交互动效与页面跳转设置</p>
+          <p>• <strong>协作功能</strong>：多人实时编辑与评论系统</p>
+          <h3>学习路径建议</h3>
+          <p>1. 先掌握基础操作（1-2天）</p>
+          <p>2. 学习组件和样式系统（3-5天）</p>
+          <p>3. 实战项目练习（1-2周）</p>
+        </div>
+        <div class="complete-badge" style="margin-top:16px">✓ 笔记已生成</div>
+      </div>
+    </div></div>
+    <div class="phone-label">③ 生成完成</div></div>
+
+  </div>
+</div>
+
+<!-- ========== 图片 ========== -->
+<div class="section" id="sec3">
+  <div class="section-title">图片导入流程</div>
+  <div class="section-desc">图片/截图 → OCR识别 → AI生成笔记</div>
+  <div class="phone-row">
+
+    <!-- 图片: 初始加载 -->
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">未命名标题</div>
+        <div class="note-meta">2026年4月22日</div>
+        <div class="img-placeholder">正在识别图片，生成笔记...</div>
+        <div class="skeleton">
+          <div class="sk-line" style="width:100%"></div>
+          <div class="sk-line" style="width:85%"></div>
+          <div class="sk-line" style="width:90%"></div>
+          <div class="sk-line" style="width:65%;opacity:.5"></div>
+          <div class="sk-line" style="width:40%;opacity:.3"></div>
+        </div>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <div class="gen-status"><span class="dot"></span>生成笔记中...</div>
+        <div class="stop-btn"><div class="sq"></div></div>
+      </div></div>
+    </div></div>
+    <div class="phone-label">① 初始加载</div></div>
+
+    <!-- 图片: 生成中 -->
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">镀锌(锌铝合金)层均匀性试验</div>
+        <div class="note-meta">2026年4月22日 · 图片识别</div>
+        <div class="img-placeholder" style="height:120px;font-size:11px;background:#f8f8f8">📷 原图预览区域</div>
+        <div class="gen-content">
+          <h3>文档信息</h3>
+          <p><strong>标题：</strong>大学物理实验报告</p>
+          <p><strong>类型：</strong>实验报告 · 材料科学</p>
+          <h3>实验目的</h3>
+          <p>测定镀锌（锌铝合金）层的均匀性，验证电镀工艺参数对镀层质量的影响。</p>
+          <h3>实验原理</h3>
+          <p>采用硫酸铜点滴法测定镀层厚度的均匀性。将硫酸铜溶液滴在镀层表面，记录变色时间，通过时间差异判断镀层均匀程度。</p>
+          <h3>实验步骤</h3>
+          <p>1. 准备试样：取5×5cm镀锌钢板</p>
+          <p>2. 配制硫酸铜溶液（浓度36g/L）<span class="cursor"></span></p>
+        </div>
+        <div class="skeleton" style="margin-top:12px">
+          <div class="sk-line" style="width:75%"></div>
+          <div class="sk-line" style="width:50%;opacity:.4"></div>
+        </div>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <div class="gen-status"><span class="dot"></span>生成笔记中...</div>
+        <div class="stop-btn"><div class="sq"></div></div>
+      </div></div>
+    </div></div>
+    <div class="phone-label">② 生成中</div></div>
+
+    <!-- 图片: 生成完成 -->
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">镀锌(锌铝合金)层均匀性试验</div>
+        <div class="note-meta">2026年4月22日 · 图片识别</div>
+        <div class="gen-content">
+          <h3>文档信息</h3>
+          <p><strong>标题：</strong>大学物理实验报告</p>
+          <p><strong>类型：</strong>实验报告 · 材料科学</p>
+          <h3>实验目的</h3>
+          <p>测定镀锌（锌铝合金）层的均匀性，验证电镀工艺参数对镀层质量的影响。</p>
+          <h3>实验原理</h3>
+          <p>采用硫酸铜点滴法测定镀层厚度的均匀性。将硫酸铜溶液滴在镀层表面，记录变色时间，通过时间差异判断镀层均匀程度。</p>
+          <h3>实验步骤</h3>
+          <p>1. 准备试样：取5×5cm镀锌钢板</p>
+          <p>2. 配制硫酸铜溶液（浓度36g/L）</p>
+          <p>3. 在试样表面均匀滴液，记录变色时间</p>
+          <p>4. 重复测量5次取平均值</p>
+          <h3>实验数据</h3>
+          <p>• 中心区域变色时间：42.3s</p>
+          <p>• 边缘区域变色时间：38.7s</p>
+          <p>• 均匀性指数：91.5%</p>
+          <h3>结论</h3>
+          <p>镀层均匀性良好，符合GB/T标准要求。边缘区域略薄于中心区域，建议优化电流分布。</p>
+        </div>
+        <div class="complete-badge" style="margin-top:16px">✓ 笔记已生成</div>
+      </div>
+    </div></div>
+    <div class="phone-label">③ 生成完成</div></div>
+
+  </div>
+
+  <!-- 停止生成状态 -->
+  <div class="section-title" style="margin-top:40px">停止生成状态</div>
+  <div class="section-desc">用户点击停止按钮后的状态，适用于所有导入类型</div>
+  <div class="phone-row">
+    <div class="phone-wrap"><div class="phone"><div class="phone-inner">
+      <div class="sbar"><span>2:56</span><span class="sbar-right">⚡ 📶</span></div>
+      <div class="nav"><span class="nav-back">‹</span><div class="nav-title"></div><div class="nav-actions"><span>↑</span><span>⋮</span></div></div>
+      <div class="content-area">
+        <div class="note-title">未命名标题</div>
+        <div class="note-meta">2026年4月22日 · 1页</div>
+        <div class="source-card">
+          <div class="source-icon pdf">📄</div>
+          <div class="source-info"><div class="source-name">大学物理课件.pdf</div><div class="source-size">30页 · 2.4MB</div></div>
+        </div>
+        <div class="gen-content" style="opacity:.6">
+          <h3>摘要</h3>
+          <p>课件涵盖了经典力学的基本原理与热力学定律...</p>
+          <h3>第一章 · 质点运动学</h3>
+          <p>• 位移、速度、加速度的矢量描述</p>
+        </div>
+        <div style="height:1px;background:#eee;margin:16px 0"></div>
+        <div style="text-align:center;padding:20px 0">
+          <div style="font-size:13px;color:#999;margin-bottom:12px">已停止生成</div>
+          <div style="display:flex;gap:10px;justify-content:center">
+            <button class="stop-bar-btn primary">✨ 重新生成</button>
+            <button class="stop-bar-btn secondary">保存当前内容</button>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <div class="phone-label">停止生成</div></div>
+  </div>
+</div>
+
+<script>
+function showTab(i){
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.section').forEach((s,j)=>s.classList.toggle('active',j===i));
+}
+</script>
+</body>
+</html>

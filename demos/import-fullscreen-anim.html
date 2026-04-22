@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>笔记AI生成 · Canvas动效Demo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans SC',-apple-system,sans-serif;background:#0a0a0a;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px;-webkit-font-smoothing:antialiased}
+h1{color:#fff;font-size:18px;font-weight:600;margin-bottom:4px;text-align:center}
+.desc{color:rgba(255,255,255,.35);font-size:11px;margin-bottom:20px;text-align:center}
+.controls{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;justify-content:center}
+.btn{padding:7px 18px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:11px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.8)}
+.btn.on{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.25)}
+
+/* Phone frame */
+.device{position:relative;width:393px;height:852px}
+.device-frame{position:absolute;inset:-12px;border-radius:60px;background:linear-gradient(145deg,#2a2a2a,#1a1a1a,#111);box-shadow:0 0 0 1px rgba(255,255,255,.06),0 40px 100px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05)}
+.device-screen{position:absolute;inset:0;border-radius:48px;overflow:hidden;background:#fff;z-index:1}
+.device-notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:126px;height:36px;background:#000;border-radius:20px;z-index:60}
+
+/* Screen content */
+.screen{position:absolute;inset:0;overflow:hidden}
+
+/* Status bar */
+.sbar{position:relative;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:16px 30px 0;height:54px}
+.sbar-time{font-size:16px;font-weight:600;color:#000;letter-spacing:-.5px}
+.sbar-r{display:flex;align-items:center;gap:4px}
+.sbar-r span{font-size:12px;font-weight:600;color:#000}
+
+/* Nav */
+.navbar{position:relative;z-index:50;display:flex;align-items:center;padding:2px 14px;height:44px}
+.nav-back{width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%}
+.nav-back:hover{background:rgba(0,0,0,.04)}
+.nav-sp{flex:1}
+.nav-ic{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+
+/* Page content */
+.page{position:relative;z-index:5;padding:0 20px;height:calc(100% - 98px - 80px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.page::-webkit-scrollbar{display:none}
+
+.title{font-size:22px;font-weight:700;color:#000;line-height:1.3;margin-bottom:4px;letter-spacing:-.4px}
+.meta{font-size:12px;color:#aaa;margin-bottom:16px;font-weight:400}
+
+/* Source card */
+.src{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;background:#f5f5f7;margin-bottom:18px}
+.src-ic{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:18px}
+.src-ic.aud{background:linear-gradient(135deg,#ff9f0a,#ff6723)}
+.src-nm{font-size:14px;font-weight:600;color:#000;letter-spacing:-.2px}
+.src-dt{font-size:11px;color:#8e8e93;margin-top:2px}
+
+/* Article */
+.art h3{font-size:15px;font-weight:700;color:#000;margin:18px 0 7px;letter-spacing:-.2px}
+.art p{font-size:13.5px;color:#3c3c43;line-height:1.75;margin-bottom:4px}
+.art strong{font-weight:600;color:#000}
+
+/* Skeleton */
+.skel{margin-top:18px}
+.sk{height:12px;border-radius:6px;margin-bottom:10px;background:linear-gradient(90deg,#f2f2f7 25%,#e5e5ea 50%,#f2f2f7 75%);background-size:200% 100%;animation:sk-sh 1.6s ease infinite}
+@keyframes sk-sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* Typing cursor */
+.tc{display:inline-block;width:2px;height:15px;background:#007aff;vertical-align:text-bottom;margin-left:1px;animation:tc-b .6s ease infinite}
+@keyframes tc-b{0%,100%{opacity:1}50%{opacity:0}}
+
+/* Bottom bar */
+.bbar{position:absolute;bottom:0;left:0;right:0;z-index:40;padding:0 20px 34px;background:linear-gradient(transparent,rgba(255,255,255,.95) 40%,#fff 70%)}
+.bbar-in{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:16px;background:#f5f5f7}
+.bbar-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#007aff,#5856d6);animation:bd-p 1.2s ease infinite}
+@keyframes bd-p{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1.05)}}
+.bbar-txt{flex:1;font-size:13px;color:#8e8e93}
+.bbar-stop{width:32px;height:32px;border-radius:50%;background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:transform .1s}
+.bbar-stop:active{transform:scale(.88)}
+.bbar-sq{width:10px;height:10px;border-radius:2.5px;background:#fff}
+
+/* Canvas overlay */
+#fxCanvas{position:absolute;inset:0;z-index:30;pointer-events:none;border-radius:48px}
+
+/* Toast */
+.toast{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%) scale(.85);z-index:70;background:rgba(255,255,255,.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:24px;padding:28px 36px;text-align:center;opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;box-shadow:0 12px 40px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04)}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.toast-chk{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#34c759,#30d158);margin:0 auto 14px;display:flex;align-items:center;justify-content:center}
+.toast-t{font-size:17px;font-weight:600;color:#000}
+.toast-s{font-size:12px;color:#8e8e93;margin-top:4px}
+
+/* Home indicator */
+.home-ind{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:rgba(0,0,0,.2);z-index:55}
+</style>
+</head>
+<body>
+
+<h1>笔记AI生成 · Canvas动效</h1>
+<p class="desc">点击切换阶段和动效风格 · Canvas绘制流光粒子</p>
+
+<div class="controls">
+  <button class="btn on" id="s0" onclick="goStage(0)">① 加载中</button>
+  <button class="btn" id="s1" onclick="goStage(1)">② 生成中</button>
+  <button class="btn" id="s2" onclick="goStage(2)">③ 完成</button>
+  <span style="width:1px;height:20px;background:rgba(255,255,255,.1);margin:0 2px"></span>
+  <button class="btn on" id="f0" onclick="goFx(0)">流光边框</button>
+  <button class="btn" id="f1" onclick="goFx(1)">粒子上浮</button>
+  <button class="btn" id="f2" onclick="goFx(2)">光斑漂移</button>
+  <button class="btn" id="f3" onclick="goFx(3)">扫光</button>
+</div>
+
+<div class="device">
+  <div class="device-frame"></div>
+  <div class="device-screen">
+    <div class="screen">
+      <div class="device-notch"></div>
+
+      <div class="sbar">
+        <span class="sbar-time">2:56</span>
+        <div class="sbar-r"><span>5G</span><span>🔋</span></div>
+      </div>
+
+      <div class="navbar">
+        <div class="nav-back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 19l-7-7 7-7" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="nav-sp"></div>
+        <div class="nav-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 4v12m0-12L8 8m4-4l4 4" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="nav-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="6" r="1.5" fill="#8e8e93"/><circle cx="12" cy="12" r="1.5" fill="#8e8e93"/><circle cx="12" cy="18" r="1.5" fill="#8e8e93"/></svg></div>
+      </div>
+
+      <div class="page" id="page">
+        <div class="title" id="tt">未命名标题</div>
+        <div class="meta" id="mt">2026年4月22日 · 1页</div>
+        <div class="src">
+          <div class="src-ic aud">🎵</div>
+          <div>
+            <div class="src-nm">产品评审会录音.m4a</div>
+            <div class="src-dt" id="sd">正在转录音频... 05:32/12:35</div>
+          </div>
+        </div>
+        <div class="art" id="art"></div>
+        <div class="skel" id="skel">
+          <div class="sk" style="width:100%"></div>
+          <div class="sk" style="width:88%"></div>
+          <div class="sk" style="width:94%"></div>
+          <div class="sk" style="width:72%"></div>
+          <div class="sk" style="width:55%;opacity:.6"></div>
+          <div class="sk" style="width:38%;opacity:.3"></div>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <canvas id="fxCanvas"></canvas>
+
+      <!-- Bottom bar -->
+      <div class="bbar" id="bbar">
+        <div class="bbar-in">
+          <div class="bbar-dot"></div>
+          <div class="bbar-txt" id="btxt">生成笔记中...</div>
+          <div class="bbar-stop" onclick="goStage(2)"><div class="bbar-sq"></div></div>
+        </div>
+      </div>
+
+      <!-- Toast -->
+      <div class="toast" id="toast">
+        <div class="toast-chk"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#fff"/></svg></div>
+        <div class="toast-t">笔记已生成</div>
+        <div class="toast-s">3 个章节 · 5 条待办</div>
+      </div>
+
+      <div class="home-ind"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ===== Canvas Setup =====
+const canvas = document.getElementById('fxCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, dpr;
+
+function resize() {
+  W = 393; H = 852;
+  dpr = window.devicePixelRatio || 1;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ===== State =====
+let stage = 0; // 0=loading, 1=generating, 2=complete
+let fxMode = 0; // 0=edge glow, 1=particles, 2=orbs, 3=sweep
+let animating = true;
+
+// ===== Content Data =====
+const C = [
+  // stage 0: loading
+  { title:'未命名标题', meta:'2026年4月22日 · 1页', src:'正在转录音频... 05:32/12:35', html:'', skelCount:6 },
+  // stage 1: generating
+  { title:'未命名标题', meta:'2026年4月22日 · 会议纪要', src:'12:35 · 已转录完成',
+    html:`<h3>会议要点</h3><p><strong>参会人员：</strong>张三、李四、王五、赵六</p><p><strong>时间：</strong>2026年4月21日 10:00-11:30</p><h3>1. V2.0 核心功能优先级</h3><p>• 语音转写优化（P0）——准确率目标从85%提升到95%</p><p>• AI摘要增强（P0）——支持多轮对话式修改</p><p>• 多端同步（P1）——手机/平板/手表三端</p><h3>2. 里程碑规划</h3><p>• 4月底：语音转写2.0上线</p><p>• 5月中：AI摘要 + 编辑器升级<span class="tc"></span></p>`,
+    skelCount:3 },
+  // stage 2: complete
+  { title:'产品评审会纪要', meta:'2026年4月21日 · 会议纪要 · 3页', src:'12:35 · 已转录完成',
+    html:`<h3>会议要点</h3><p><strong>参会人员：</strong>张三、李四、王五、赵六</p><p><strong>时间：</strong>2026年4月21日 10:00-11:30</p><h3>1. V2.0 核心功能优先级</h3><p>• 语音转写优化（P0）——准确率目标从85%提升到95%</p><p>• AI摘要增强（P0）——支持多轮对话式修改</p><p>• 多端同步（P1）——手机/平板/手表三端</p><h3>2. 里程碑规划</h3><p>• 4月底：语音转写2.0上线</p><p>• 5月中：AI摘要 + 编辑器升级</p><p>• 6月初：多端同步Beta测试</p><h3>3. 待办事项</h3><p>☐ 整理V2.0需求文档 · @李四 · 本周五前</p><p>☐ 设计稿评审 · @王五 · 下周一</p><p>☐ 技术方案评审 · @赵六 · 下周三</p><p>☑ 竞品分析报告 · @张三 · 已完成</p><p>☑ 用户调研总结 · @李四 · 已完成</p>`,
+    skelCount:0 }
+];
+
+function goStage(s) {
+  stage = s;
+  ['s0','s1','s2'].forEach((id,i) => document.getElementById(id).classList.toggle('on', i===s));
+  const d = C[s];
+  document.getElementById('tt').textContent = d.title;
+  document.getElementById('mt').textContent = d.meta;
+  document.getElementById('sd').textContent = d.src;
+  document.getElementById('art').innerHTML = d.html;
+  const skel = document.getElementById('skel');
+  const lines = skel.querySelectorAll('.sk');
+  if(d.skelCount === 0) { skel.style.display = 'none'; }
+  else { skel.style.display = ''; lines.forEach((l,i) => l.style.display = i < d.skelCount ? '' : 'none'); }
+  document.getElementById('bbar').style.display = s === 2 ? 'none' : '';
+  document.getElementById('toast').classList.remove('show');
+  animating = s < 2;
+  if(s === 2) {
+    setTimeout(() => document.getElementById('toast').classList.add('show'), 200);
+    setTimeout(() => document.getElementById('toast').classList.remove('show'), 1800);
+  }
+  document.getElementById('page').scrollTop = 0;
+}
+
+function goFx(f) {
+  fxMode = f;
+  ['f0','f1','f2','f3'].forEach((id,i) => document.getElementById(id).classList.toggle('on', i===f));
+}
+
+// ===== Particles for mode 1 =====
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * W;
+    this.y = H + Math.random() * 40;
+    this.size = 2 + Math.random() * 3;
+    this.speed = 0.3 + Math.random() * 0.6;
+    this.opacity = 0.3 + Math.random() * 0.5;
+    this.hue = 220 + Math.random() * 40; // blue-purple range
+  }
+  update() {
+    this.y -= this.speed;
+    this.x += Math.sin(this.y * 0.008) * 0.3;
+    if(this.y < -10) this.reset();
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${this.hue}, 80%, 65%, ${this.opacity})`;
+    ctx.fill();
+  }
+}
+const particles = Array.from({length: 40}, () => new Particle());
+
+// ===== Orbs for mode 2 =====
+const orbs = [
+  { x: W*0.2, y: H*0.3, r: 120, dx: 0.3, dy: 0.2, hue: 220 },
+  { x: W*0.7, y: H*0.5, r: 100, dx: -0.25, dy: 0.35, hue: 260 },
+  { x: W*0.4, y: H*0.7, r: 80, dx: 0.2, dy: -0.3, hue: 240 },
+];
+
+// ===== Sweep for mode 3 =====
+let sweepY = -200;
+
+// ===== Edge glow time =====
+let t = 0;
+
+// ===== Render =====
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  t += 0.016;
+
+  if(!animating) { requestAnimationFrame(render); return; }
+
+  if(fxMode === 0) drawEdgeGlow();
+  else if(fxMode === 1) drawParticles();
+  else if(fxMode === 2) drawOrbs();
+  else if(fxMode === 3) drawSweep();
+
+  requestAnimationFrame(render);
+}
+
+function drawEdgeGlow() {
+  const pulse = 0.5 + 0.5 * Math.sin(t * 1.5);
+  const alpha = 0.08 + pulse * 0.1;
+
+  // Top edge - strong blue glow
+  const gt = ctx.createLinearGradient(0, 0, 0, 140);
+  gt.addColorStop(0, `rgba(0, 122, 255, ${alpha * 2})`);
+  gt.addColorStop(0.4, `rgba(88, 86, 214, ${alpha})`);
+  gt.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gt;
+  ctx.fillRect(0, 0, W, 140);
+
+  // Bottom edge
+  const gb = ctx.createLinearGradient(0, H, 0, H - 140);
+  gb.addColorStop(0, `rgba(88, 86, 214, ${alpha * 1.5})`);
+  gb.addColorStop(0.4, `rgba(175, 82, 222, ${alpha * 0.8})`);
+  gb.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gb;
+  ctx.fillRect(0, H - 140, W, 140);
+
+  // Left edge
+  const gl = ctx.createLinearGradient(0, 0, 80, 0);
+  gl.addColorStop(0, `rgba(0, 122, 255, ${alpha * 1.2})`);
+  gl.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gl;
+  ctx.fillRect(0, 0, 80, H);
+
+  // Right edge
+  const gr = ctx.createLinearGradient(W, 0, W - 80, 0);
+  gr.addColorStop(0, `rgba(88, 86, 214, ${alpha * 1.2})`);
+  gr.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gr;
+  ctx.fillRect(W - 80, 0, 80, H);
+
+  // Flowing bright spot on top
+  const flowX = (W * 0.5) + Math.sin(t * 2) * (W * 0.35);
+  const gf = ctx.createRadialGradient(flowX, 0, 0, flowX, 0, 100);
+  gf.addColorStop(0, `rgba(0, 122, 255, ${0.2 + pulse * 0.15})`);
+  gf.addColorStop(0.5, `rgba(88, 86, 214, ${0.08 + pulse * 0.06})`);
+  gf.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gf;
+  ctx.fillRect(flowX - 100, 0, 200, 100);
+
+  // Flowing bright spot on bottom
+  const flowX2 = (W * 0.5) + Math.sin(t * 1.7 + 2) * (W * 0.35);
+  const gf2 = ctx.createRadialGradient(flowX2, H, 0, flowX2, H, 100);
+  gf2.addColorStop(0, `rgba(175, 82, 222, ${0.15 + pulse * 0.1})`);
+  gf2.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gf2;
+  ctx.fillRect(flowX2 - 100, H - 100, 200, 100);
+}
+
+function drawParticles() {
+  particles.forEach(p => { p.update(); p.draw(); });
+
+  // Bottom glow source
+  const gb = ctx.createLinearGradient(0, H, 0, H - 80);
+  gb.addColorStop(0, 'rgba(0, 122, 255, 0.08)');
+  gb.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gb;
+  ctx.fillRect(0, H - 80, W, 80);
+}
+
+function drawOrbs() {
+  orbs.forEach(o => {
+    o.x += o.dx; o.y += o.dy;
+    if(o.x < -o.r || o.x > W + o.r) o.dx *= -1;
+    if(o.y < -o.r || o.y > H + o.r) o.dy *= -1;
+
+    const pulse = 0.6 + 0.4 * Math.sin(t * 1.2 + o.hue);
+    const g = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.r);
+    g.addColorStop(0, `hsla(${o.hue}, 70%, 60%, ${0.15 * pulse})`);
+    g.addColorStop(0.4, `hsla(${o.hue}, 70%, 60%, ${0.08 * pulse})`);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function drawSweep() {
+  sweepY += 1.5;
+  if(sweepY > H + 200) sweepY = -200;
+
+  const g = ctx.createLinearGradient(0, sweepY - 120, 0, sweepY + 120);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(0.2, 'rgba(0, 122, 255, 0.06)');
+  g.addColorStop(0.5, 'rgba(88, 86, 214, 0.1)');
+  g.addColorStop(0.8, 'rgba(175, 82, 222, 0.06)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, sweepY - 120, W, 240);
+
+  // Bright center line
+  ctx.beginPath();
+  ctx.moveTo(W * 0.05, sweepY);
+  ctx.lineTo(W * 0.95, sweepY);
+  const lg = ctx.createLinearGradient(0, 0, W, 0);
+  lg.addColorStop(0, 'rgba(0,122,255,0)');
+  lg.addColorStop(0.3, 'rgba(0,122,255,0.15)');
+  lg.addColorStop(0.5, 'rgba(88,86,214,0.2)');
+  lg.addColorStop(0.7, 'rgba(175,82,222,0.15)');
+  lg.addColorStop(1, 'rgba(175,82,222,0)');
+  ctx.strokeStyle = lg;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+requestAnimationFrame(render);
+</script>
+
+</body>
+</html>
